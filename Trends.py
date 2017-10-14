@@ -1,105 +1,84 @@
 from __future__ import print_function
-import talib
 import Bitfinex_API as ba
-import pandas as pd
 import numpy as np
-from math import factorial
 import matplotlib.pyplot as plt
-import weasyprint
-import datetime
-from scipy.signal import argrelextrema
-from scipy.cluster.vq import kmeans
 
 
-
-def savitzky_golay(y, window_size, order, deriv=0, rate=1):
-    try:
-        window_size = np.abs(np.int(window_size))
-        order = np.abs(np.int(order))
-    except ValueError as msg:
-        raise ValueError("window_size and order have to be of type int")
-
-    if window_size % 2 != 1 or window_size < 1:
-        raise TypeError("window_size size must be a positive odd number")
-    if window_size < order + 2:
-        raise TypeError("window_size is too small for the polynomials order")
-    order_range = range(order+1)
-    half_window = (window_size -1) // 2
-
-    # precompute coefficients
-    b = np.mat([[k**i for i in order_range] for k in range(-half_window, half_window+1)])
-    m = np.linalg.pinv(b).A[deriv] * rate**deriv * factorial(deriv)
-    # pad the signal at the extremes with
-    # values taken from the signal itself
-    firstvals = y[0] - np.abs( y[1:half_window+1][::-1] - y[0] )
-    lastvals = y[-1] + np.abs(y[-half_window-1:-1][::-1] - y[-1])
-    y = np.concatenate((firstvals, y, lastvals))
-    return np.convolve( m[::-1], y, mode='valid')
-
-data = ba.Bitfinex_numpy('BTCUSD', '1D', 100)
+# Example data
+data = ba.Bitfinex_numpy('ETHUSD', '1D', 200)
 close = data['close']
-smooth_close = savitzky_golay(data['close'], 5, 3) # window size 51, polynomial order 3
+
+
+# RESISTANCE LEVELS
+# Input: (<class 'numpy.ndarray'>, const  = 2)
+# Output: <class 'list'>
+# Remarks: add dependency on period etc. 1H, 6H; tbd if change output to numpy.array
+def ResistanceLevel(close, const = 2):
+    import statistics
+
+    # Search for local maxs
+    lis = []
+    for i in range(0, close.size-21):
+        if max(close[i:(i + 7)]) == max(close[i:(i + 21)]):
+            lis.append(max(close[i:(i + 7)]))
+        if max(close[i:(i + 7)]) == max(close[i:(i + 14)]):
+            lis.append(max(close[i:(i + 7)]))
+    resistance = np.sort(list(set(lis)))
+
+    # Frequency distribution
+    # The const value is additional param for calculating FD number of boxes
+    N = int(resistance.size**0.5 * const)
+    vmin = resistance[0]
+    vmax = resistance[-1]
+    len = resistance[-1] - resistance[0]
+    h = len / N
+
+    l =[]
+    series = []
+    for i in range(0 , N):
+        for j in resistance:
+            # Add values to i-box
+            if (vmin + i * h) <= j <= (vmin + (i+ 1) * h):
+                l.append(j)
+        if l != []:
+            #series.update({i:[statistics.mean(l)]})
+            series.append(statistics.mean(l))
+        l = []
+
+    return series
+
 '''
-x=range(0,len(data['close']))
-plt.plot(x, data['close'], 'r', x, smooth_close, 'b')
+x=range(0,data['close'].size)
+
+#series = lis
+sup_plot0 = np.array([series[0] for i in range(0,data['close'].size)])
+sup_plot1 = np.array([series[1] for i in range(0,data['close'].size)])
+sup_plot2 = np.array([series[2] for i in range(0,data['close'].size)])
+sup_plot3 = np.array([series[3] for i in range(0,data['close'].size)])
+sup_plot4 = np.array([series[4] for i in range(0,data['close'].size)])
+sup_plot5 = np.array([series[5] for i in range(0,data['close'].size)])
+sup_plot6 = np.array([series[6] for i in range(0,data['close'].size)])
+#sup_plot7 = np.array([series[7] for i in range(0,data['close'].size)])
+#sup_plot8 = np.array([series[7] for i in range(0,data['close'].size)])
+#sup_plot9 = np.array([series[7] for i in range(0,data['close'].size)])
+
+plt.plot(x, data['close'], 'r', x, smooth_close, 'b',
+        x, sup_plot0, 'g',
+        x, sup_plot1, 'g',
+        x, sup_plot2, 'g',
+        x, sup_plot3, 'g',
+        x, sup_plot4, 'g',
+        x, sup_plot5, 'g',
+        x, sup_plot6, 'g',
+  #      x, sup_plot7, 'g',
+   #     x, sup_plot8, 'g',
+    #    x, sup_plot9, 'g',
+
+         )
+
 plt.show()
 
-
-# SUPPORT AND RESISTANCE
-support = []
-resistance = []
-for i in range(0, len(data['close'])-14):
-    if smooth_close[i] < smooth_close[i+7] > smooth_close[i+14] and \
-            ( smooth_close[i+7] / smooth_close[i+14]-1)>0.002:
-        resistance.append(smooth_close[i+2])
-
-    if smooth_close[i] > smooth_close[i+7] < smooth_close[i+14] and \
-                    ( smooth_close[i+14] / smooth_close[i+7]-1)>0.002:
-        support.append(smooth_close[i+2])
-
-print('support', support)
-print('resistance', resistance)
-'''
-'''
-resistance = np.r_[True, close[1:] < close[:-1]] & np.r_[close[:-1] < close[1:], True]
-print(resistance)
-print(len(resistance))
 '''
 
 
 
-# for local maxima
-resistance = close[argrelextrema(close, np.greater)[0]]
-print(resistance)
-resistance = np.sort(resistance)
-
-import statistics
-
-N = int(len(resistance)**0.5)+1
-vmax = resistance[-1]
-vmin = resistance[0]
-len = vmax - vmin
-h = len / N
-
-
-l =[]
-series = []
-for i in range(1,N):
-    for j in range (0, resistance.size):
-        if (vmin + (i-1)*h) <= resistance[j] <= (vmin + i*h):
-            l.append(resistance[j])
-    series.append(l)
-    #series.update({i:[statistics.mean(l), statistics.stdev(l)]})
-    l = []
-
-
-print(series)
-
-
-
-
-
-
-# for local minima
-support = close[argrelextrema(close, np.less)[0]]
-print(support)
