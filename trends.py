@@ -1,12 +1,16 @@
 from __future__ import print_function
 import Bitfinex_API as ba
 import numpy as np
+import talib
 import matplotlib.pyplot as plt
 
 
 # Example data
 
-data = ba.Bitfinex_numpy('BTCUSD', '1D', 200)
+data = ba.Bitfinex_numpy('BTCUSD', '6h', 300)
+open = data['open']
+high = data['high']
+low = data['low']
 close = data['close']
 
 
@@ -89,16 +93,6 @@ def SupportLevel(close, const = 2):
 
 
 
-'''
-speed = []
-for i in range(0, close.size):
-    if speed == []:
-        speed.append(0)
-    else:
-        speed.append(close[i]-close[i-1])
-print(speed)
-'''
-
 def ResistanceSpeed(close, const=2):
     import statistics
 
@@ -139,7 +133,7 @@ x=range(0,data['close'].size)
 plt.plot(x, speed, 'r',
          x, data['close'], 'b')
 plt.show()
-'''
+
 
 
 
@@ -162,7 +156,7 @@ plt.plot(x, data['close'], 'r',
          )
 plt.show()
 
-'''
+
 x=range(0,data['close'].size)
 
 #series = lis
@@ -194,6 +188,4 @@ plt.plot(x, data['close'], 'r', x, smooth_close, 'b',
 plt.show()
 
 '''
-
-
 
