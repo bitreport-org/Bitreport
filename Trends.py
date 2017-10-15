@@ -5,11 +5,8 @@ import matplotlib.pyplot as plt
 
 
 # Example data
-<<<<<<< HEAD
+
 data = ba.Bitfinex_numpy('BTCUSD', '1D', 200)
-=======
-data = ba.Bitfinex_numpy('ETHUSD', '1D', 200)
->>>>>>> 1f5f83ce47ef1d55d80ced0e127852d135b672c2
 close = data['close']
 
 
@@ -51,7 +48,6 @@ def ResistanceLevel(close, const = 2):
 
     return series
 
-<<<<<<< HEAD
 
 # SUPPORT LEVELS
 # Input: (<class 'numpy.ndarray'>, const  = 2)
@@ -166,7 +162,6 @@ plt.plot(x, data['close'], 'r',
          )
 plt.show()
 
-=======
 '''
 x=range(0,data['close'].size)
 
@@ -200,6 +195,5 @@ plt.show()
 
 '''
 
->>>>>>> 1f5f83ce47ef1d55d80ced0e127852d135b672c2
 
 

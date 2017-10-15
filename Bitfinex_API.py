@@ -6,11 +6,9 @@ import numpy as np
 
 # DATA IMPORT AND EXPORT
 
-<<<<<<< HEAD
+
 # Bitreport Import List
-=======
 # Bitfinex API Import List
->>>>>>> 1f5f83ce47ef1d55d80ced0e127852d135b672c2
 # Input: (PAIR, period, limit) , ['BTCUSD', '1h', 200]
 # Output: list [[DATE, OPEN, CLOSE, HIGH, LOW, VOLUME], ...]
 # Remarks: all available periods formats could be find in Bitfinex documentation
@@ -25,12 +23,8 @@ def import_data(pair, period, limit):
     return candel_list
 
 
-
-<<<<<<< HEAD
 # Bitreport Import Data frame
-=======
 # Bitfinex API Import Data frame
->>>>>>> 1f5f83ce47ef1d55d80ced0e127852d135b672c2
 # Input: (PAIR, period, limit) , ('BTCUSD', '1h', 200)
 # Output: pandas data frame [[DATE, OPEN, CLOSE, HIGH, LOW, VOLUME], ...]
 # Remarks: all available periods formats could be find in Bitfinex documentation
@@ -61,148 +55,10 @@ def export_csv(pair, period, limit):
         writer = csv.writer(f)
         writer.writerows(list)
 
-# INDICATORS
-# Simple Moving Average
-# Input: (length, [[data, open, close, ... ], type='open'/None]
-# Output: [[date, SMA_value], ...]
-def SMA(length, data, type=2):
-    # default type is close positions
-    if type == 'open': t = 1
-    l = len(data)
-    SMA = []
-    sum = 0
-    for i in range(length, l):
-        for j in range(i - length, i):
-            sum = sum + data[j][type]
-        SMA.append([data[i][0], sum / length])
-        sum = 0
-
-    return SMA
 
 
-
-# Exponential Moving Average
-# Input: (length, [[data, open, close, ... ]]
-# Output: [[date, EMA_value], ...]
-def EMA(length, data):
-    sma = SMA(length, data)
-    EMA = [sma[0]]
-    m = 2/ (length + 1)
-    for i in range(1 , len(sma)):
-        EMA.append([sma[i][0], (data[i+length][2]-EMA[i-1][1])*m + EMA[i-1][1]])
-
-    return EMA
-
-
-
-# Bollinger Bands List
-# Input: (SMA_length, band_width, [[data, open, close, ... ]], type='open'/None)
-# Output: [[date, SMA, DownLine, UpLine], ...]
-def BB_list(length, width, data, type=2):
-    # default type is close positions
-    if type=='open': t=1
-    l = len(data)
-    band=[]
-    sum = sum2 = ave = dev = 0
-    for i in range(0, length):
-        band.append([data[i][0],data[i][1], data[i][1], data[i][1]])
-
-    for i in range(length,l):
-        for j in range(i-length,i):
-            sum = sum+data[j][type]
-            sum2 = sum2+data[j][type]**2
-            ave = sum / length
-            dev = width * ((sum2 - length * (sum / length) ** 2) / length) ** 0.5
-        band.append([data[i][0], ave, ave - dev, ave + dev])
-        sum = sum2 = ave = dev = 0
-
-    return band
-
-
-# Bollinger Bands Data frame
-# Input: (SMA_length, band_width, [[data, open, close, ... ]], type='open'/None)
-# Output: pandas data frame [[data, SMA, DownLine, UpLine], ...]
-def BB(length, width, data, type=2):
-    # returns Bolinger Bands (length, width, type), default type is close positions
-    # output format: pandas dataframe
-    if type == 'open': t = 1
-    l = len(data)
-    band = []
-    sum = sum2 = ave = dev = 0
-    labels = ['Date', 'SMA', 'DownLine', 'UpLine']
-    for i in range(0, length):
-        band.append([data[i][0], data[i][1], data[i][1], data[i][1]])
-
-    for i in range(length, l):
-        for j in range(i - length, i):
-            sum = sum + data[j][type]
-            sum2 = sum2 + data[j][type] ** 2
-            ave = sum / length
-            dev = width * ((sum2 - length*(sum / length) ** 2) / length) ** 0.5
-        band.append([data[i][0], ave, ave - dev, ave + dev])
-        sum = sum2 = ave = dev = 0
-
-    return pd.DataFrame.from_records(band, columns=labels)
-
-
-
-# MACD list
-# Input: (slow_EMA, fast_EMA, signal, [[data, open, close, ... ]])
-# Output: [[date, MACD_line, Signal_line, Histogram], ...]
-def MACD_list(fast, slow, signal, data):
-    Slow_EMA = EMA(slow, 2, data)
-    Fast_EMA = EMA(fast, 2, data)
-    MACD_line =  []
-    list = []
-
-    # MACD line [data, MACD value, MACD value] second argument need to perform EMA
-    for i in range(0, len(Fast_EMA)):
-        MACD_line.append([Fast_EMA[i][0],
-                          Slow_EMA[i+len(Fast_EMA)-len(Slow_EMA)][1] - Fast_EMA[i][1],
-                          Slow_EMA[i+len(Fast_EMA)-len(Slow_EMA)][1] - Fast_EMA[i][1]])
-
-    # Signal line
-    signal_line = EMA(signal,2,MACD_line)
-
-    # [data, MACD, Signal, hist]
-    for i in range(0, len(signal_line)):
-        list.append([signal_line[i][0], MACD_line[i+signal][1], signal_line[i][1], MACD_line[i+9][1] -signal_line[i][1]])
-
-    return list
-
-
-# MACD Data frame
-# Input: (slow_EMA, fast_EMA, signal, [[data, open, close, ... ]])
-# Output: pandas data frame [[date, MACD_line, Signal_line, Histogram], ...]
-def MACD(slow, fast, signal, data):
-    Slow_EMA = EMA(slow, data)
-    Fast_EMA = EMA(fast, data)
-    MACD_line =  []
-    list = []
-
-    # MACD line [data, MACD value, MACD value] second argument need to perform EMA
-    for i in range(0, len(Slow_EMA)):
-        MACD_line.append([Fast_EMA[i][0],
-                          Fast_EMA[i + len(Fast_EMA) - len(Slow_EMA)][1] - Slow_EMA[i][1],
-                          Fast_EMA[i + len(Fast_EMA) - len(Slow_EMA)][1] - Slow_EMA[i][1]])
-
-    # Signal line
-    #print(pd.DataFrame.from_records(MACD_line, columns=['1','2','3']))
-    signal_line = EMA(signal, MACD_line)
-    #print(pd.DataFrame.from_records(signal_line, columns=['date', 'ema']))
-    # [data, MACD, Signal, hist]
-    for i in range(0, len(signal_line)):
-        list.append([signal_line[i][0], MACD_line[i+signal][1], signal_line[i][1], MACD_line[i+signal][1] -signal_line[i][1]])
-
-    return pd.DataFrame.from_records(list, columns=['Date', 'MACD', 'Signal_line', 'Histogram'])
-
-
-
-<<<<<<< HEAD
 # Bitreport Import numpy data frames
-=======
 # Bitfinex API Import numpy data frames
->>>>>>> 1f5f83ce47ef1d55d80ced0e127852d135b672c2
 # Input: (PAIR, period, limit) , ('BTCUSD', '1h', 200)
 # Output: dict {'date' : date_list,
 #               'open' : np.array,
