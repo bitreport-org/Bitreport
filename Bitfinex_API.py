@@ -6,7 +6,11 @@ import numpy as np
 
 # DATA IMPORT AND EXPORT
 
+<<<<<<< HEAD
+# Bitreport Import List
+=======
 # Bitfinex API Import List
+>>>>>>> 1f5f83ce47ef1d55d80ced0e127852d135b672c2
 # Input: (PAIR, period, limit) , ['BTCUSD', '1h', 200]
 # Output: list [[DATE, OPEN, CLOSE, HIGH, LOW, VOLUME], ...]
 # Remarks: all available periods formats could be find in Bitfinex documentation
@@ -22,7 +26,11 @@ def import_data(pair, period, limit):
 
 
 
+<<<<<<< HEAD
+# Bitreport Import Data frame
+=======
 # Bitfinex API Import Data frame
+>>>>>>> 1f5f83ce47ef1d55d80ced0e127852d135b672c2
 # Input: (PAIR, period, limit) , ('BTCUSD', '1h', 200)
 # Output: pandas data frame [[DATE, OPEN, CLOSE, HIGH, LOW, VOLUME], ...]
 # Remarks: all available periods formats could be find in Bitfinex documentation
@@ -190,7 +198,11 @@ def MACD(slow, fast, signal, data):
 
 
 
+<<<<<<< HEAD
+# Bitreport Import numpy data frames
+=======
 # Bitfinex API Import numpy data frames
+>>>>>>> 1f5f83ce47ef1d55d80ced0e127852d135b672c2
 # Input: (PAIR, period, limit) , ('BTCUSD', '1h', 200)
 # Output: dict {'date' : date_list,
 #               'open' : np.array,
