@@ -69,16 +69,65 @@ def Levels(close, strength=0.0):
 
 
 
+# dictionary of {[period, limit] : [sub_period, sub_limit]} must be created to determine sub values
+def HLdirection(pair, period, sub_period, limit, multiplier, startDate, endDate):
+    data = ba.Bitfinex_numpy_complet(pair, period, limit,startDate,endDate )
+    high = data['high'].tolist()
+    low = data['low'].tolist()
+
+    sub_limit = limit * multiplier + 30 # +30 for safety, should be fixe after database import
+    sub_data = ba.Bitfinex_numpy_complet(pair, sub_period, sub_limit, startDate,endDate )
+    sub_high = sub_data['high'].tolist()
+    sub_low = sub_data['low'].tolist()
+
+    date = data['date']
+
+    HLdirectory_list_date = []
+    HLdirectory_list_value = []
+    start = 0
+    for i in range(0, date.size):
+        print('H: ', date[i], high[i], low[i])
+        search_list_high = sub_high[start: start + multiplier-1]
+        print('High: ', search_list_high)
+        search_list_low = sub_low[start: start + multiplier-1]
+        print('Low: ', search_list_low)
+
+        if search_list_high.index(max(search_list_high)) >= search_list_low.index((min(search_list_low))):
+            HLdirectory_list_date.append(date[i])
+            HLdirectory_list_value.append(high[i]-low[i])
+        elif search_list_high.index(max(search_list_high)) < search_list_low.index((min(search_list_low))):
+            HLdirectory_list_date.append(date[i])
+            HLdirectory_list_value.append(low[i] - high[i])
+        start += multiplier
+
+    return {'date' : HLdirectory_list_date , 'direction': HLdirectory_list_value}
 
 
-# Example data
-# pair, period = 'ETPUSD', '1h'
-#
+
+
+# Example data  Levels
+#pair, period = 'ETPUSD', '1h'
 # data = ba.Bitfinex_numpy(pair, period, 60)
-#
+# print(data['close'])
 # close = data['close']
 # rs = Levels(close, 0.06)
 # print(rs)
 
+# Example data HLdirectory
+# pair, period , limit= 'ETPUSD', '1h', 100
+#
+# data = ba.Bitfinex_numpy_complet(pair, period, limit,'2017-10-14 16','2017-10-17 13' )
+# HL = HLdirection(pair,period, '15m', limit, 4, '2017-10-14 16','2017-10-17 13')
+# print(HL)
+#
+# x=range(0,data['close'].size)
+# fig, ax = plt.subplots()
+# date, open, high, low, close = data['date'], data['open'], data['high'], data['low'], data['close']
+#
+# from matplotlib.finance import candlestick2_ohlc
+# candlestick2_ohlc(ax, open, high, low, close, width=0.6)
+#
+# plt.bar(x, HL['direction'])
+# plt.show()
 
 

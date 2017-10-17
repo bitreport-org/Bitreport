@@ -3,6 +3,7 @@ import requests
 import csv
 import pandas as pd
 import numpy as np
+from time import gmtime, strftime
 
 # DATA IMPORT AND EXPORT
 
@@ -102,5 +103,40 @@ def Bitfinex_numpy(pair, period, limit):
     return candles_dict
 
 
+
+#Returns data between (pair, period, limit,'2017-10-14 16:13:12','2017-10-17 13:13:12' )
+def Bitfinex_numpy_complet(pair, period, limit, startDate, endDate):
+    url = 'https://api.bitfinex.com/v2/candles/trade:'+period+':t'+pair+'/hist?limit='+str(limit)+'&start=946684800000'
+    candel_list = requests.get(url).json()
+    candel_list.reverse()
+
+    date_list=[]
+    open_list=[]
+    close_list=[]
+    high_list=[]
+    low_list=[]
+    volume_list=[]
+
+    for i in range(0, len(candel_list)):
+
+        if startDate < datetime.datetime.fromtimestamp(int(float(candel_list[i][0]) / 1000.0)).strftime('%Y-%m-%d %H:%M:%S') < endDate :
+            # change mts to date
+            date_list.append(datetime.datetime.fromtimestamp(int(float(candel_list[i][0]) / 1000.0)).strftime('%Y-%m-%d %H:%M:%S'))
+            open_list.append(candel_list[i][1])
+            close_list.append(candel_list[i][2])
+            high_list.append(candel_list[i][3])
+            low_list.append(candel_list[i][4])
+            volume_list.append(candel_list[i][5])
+
+    candles_dict = {'date' : np.array(date_list),
+                    'open' : np.array(open_list),
+                    'close' : np.array(close_list),
+                    'high' : np.array(high_list),
+                    'low' : np.array(low_list),
+                    'volume' : np.array(volume_list)
+                    }
+
+
+    return candles_dict
 
 
