@@ -1,7 +1,7 @@
 import Bitfinex_API as ba
 import talib
 import numpy as np
-
+import configparser
 
 
 #FindPattern
@@ -101,5 +101,5 @@ def CheckAllPatterns(data):
 
 
 # Example data
-# data = ba.Bitfinex_numpy('ETHUSD', '1h', 100)
+# data = ba.Bitfinex_numpy('NEOUSD', '1h', 24)
 # print(CheckAllPatterns(data))

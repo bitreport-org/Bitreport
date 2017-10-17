@@ -1,4 +1,3 @@
-from __future__ import print_function
 import Bitfinex_API as ba
 import numpy as np
 import talib
@@ -36,43 +35,50 @@ def followingMin(close, strength):
 
 # Levels finds support and resistance [levels, position]
 # Input: (Bitfinex_numpy['close'], strength) the strength determinates how pointed extremas must be
-# Output: [[var1, var2,... ], [var1_position_in_close, ...]]
-# Remarks:strength in <0, 1> as a %
-def Levels(close, strength=0):
+# Output: [[var1, var2,... ], [var1_position_in_close, ...], [var1_type,...]]
+# Remarks:
+#           strength in <0, 1> as a %
+#           var_type = 100 -> resistance
+#           var_type = -100 -> support
+def Levels(close, strength=0.0):
     l =[]
     l_pos = []
+    l_type = []
     c=0
     while c < close.size-1:
-        if close[c+1] >= close[c]:
-            l.append(followingMax(close[c:], strength)[0])
-            l_pos.append(c + followingMax(close[c:], strength)[1])
+        check = c
+        if close[c+1] > (1 + strength) * close[c]:
+            l.append(followingMax(close[c:], 0)[0])
+            l_pos.append(c + followingMax(close[c:], 0)[1])
+            l_type.append(100)
             c = c + followingMax(close[c:], strength)[1]
+            #print('max' , c)
 
-        elif close[c+1] < close[c]:
-            l.append(followingMin(close[c:], strength)[0])
-            l_pos.append(c + followingMin(close[c:], strength)[1])
-            c = c + followingMin(close[c:], strength)[1]
+        elif close[c+1] < (1 - strength) *close[c]:
+            l.append(followingMin(close[c:], 0)[0])
+            l_pos.append(c + followingMin(close[c:], 0)[1])
+            l_type.append(-100)
+            c = c + followingMin(close[c:], 0)[1]
+            #print('min', c)
+
+        if check == c:
+            c += 1
+            #print('neutral',c)
+
+    return [l, l_pos, l_type]
 
 
-    return [l, l_pos]
 
 
 
-
-
-# # Example data
-# data = ba.Bitfinex_numpy('BTCUSD', '3h', 100)
+# Example data
+# pair, period = 'ETPUSD', '1h'
+#
+# data = ba.Bitfinex_numpy(pair, period, 60)
+#
 # close = data['close']
-#
-# rs = Levels(close,0)
-#
-# x=range(0,data['close'].size)
-#
-# fig = plt.figure(figsize=(10,6))
-#
-# for j in range(0, len(rs[1])):
-#     plt.plot(x, np.array([rs[0][j] for i in x]), 'g')
-#
-# plt.plot(x, data['close'], 'r')
-# plt.show()
+# rs = Levels(close, 0.06)
+# print(rs)
+
+
 

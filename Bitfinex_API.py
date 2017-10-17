@@ -17,6 +17,7 @@ def import_data(pair, period, limit):
     url = 'https://api.bitfinex.com/v2/candles/trade:'+period+':t'+pair+'/hist?limit='+str(limit)+'&start=946684800000'
     candel_list = requests.get(url).json()
     candel_list.reverse()
+
     # change mts to date
     candel_list = [[datetime.datetime.fromtimestamp(int(time / 1000.0)).strftime('%Y-%m-%d %H:%M:%S'), *rest] for
                    (time, *rest) in candel_list]
@@ -89,7 +90,7 @@ def Bitfinex_numpy(pair, period, limit):
         low_list.append(candel_list[i][4])
         volume_list.append(candel_list[i][5])
 
-    candles_dict = {'date' : date_list,
+    candles_dict = {'date' : np.array(date_list),
                     'open' : np.array(open_list),
                     'close' : np.array(close_list),
                     'high' : np.array(high_list),
