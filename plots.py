@@ -68,26 +68,26 @@ def PlotPair(pair, period, levelStrength = 0.0, savePlot = False):
 
 
 #Plot Waves 1
-data = ba.Bitfinex_numpy_complet(pair, '12h', 200, '2017-08', '2017-11')
+def plotWaveDaily(pair, limit = 200, start = '2017-08', end = '2017-11'):
+    data = ba.Bitfinex_numpy_complet(pair, '12h', limit , start , end )
+    low = data['low']
+    high = data['high']
 
-low = data['low']
-high = data['high']
+    month = []
 
-month = []
+    for i in range(1, low.size):
+        if low[i] > low[i-1] and high[i]>high[i-1]:
+            month.append(low[i-1])
+            month.append(high[i])
+        else:
+            month.append(min(low[i - 1], low[i]))
+            month.append(max(high[i], high[i-1]))
 
-for i in range(1, low.size):
-    if low[i] > low[i-1] and high[i]>high[i-1]:
-        month.append(low[i-1])
-        month.append(high[i])
-    else:
-        month.append(min(low[i - 1], low[i]))
-        month.append(max(high[i], high[i-1]))
+    x=range(0, len(month))
+    fig, ax = plt.subplots()
+    plt.plot(x, month)
+    plot_name = 'Daily chart [High / Low , Low / High] for ' + pair
+    plt.title(plot_name)
+    plt.show()
 
-print(high.size, len(month))
-
-x=range(0, len(month))
-fig, ax = plt.subplots()
-plt.plot(x, month)
-plot_name = 'Daily chart [High / Low , Low / High] for ' + pair
-plt.title(plot_name)
-plt.show()
+plotWaveDaily('BTCUSD')
