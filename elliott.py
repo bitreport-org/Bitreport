@@ -65,6 +65,10 @@ class Wave:
             elif wave[i] > max(m1.a, m1.b) or wave[i] < min(m1.a, m1.b):
                 break
             i+=1
+
+        if sub == []:
+            sub.append([start, end])
+
         if len(sub) % 2 == 0:
             end= sub[-1][0]
             sub.pop()
@@ -76,10 +80,10 @@ class Wave:
 
 
 # Example
-# m1 = MonoWave(10,12)
-# x = Wave(m1, [11, 11.5, 9.5, 13])
-#
-# print(x.a, x.b, x.sub)
+m1 = MonoWave(10,12)
+x = Wave(m1, [9, 11.5, 9.5, 13])
+
+print(x.a, x.b, x.sub)
 
 
 
