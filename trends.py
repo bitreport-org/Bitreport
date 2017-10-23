@@ -2,6 +2,7 @@ import Bitfinex_API as ba
 import numpy as np
 import talib
 import matplotlib.pyplot as plt
+import statistics
 
 # followingMax finds first maximum in close
 # Input: (Bitfinex_numpy['close'], strength) the strength determinates how pointed maximas must be
@@ -240,3 +241,53 @@ def HLdirection(pair, period, sub_period, limit, multiplier, startDate, endDate)
 #
 # fig.tight_layout()
 # plt.show()
+
+
+# Elliott Wave Oscillator
+def elliottWaveOscillator(data, fast = 5, slow = 35):
+    close = data['close']
+    return talib.EMA(close, fast) - talib.EMA(close, slow)
+
+
+#Channel
+
+def channel(data):
+    ewo = elliottWaveOscillator(data).tolist()
+    start = ewo[-1]
+    min = start
+    max = start
+
+    positive = [] #list of last positive ewo value
+    negative = [] # #list of last non-positive ewo value
+    for i in ewo:
+        if i > 0:
+            positive.append(i)
+        else:
+            negative.append(i)
+
+    if start <= 0:
+        positive.reverse()
+        max = positive[0]
+        for i in range(1, len(positive)):
+            if max < positive[i]:
+                max = positive[i]
+
+    if start > 0:
+        negative.reverse()
+        min = negative[0]
+        for i in range(1, len(negative)):
+            if min < negative[i]:
+                min = negative[i]
+
+    close = data['close']
+    min_index = ewo.index(min)
+    max_index = ewo.index(max)
+
+    channel_list = close[min_index : max_index]
+    channel_dev = statistics.stdev(channel_list)
+
+    return {'min_index': min_index , 'min_value': close[min_index],
+            'max_index': max_index, 'max_value': close[max_index],
+            'dev' : channel_dev} # assumes that ewo values are unique
+
+
