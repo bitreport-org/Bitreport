@@ -43,45 +43,89 @@ class MonoWave:
     def __init__(self, a, b):
         self.a = a
         self.b = b
+        self.sub = [[a,b]]
 
 
-class Wave:
-    # m1 = [a, b] is a starting monovawe
-    # wave is i a list of point followin b : [c,d,...]
-    def __init__(self, m1, wave):
-        start = m1.b
-        end = wave[0]
-        sub = []
 
+# m1 = [a, b] is a starting monovawe
+# wave is i a list of point followin b : [c,d,...]
+def CreateMonoWave(m1, wave):
+    start = m1.b
+    end = wave[0]
+    sub = []
 
-        i=0
-        last_end = start
+    i=0
+    last_end = start
+    last_start = m1.a
 
-        while True:
+    while True:
+        if i < len(wave):
             if m1.a < wave[i] < m1.b:
                 sub.append([last_end, wave[i]])
+                last_start = last_end
                 last_end=wave[i]
                 end = wave[i]
-            elif wave[i] > max(m1.a, m1.b) or wave[i] < min(m1.a, m1.b):
+            elif len(sub) > 1 and wave[i] > max(m1.a, m1.b) and wave[i] > last_start:
+                sub.append([last_end, wave[i]])
+                end = wave[i]
                 break
-            i+=1
+            elif len(sub) > 1 and wave[i] < min(m1.a, m1.b) and wave[i] < last_start:
+                sub.append([last_end, wave[i]])
+                end = wave[i]
+                break
+            i += 1
 
-        if sub == []:
-            sub.append([start, end])
+    if sub == []:
+        sub.append([start, end])
 
-        if len(sub) % 2 == 0:
-            end= sub[-1][0]
-            sub.pop()
+    if len(sub) % 2 == 0:
+        end= sub[-1][0]
+        sub.pop()
 
 
-        self.a = start
-        self.b = end
-        self.sub = sub
+    mono = MonoWave(start, end)
+    mono.sub = sub
+    return mono
+
+
+# class Wave:
+#     # m1 = [a, b] is a starting monovawe
+#     # wave is i a list of point followin b : [c,d,...]
+#     def __init__(self, m1, wave):
+#         start = m1.b
+#         end = wave[0]
+#         sub = []
+#
+#
+#         i=0
+#         last_end = start
+#
+#         while True:
+#             if m1.a < wave[i] < m1.b:
+#                 sub.append([last_end, wave[i]])
+#                 last_end=wave[i]
+#                 end = wave[i]
+#             elif wave[i] > max(m1.a, m1.b) or wave[i] < min(m1.a, m1.b):
+#                 break
+#             i+=1
+#
+#         if sub == []:
+#             sub.append([start, end])
+#
+#         if len(sub) % 2 == 0:
+#             end= sub[-1][0]
+#             sub.pop()
+#
+#
+#         self.mono = [start, end]
+#         self.sub = sub
 
 
 # Example
-m1 = MonoWave(10,12)
-x = Wave(m1, [9, 11.5, 9.5, 13])
+
+m1 = MonoWave(12,15)
+print(m1.sub)
+x = CreateMonoWave(m1, [15,13,14,13.5, 14, 16])
 
 print(x.a, x.b, x.sub)
 

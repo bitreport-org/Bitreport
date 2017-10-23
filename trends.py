@@ -276,7 +276,7 @@ def channel(data):
         negative.reverse()
         min = negative[0]
         for i in range(1, len(negative)):
-            if min < negative[i]:
+            if min > negative[i]:
                 min = negative[i]
 
     close = data['close']
