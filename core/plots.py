@@ -8,10 +8,6 @@ import matplotlib.dates as mdates
 import elliott
 
 
-
-
-
-
 def PlotPair(pair, period, limit, levelStrength = 0.0, savePlot = False):
     data = ba.Bitfinex_numpy(pair, period, limit)
     date, open, high, low, close = data['date'], data['open'], data['high'], data['low'], data['close']
@@ -153,58 +149,46 @@ def PlotLevels(pair, period, limit, levelStrength = 0.0, savePlot = False):
         fig.savefig(plot_name+'.svg', dpi = 200)
 
 
+#Plot Channel
+def PlotChannel(pair, period, limit, const = -1):
+    data = ba.Bitfinex_numpy(pair, period, limit)
+    date, open, high, low, close = data['date'], data['open'], data['high'], data['low'], data['close']
 
-data = ba.Bitfinex_numpy('BTCUSD', '1D',60)
-print(trends.channel(data))
-PlotLevels('BTCUSD', '1D',60,  0.05, True)
+    # CANDELSTICK PLOT
 
-# def HLdata(data, limit):
-#     date,  high, low = data['date'].tolist(),  data['high'], data['low']
-#     series = []
-#
-#     for i in range(1, low.size):
-#         if low[i] > low[i - 1] and high[i] > high[i - 1]:
-#             series.append(low[i - 1])
-#             series.append(high[i])
-#         elif low[i] >= low[i - 1] and high[i] <= high[i - 1]:  # often may be not true
-#             series.append(high[i])
-#             series.append(low[i - 1])
-#         elif low[i] < low[i - 1] and high[i] < high[i - 1]:
-#             series.append(high[i - 1])
-#             series.append(low[i])
-#         elif low[i] < low[i - 1] and high[i] > high[i - 1]:
-#             series.append(low[i])
-#             series.append(high[i])
-#
-#
-#     # x = range(0, len(series))
-#     # fig, ax = plt.subplots()
-#     # plt.plot(x, series)
-#     # #plot_name = 'Daily chart [High / Low , Low / High] for ' + pair
-#     # #plt.title(plot_name)
-#     # plt.show()
-#
-#     return series
-#
-# # Example data
-# pair, period, limit = 'OMGUSD', '1h', 10
-# data = ba.Bitfinex_numpy(pair, period, limit)
-# series = HLdata(data, limit)
-# hl=series
-#
-# # start = elliott.MonoWave(hl[1], hl[2])
-# # print(start.sub)
-# # index = 2
-# i=0
-#
-# while i < 10 :#start.b != hl[-1]:
-#     nwave = elliott.MonoWave(hl[i], hl[i+1])
-#     print('m1 : ', nwave.sub)
-#     # next = elliott.CreateMonoWave(nwave, hl[i+2:])
-#     # print(next.sub)
-#     i += 1
-#
-# x = range(0, len(series))
-# fig, ax = plt.subplots()
-# plt.plot(x, series)
-# plt.show()
+    x=range(0,data['close'].size)
+    fig, ax = plt.subplots()
+    candlestick2_ohlc(ax, open, high, low, close, width=0.6)
+
+    # LABELS
+    labels = [i for i in date]
+    # labels[1] = 'Testing'
+
+    ax.set_xticklabels(labels)
+    x = range(0, data['close'].size)
+    plt.xticks(x, labels, rotation=45)
+    plt.xticks(np.arange(0, data['close'].size, 12))
+
+
+    # CHANNELS
+    channel_points = trends.channel(data, const)
+    dev = channel_points['dev']
+    x_channel = [channel_points['min_index'], channel_points['max_index']]
+    y1_channel = [channel_points['min_value'] - dev, channel_points['max_value'] - dev]
+    y2_channel = [channel_points['min_value'], channel_points['max_value']]
+    y3_channel = [channel_points['min_value'] + dev, channel_points['max_value'] + dev]
+
+    plt.plot(x_channel, y1_channel)
+    plt.plot(x_channel, y2_channel)
+    plt.plot(x_channel, y3_channel)
+
+    # MAIN PLOT
+    plot_name = pair+':'+period
+    plt.title(plot_name)
+    plt.show()
+
+
+
+# Example
+#data = ba.Bitfinex_numpy('BTCUSD', '1D',60)
+PlotChannel('ETPUSD', '3h', 80, 3)

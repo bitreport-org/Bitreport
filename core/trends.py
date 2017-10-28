@@ -114,134 +114,6 @@ def HLdirection(pair, period, sub_period, limit, multiplier, startDate, endDate)
     return {'date' : HLdirectory_list_date , 'direction': HLdirectory_list_value}
 
 
-# Example data HLdirectory
-# pair, period , limit= 'ETPUSD', '1h', 100
-#
-# data = ba.Bitfinex_numpy_complet(pair, period, limit,'2017-10-14 16','2017-10-17 13' )
-# HL = HLdirection(pair,period, '15m', limit, 4, '2017-10-14 16','2017-10-17 13')
-# print(HL)
-#
-# x=range(0,data['close'].size)
-# fig, ax = plt.subplots()
-# date, open, high, low, close = data['date'], data['open'], data['high'], data['low'], data['close']
-#
-# from matplotlib.finance import candlestick2_ohlc
-# candlestick2_ohlc(ax, open, high, low, close, width=0.6)
-#
-# plt.bar(x, HL['direction'])
-# plt.show()
-
-
-#Divergence
-# #############################################################################################
-# pair, period = 'BTCUSD', '1D'
-# limit=100
-# data = ba.Bitfinex_numpy(pair, period, limit)
-# date, open, high, low, close = data['date'], data['open'], data['high'], data['low'], data['close']
-#
-# indicator = talib.RSI(close)
-#
-# # indicator_lev = Levels(indicator, 0.1)
-# # close_lev = Levels(close, 0.1)
-# # #take shorter list
-# # if len(indicator_lev[1]) <= len(close_lev[1]):
-# #     indexes = indicator_lev[1]
-# # else:
-# #     indexes = close_lev[1]
-# #
-# # #make pairs of maximas
-# # maxes = []
-# # mines = []
-# #
-# # for i in range(0, len(indexes)):
-# #
-# #     # check if max at the same point
-# #     if indicator_lev[2][i] == close_lev[2][close_lev[1].index(indexes[i])]== 100:
-# #         maxes.append( [ indicator_lev[0][i], close_lev[0][close_lev[1].index(indexes[i])], indexes[i] ])
-# #
-# #     if indicator_lev[2][i] == close_lev[2][close_lev[1].index(indexes[i])]== -100:
-# #         mines.append( [ indicator_lev[0][i], close_lev[0][close_lev[1].index(indexes[i])], indexes[i] ])
-# #
-# # divergence = []
-# # for i in range(1, len(maxes)):
-# #     if maxes[i][0] < maxes[i-1][0] and maxes[i][1] > maxes[i-1][1]:
-# #         #negative divergence
-# #         divergence.append([maxes[i][2], '-d'])
-# #
-# # for i in range(1, len(mines)):
-# #     if mines[i][0] > mines[i-1][0] and mines[i][1] < mines[i-1][1]:
-# #         #negative divergence
-# #         divergence.append([mines[i][2], '+d'])
-#
-# #############################################################################################
-#
-#
-# close_max = talib.MAXINDEX(close, timeperiod=15)
-# indicator_max = talib.MAXINDEX(indicator, timeperiod=25)
-#
-# close_min = talib.MININDEX(close, timeperiod=15)
-# indicator_min = talib.MININDEX(indicator, timeperiod=25)
-#
-# start_index=0
-# for i in indicator_max:
-#     if i != 0:
-#         start_index=i
-#         break
-#
-# divergence =[]
-# for i in range(start_index,limit):
-#     if close_max[i] > indicator_max[i]:
-#         divergence.append([i,'-d'])
-#     if close_min[i] > indicator_min[i]:
-#         divergence.append([i,'+d'])
-#
-#
-# print(close_max)
-# print(indicator_max)
-# print(divergence)
-#
-#
-#
-#
-# #
-# #
-# # print(divergence)
-# #
-# #
-# #
-# # from matplotlib.finance import candlestick2_ohlc
-# #
-# # x=range(0,data['close'].size)
-# # fig, ax = plt.subplots()
-# # #candlestick2_ohlc(ax, open, high, low, close, width=0.6)
-# #
-# # plt.plot(x, indicator, 'b')
-# #
-# # plot_name = pair + ':' + period
-# # plt.title(plot_name)
-# # plt.show()
-#
-#
-# fig, ax1 = plt.subplots()
-# t = np.arange(0, close.size, 1)
-#
-# s1 = close
-# ax1.plot(t, s1, 'b')
-# ax1.set_xlabel('CLOSE')
-#
-# # Make the y-axis label, ticks and tick labels match the line color.
-# ax1.set_ylabel('exp', color='b')
-# ax1.tick_params('y', colors='b')
-#
-# ax2 = ax1.twinx()
-# s2 = indicator
-# ax2.plot(t, s2, 'r')
-# ax2.set_ylabel('Indicator', color='r')
-# ax2.tick_params('y', colors='r')
-#
-# fig.tight_layout()
-# plt.show()
-
 
 # Elliott Wave Oscillator
 def elliottWaveOscillator(data, fast = 5, slow = 35):
@@ -251,11 +123,11 @@ def elliottWaveOscillator(data, fast = 5, slow = 35):
 
 #Channel
 
-def channel(data):
+def channel(data, const = 1):
     ewo = elliottWaveOscillator(data).tolist()
-    start = ewo[-1]
-    min = start
-    max = start
+    start = ewo[-const]
+    minimum = start
+    maximum = start
 
     positive = [] #list of last positive ewo value
     negative = [] # #list of last non-positive ewo value
@@ -267,27 +139,34 @@ def channel(data):
 
     if start <= 0:
         positive.reverse()
-        max = positive[0]
+        maximum = positive[0]
         for i in range(1, len(positive)):
-            if max < positive[i]:
-                max = positive[i]
+            if maximum < positive[i]:
+                maximum = positive[i]
 
     if start > 0:
         negative.reverse()
-        min = negative[0]
+        minimum = negative[0]
         for i in range(1, len(negative)):
-            if min > negative[i]:
-                min = negative[i]
+            if minimum > negative[i]:
+                minimum = negative[i]
 
     close = data['close']
-    min_index = ewo.index(min)
-    max_index = ewo.index(max)
+    minindex = ewo.index(minimum)
+    maxindex = ewo.index(maximum)
 
-    channel_list = close[min_index : max_index]
-    channel_dev = statistics.stdev(channel_list)
+    channel_list = close[min(minindex, maxindex) : max(minindex, maxindex)]
 
-    return {'min_index': min_index , 'min_value': close[min_index],
-            'max_index': max_index, 'max_value': close[max_index],
+    channel_dev = 0
+    if len(channel_list) > 1:
+        channel_dev = statistics.stdev(channel_list)
+
+    #check
+    print(len(channel_list))
+    print(minindex, maxindex)
+
+    return {'min_index': minindex , 'min_value': close[minindex],
+            'max_index': maxindex, 'max_value': close[maxindex],
             'dev' : channel_dev} # assumes that ewo values are unique
 
 
