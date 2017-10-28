@@ -5,16 +5,15 @@ import numpy as np
 import talib
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import elliott
 
 
 
-# Example data
-pair, period = 'OMGUSD', '12h'
 
 
 
-def PlotPair(pair, period, levelStrength = 0.0, savePlot = False):
-    data = ba.Bitfinex_numpy(pair, period, 100)
+def PlotPair(pair, period, limit, levelStrength = 0.0, savePlot = False):
+    data = ba.Bitfinex_numpy(pair, period, limit)
     date, open, high, low, close = data['date'], data['open'], data['high'], data['low'], data['close']
 
     # CANDELSTICK PLOT
@@ -37,7 +36,7 @@ def PlotPair(pair, period, levelStrength = 0.0, savePlot = False):
     plt.plot(x, low, 'r', alpha = 0.2)
     plt.plot(x, high, 'r', alpha = 0.2)
 
-    # # LEVELS PLOT
+    # LEVELS PLOT
     rs = trends.Levels(close, levelStrength)
     for j in range(0, len(rs[1])):
         if rs[2][j] == 100:
@@ -47,12 +46,12 @@ def PlotPair(pair, period, levelStrength = 0.0, savePlot = False):
         plt.plot(x, np.array([rs[0][j] for i in x]), color, alpha = 0.3)
 
     #TimeSeries Forecast
-    real = talib.TSF(close, timeperiod=8)
-    real_x = range(0,data['close'].size)
-    plt.plot(real_x, real, 'b')
+    # real = talib.TSF(close, timeperiod=8)
+    # real_x = range(0,data['close'].size)
+    # plt.plot(real_x, real, 'b')
 
     #LinearRegression
-    real_lin = talib.LINEARREG(close, 24)
+    real_lin = talib.LINEARREG(close, 40)
     lin_x = range(0, data['close'].size)
     plt.plot(lin_x, real_lin, 'b')
 
@@ -73,7 +72,7 @@ def PlotPair(pair, period, levelStrength = 0.0, savePlot = False):
 
     # SAVING PLOT
     if savePlot == True:
-        fig.savefig(plot_name+'.png', dpi = 200)
+        fig.savefig(plot_name+'.svg', dpi = 200)
 
 #PlotPair(pair, period, 0)
 
@@ -151,6 +150,61 @@ def PlotLevels(pair, period, limit, levelStrength = 0.0, savePlot = False):
 
     # SAVING PLOT
     if savePlot == True:
-        fig.savefig(plot_name+'.png', dpi = 200)
+        fig.savefig(plot_name+'.svg', dpi = 200)
 
-PlotLevels('ETHUSD', '1D',60,  0.05)
+
+
+data = ba.Bitfinex_numpy('BTCUSD', '1D',60)
+print(trends.channel(data))
+PlotLevels('BTCUSD', '1D',60,  0.05, True)
+
+# def HLdata(data, limit):
+#     date,  high, low = data['date'].tolist(),  data['high'], data['low']
+#     series = []
+#
+#     for i in range(1, low.size):
+#         if low[i] > low[i - 1] and high[i] > high[i - 1]:
+#             series.append(low[i - 1])
+#             series.append(high[i])
+#         elif low[i] >= low[i - 1] and high[i] <= high[i - 1]:  # often may be not true
+#             series.append(high[i])
+#             series.append(low[i - 1])
+#         elif low[i] < low[i - 1] and high[i] < high[i - 1]:
+#             series.append(high[i - 1])
+#             series.append(low[i])
+#         elif low[i] < low[i - 1] and high[i] > high[i - 1]:
+#             series.append(low[i])
+#             series.append(high[i])
+#
+#
+#     # x = range(0, len(series))
+#     # fig, ax = plt.subplots()
+#     # plt.plot(x, series)
+#     # #plot_name = 'Daily chart [High / Low , Low / High] for ' + pair
+#     # #plt.title(plot_name)
+#     # plt.show()
+#
+#     return series
+#
+# # Example data
+# pair, period, limit = 'OMGUSD', '1h', 10
+# data = ba.Bitfinex_numpy(pair, period, limit)
+# series = HLdata(data, limit)
+# hl=series
+#
+# # start = elliott.MonoWave(hl[1], hl[2])
+# # print(start.sub)
+# # index = 2
+# i=0
+#
+# while i < 10 :#start.b != hl[-1]:
+#     nwave = elliott.MonoWave(hl[i], hl[i+1])
+#     print('m1 : ', nwave.sub)
+#     # next = elliott.CreateMonoWave(nwave, hl[i+2:])
+#     # print(next.sub)
+#     i += 1
+#
+# x = range(0, len(series))
+# fig, ax = plt.subplots()
+# plt.plot(x, series)
+# plt.show()
