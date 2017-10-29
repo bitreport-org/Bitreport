@@ -1,3 +1,88 @@
-// Place all the styles related to the Home controller here.
-// They will automatically be included in application.css.
-// You can use Sass (SCSS) here: http://sass-lang.com/
+.hidden.menu {
+  display: none;
+}
+.ui.secondary.menu {
+  border: 0;
+}
+.masthead.segment {
+  min-height: 350px;
+  background-color: #F9DA32 !important;
+}
+.masthead.segment .container .row {
+  padding: 3em 0 0;
+}
+.iphone .image {
+  background: asset_url('iphone') no-repeat;
+  background-size: contain;
+}
+.iphone.column {
+  margin-bottom: -150px !important;
+}
+.iphone .image .content {
+  padding: 23.5% 7% 23.5% 7.5%;
+}
+.logo.item {
+  margin: 0;
+  padding: 0;
+  max-height: 40px;
+}
+.logo.item img {
+  max-height: 40px;
+}
+.ui.vertical.stripe {
+  padding-bottom: 4em;
+}
+.ui.vertical.stripe.description {
+  margin-top: 150px;
+  border: 0;
+}
+.footer.segment {
+  padding-top: 5em;
+  padding-bottom: 5em;
+}
+
+.mobile.only {
+  display: none !important;
+}
+
+.no.mobile {
+  display: block !important;
+}
+
+.ui.secondary.top.main.menu {
+  background: white;
+  padding: 10px;
+}
+
+@media only screen and (max-width: 767px) {
+  .mobile.only {
+    display: block !important;
+  }
+  .no.mobile {
+    display: none !important;
+  }
+  .masthead.segment {
+    min-height: 0;
+    padding-bottom: 2em;
+  }
+  .secondary.main.menu {
+    margin-bottom: 2em;
+  }
+  .ui.vertical.stripe.description {
+    margin-top: 2em;
+  }
+  .ui.vertical.stripe {
+    padding-bottom: 2em;
+  }
+  .footer.segment {
+    padding-top: 2em;
+    padding-bottom: 2em;
+  }
+  .ui.fixed.menu {
+    display: none !important;
+  }
+  .main.menu .item,
+  .main.menu .right.menu .item {
+    display: none;
+  }
+}

@@ -1,3 +1,10 @@
-# Place all the behaviors and hooks related to the matching controller here.
-# All this logic will automatically be available in application.js.
-# You can use CoffeeScript in this file: http://coffeescript.org/
+$(document).on 'turbolinks:load', ->
+  # fix menu when passed
+  $('.masthead').visibility
+    once: false
+    onBottomPassed: ->
+      $('.fixed.menu').transition 'fade in'
+    onBottomPassedReverse: ->
+      $('.fixed.menu').transition 'fade out'
+  # create sidebar and attach to menu open
+  $('.ui.sidebar').sidebar 'attach events', '.toc.item'
