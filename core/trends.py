@@ -66,90 +66,79 @@ def Levels(close, strength=0.0):
             c += 1
             #print('neutral',c)
 
-    return [l, l_pos, l_type]
+    levels = []
 
-# Example data  Levels
-#pair, period = 'ETPUSD', '1h'
-# data = ba.Bitfinex_numpy(pair, period, 60)
-# print(data['close'])
-# close = data['close']
-# rs = Levels(close, 0.06)
-# print(rs)
+    for i in range(0, len(l)):
+        levels.append( (l_pos[i], l[i], l_type[i]) )
+    lvl = sorted(levels, key=lambda tup: tup[0])
 
-# dictionary of {[period, limit] : [sub_period, sub_limit]} must be created to determine sub values
-# Input: ex. 'BTCUSD, '1D', '1h', 24, '2017-10-14 16','2017-10-17 13'
-# Outpu: {'date' : HLdirectory_list_date , 'direction': HLdirectory_list_value}
-# Remarks: HighLowDirectory calculates difference between high, low  and
-# checks which one was first in gven period timeframe
-def HLdirection(pair, period, sub_period, limit, multiplier, startDate, endDate):
-    data = ba.Bitfinex_numpy_complet(pair, period, limit,startDate,endDate )
-    high = data['high'].tolist()
-    low = data['low'].tolist()
+    levels = []
+    for i in range(0, len(lvl)):
+        levels.append( {'position':lvl[i][0], 'value' : lvl[i][1], 'type' : lvl[i][2]} )
 
-    sub_limit = limit * multiplier + 30 # +30 for safety, should be fixe after database import
-    sub_data = ba.Bitfinex_numpy_complet(pair, sub_period, sub_limit, startDate,endDate )
-    sub_high = sub_data['high'].tolist()
-    sub_low = sub_data['low'].tolist()
-
-    date = data['date']
-
-    HLdirectory_list_date = []
-    HLdirectory_list_value = []
-    start = 0
-    for i in range(0, date.size):
-        print('H: ', date[i], high[i], low[i])
-        search_list_high = sub_high[start: start + multiplier-1]
-        print('High: ', search_list_high)
-        search_list_low = sub_low[start: start + multiplier-1]
-        print('Low: ', search_list_low)
-
-        if search_list_high.index(max(search_list_high)) >= search_list_low.index((min(search_list_low))):
-            HLdirectory_list_date.append(date[i])
-            HLdirectory_list_value.append(high[i]-low[i])
-        elif search_list_high.index(max(search_list_high)) < search_list_low.index((min(search_list_low))):
-            HLdirectory_list_date.append(date[i])
-            HLdirectory_list_value.append(low[i] - high[i])
-        start += multiplier
-
-    return {'date' : HLdirectory_list_date , 'direction': HLdirectory_list_value}
-
-
+    return levels
 
 # Elliott Wave Oscillator
 def elliottWaveOscillator(data, fast = 5, slow = 35):
     close = data['close']
     return talib.EMA(close, fast) - talib.EMA(close, slow)
 
+# Fire points
+def FirePoint(data, power = 0.1):
+    date, open, high, low, close = data['date'].tolist(), data['open'], data['high'], data['low'], data['close']
+    dif = abs(open - close)
+    avg = np.mean(dif)
+    point = []
+    for i in range(0, dif.size):
+        if dif[i] >= (1+power)*avg:
+            point.append({'index': i, 'date': date[i], 'value': dif[i], 'close': close[i]})
+    return point
 
-#Channel
+# #Channel
 
 def channel(data, const = 1):
     ewo = elliottWaveOscillator(data).tolist()
-    start = ewo[-const]
+    start = ewo[-1*const]
     minimum = start
     maximum = start
 
     positive = [] #list of last positive ewo value
     negative = [] # #list of last non-positive ewo value
-    for i in ewo:
-        if i > 0:
-            positive.append(i)
+    for i in range(0, len(ewo)-const+1):
+        if ewo[i] > 0:
+            positive.append(ewo[i])
         else:
-            negative.append(i)
+            negative.append(ewo[i])
 
-    if start <= 0:
-        positive.reverse()
-        maximum = positive[0]
-        for i in range(1, len(positive)):
-            if maximum < positive[i]:
-                maximum = positive[i]
+    if len(positive) > 0 and len(negative) > 0:
+        print(1)
+        if start <= 0 :
+            positive.reverse()
+            maximum = positive[0]
+            for i in range(1, len(positive)):
+                if maximum < positive[i]:
+                    maximum = positive[i]
 
-    if start > 0:
-        negative.reverse()
-        minimum = negative[0]
-        for i in range(1, len(negative)):
-            if minimum > negative[i]:
-                minimum = negative[i]
+        if start > 0 :
+            negative.reverse()
+            minimum = negative[0]
+            for i in range(1, len(negative)):
+                if minimum > negative[i]:
+                    minimum = negative[i]
+    else:
+        print(2)
+        if len(positive) == 0:
+                negative.reverse()
+                minimum = negative[0]
+                for i in range(1, len(negative)):
+                    if minimum > negative[i]:
+                        minimum = negative[i]
+        elif len(negative) == 0:
+            positive.reverse()
+            maximum = positive[0]
+            for i in range(1, len(positive)):
+                if maximum < positive[i]:
+                    maximum = positive[i]
 
     close = data['close']
     minindex = ewo.index(minimum)
@@ -161,12 +150,10 @@ def channel(data, const = 1):
     if len(channel_list) > 1:
         channel_dev = statistics.stdev(channel_list)
 
-    #check
-    print(len(channel_list))
-    print(minindex, maxindex)
 
     return {'min_index': minindex , 'min_value': close[minindex],
             'max_index': maxindex, 'max_value': close[maxindex],
             'dev' : channel_dev} # assumes that ewo values are unique
+
 
 
