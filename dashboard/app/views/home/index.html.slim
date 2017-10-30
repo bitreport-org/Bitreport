@@ -1,9 +1,9 @@
 /! Donation Modal
 .ui.tiny.donation.modal
-  .ui.icon.header Donate and gain Early Access
+  i.black.close.icon
+  .ui.icon.header Join Early Access
   .content.center.aligned
-    p We're getting close to releasing the first closed Alpha version. Support the project and be the first to get access to all features. No minimum amount, buy us a coffee and we're good to go!
-    p Once you make a donation you should keep this address for later, as it will become your Early Access code.
+    p The first private Beta is almost ready. Support the project and be the first to get access to all features. No minimum amount, buy us a coffee and we're good to go!
     .ui.left.action.right.labeled.fluid.input
       button.ui.yellow.labeled.icon.button
         i.bitcoin.icon
@@ -11,15 +11,16 @@
       input type="text" value="2N8qj8c8AJv37uFNyau849z4qaibcfLvqzH" readonly="readonly" autofocus="true" title="wallet address"
       .ui.button.qr.label data-html="<img src='#{asset_path('qrcode')}' class='ui fluid image' style='border: 0;'>" data-position="top right"
         i.qrcode.large.black.icon
-    .ui.horizontal.divider Also
-    p Follow us on Social Media to stay up to date with release schedule:
-    .ui.tiny.buttons
-      button.ui.twitter.button
-        i.twitter.icon
-        | Bitreport_org
-      button.ui.facebook.button
-        i.facebook.icon
-        | BitReport
+    .ui.horizontal.divider Note
+    p
+      small Keep above address for later, as it will become your unique Early Access code. Follow us on Facebook and Twitter to be notified when the Early Access begins.
+  .actions
+    a.ui.tiny.compact.basic.disabled.button
+      | Find us on:
+    a.ui.tiny.compact.twitter.icon.button href="https://twitter.com/Bitreport_org" target="_blank"
+      i.twitter.icon
+    a.ui.tiny.compact.facebook.icon.button href="https://www.facebook.com/bitreport.org/" target="_blank"
+      i.facebook.icon
 
 
 /! Following Menu
@@ -28,8 +29,8 @@
     = render 'menu', main_menu: true, logo: '_white'
 
 /! Sidebar Menu
-.ui.vertical.sidebar.menu
-  = render 'menu', main_menu: false, logo: ''
+.ui.simple.sidebar.inverted.vertical.menu
+  = render 'menu_right'
 
 /! Page Contents
 .pusher
@@ -59,72 +60,75 @@
         | Beginner and occasional traders have a lot to learn before becoming experts.
         br
         | With bitReport their journey becomes easier from the beginning.
-      button.ui.fade.animated.basic.button
+      button.ui.fade.animated.basic.features.button
         .visible.content See all features
         .hidden.content
           i.down.arrow.icon
 
-  .ui.vertical.stripe.segment
+  .ui.vertical.stripe.features.segment
     .ui.three.column.equal.height.stackable.grid.container
       .column
         .ui.grid.container
-          .three.wide.column
-            i.big.empty.star.icon
-          .thirteen.wide.column
-            h3 Classic indicators
+          .two.wide.column
+            i.large.empty.star.icon
+          .fourteen.wide.column
+            h3 Classic Indicators
             p You can make use of a wide selection of classic trading indicators. RSI, MACD, EMA? We've got them all!
       .column
         .ui.grid.container
-          .three.wide.column
-            i.big.line.chart.icon
-          .thirteen.wide.column
-            h3 Elliot waves
-            p Thanks to advanced, machine learning based algorithms we let you quickly spot new trends based on Elliot Wave Theory.
+          .two.wide.column
+            i.large.line.chart.icon
+          .fourteen.wide.column
+            h3 Elliot Waves
+            p Thanks to advanced machine learning algorithms we let you quickly spot new trends based on Elliot Wave Theory.
       .column
         .ui.grid.container
-          .three.wide.column
-            i.big.sidebar.icon
-          .thirteen.wide.column
-            h3 Automated levels
+          .two.wide.column
+            i.large.sidebar.icon
+          .fourteen.wide.column
+            h3 Automated Levels
             p Wondering when to take profit? With our support and resistance recognition you can easily spot reversal zones.
       .column
         .ui.grid.container
-          .three.wide.column
-            i.big.exchange.icon
-          .thirteen.wide.column
-            h3 Cutting edge technologies
-            p To be successful you have to be faster and better than others. We achieve this with cutting edge machine learning algorithms.
+          .two.wide.column
+            i.large.exchange.icon
+          .fourteen.wide.column
+            h3 Cutting Edge Technology
+            p To be successful you have to be faster than others. We achieve this with cutting edge machine learning algorithms.
       .column
         .ui.grid.container
-          .three.wide.column
-            i.big.mail.outline.icon
-          .thirteen.wide.column
-            h3 Instant notifications
+          .two.wide.column
+            i.large.mail.outline.icon
+          .fourteen.wide.column
+            h3 Instant Notifications
             p Never miss a trade opportuninty with instant notifications and customizable email reports.
       .column
         .ui.grid.container
-          .three.wide.column
-            i.big.remove.bookmark.icon
-          .thirteen.wide.column
-            h3 Free trial
-            p You can try bitReport for free as long as you like. No payment required.
+          .two.wide.column
+            i.large.remove.bookmark.icon
+          .fourteen.wide.column
+            h3 Unlimited Free Trial
+            p You can use bitReport for free as long as you like. No payment required.
 
   .ui.inverted.vertical.footer.segment
     .ui.center.aligned.inverted.equal.height.stackable.mobile.reversed.grid.text.container
       .four.wide.column
         h4.ui.inverted.header About
         .ui.inverted.link.list
-          a.item href="#"  Sitemap
-          a.item href="#"  Contact Us
-          a.item href="#"  Stuff
+          a.item Sitemap
+          a.item Contact Us
+          a.item Stuff
       .four.wide.column
         h4.ui.inverted.header Services
         .ui.inverted.link.list
-          a.item href="#"  Pre-Order
-          a.item href="#"  FAQ
-          a.item href="#"  Pricing
+          a.item Pre-Order
+          a.item FAQ
+          a.item Pricing
       .eight.wide.column
-        h4.ui.inverted.header Support the project and gain Early Access with unique features
-        button.ui.yellow.inverted.labeled.icon.cta.button
+        h4.ui.inverted.header
+          | Support the project and gain
+          br
+          | Early Access with unique features
+        button.ui.yellow.labeled.icon.cta.button
           i.bitcoin.icon
-          | Donate Bitcoin
+          | Support this project

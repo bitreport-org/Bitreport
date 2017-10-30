@@ -1,11 +1,7 @@
 - if main_menu
   .logo.item
     = image_tag "logo#{logo}", class: 'ui image'
-.right.menu
-  a.ui.item Features
-  a.ui.item Contact
-  a.ui.cta.item
-    strong Early Access
-  - if main_menu
+  .right.menu
+    = render 'menu_right'
     a.toc.item.mobile.only
       i.sidebar.icon
