@@ -54,6 +54,13 @@
   padding: 10px;
 }
 
+.modal .ui.label > .qrcode.large.icon {
+  margin: 0;
+}
+.modal .ui.label.button {
+  border-radius: 0 4px 4px 0;
+}
+
 @media only screen and (max-width: 767px) {
   .mobile.only {
     display: block !important;

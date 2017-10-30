@@ -1,3 +1,27 @@
+/! Donation Modal
+.ui.tiny.donation.modal
+  .ui.icon.header Donate and gain Early Access
+  .content.center.aligned
+    p We're getting close to releasing the first closed Alpha version. Support the project and be the first to get access to all features. No minimum amount, buy us a coffee and we're good to go!
+    p Once you make a donation you should keep this address for later, as it will become your Early Access code.
+    .ui.left.action.right.labeled.fluid.input
+      button.ui.yellow.labeled.icon.button
+        i.bitcoin.icon
+        | Pay with BTC
+      input type="text" value="2N8qj8c8AJv37uFNyau849z4qaibcfLvqzH" readonly="readonly" autofocus="true" title="wallet address"
+      .ui.button.qr.label data-html="<img src='#{asset_path('qrcode')}' class='ui fluid image' style='border: 0;'>" data-position="top right"
+        i.qrcode.large.black.icon
+    .ui.horizontal.divider Also
+    p Follow us on Social Media to stay up to date with release schedule:
+    .ui.tiny.buttons
+      button.ui.twitter.button
+        i.twitter.icon
+        | Bitreport_org
+      button.ui.facebook.button
+        i.facebook.icon
+        | BitReport
+
+
 /! Following Menu
 .ui.secondary.pointing.top.fixed.hidden.main.menu
   .ui.text.container
@@ -21,7 +45,7 @@
             p Best way to start your journey with cryptocurrencies and technical analysis
             p
               small Making money on exchange requires knowledge. We have learnt it losing our money first. Inspired by this experience we decide to create simple but powerful reports. We mix classical indicators with automated pattern recognition never available before.
-            button.ui.black.button Join Now
+            button.ui.black.cta.button Join Now
         .one.wide.iphone.column.no.mobile
         .seven.wide.iphone.column.no.mobile
           .ui.instant.fade.reveal.image
@@ -101,6 +125,6 @@
           a.item href="#"  Pricing
       .eight.wide.column
         h4.ui.inverted.header Support the project and gain Early Access with unique features
-        button.ui.yellow.inverted.labeled.icon.button
+        button.ui.yellow.inverted.labeled.icon.cta.button
           i.bitcoin.icon
           | Donate Bitcoin
