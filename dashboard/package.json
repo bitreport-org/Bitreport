@@ -2,6 +2,7 @@
   "name": "dashboard",
   "private": true,
   "dependencies": {
+    "qrcode": "^0.9.0",
     "semantic-ui": "^2.2.13"
   }
 }

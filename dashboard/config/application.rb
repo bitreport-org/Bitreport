@@ -15,5 +15,7 @@ module Dashboard
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
     Rails.application.config.assets.paths << Rails.root.join('node_modules')
+
+    config.autoload_paths << Rails.root.join('lib')
   end
 end

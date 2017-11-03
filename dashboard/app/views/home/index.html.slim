@@ -1,16 +1,18 @@
 /! Donation Modal
-.ui.tiny.donation.modal
+.ui.small.donation.modal
   i.black.close.icon
   .ui.icon.header Join Early Access
   .content.center.aligned
     p The first private Beta is almost ready. Support the project and be the first to get access to all features. No minimum amount, buy us a coffee and we're good to go!
     .ui.left.action.right.labeled.fluid.input
-      button.ui.yellow.labeled.icon.button
+      a.ui.yellow.labeled.icon.button href="bitcoin:#{@address}"
         i.bitcoin.icon
         | Pay with BTC
-      input type="text" value="2N8qj8c8AJv37uFNyau849z4qaibcfLvqzH" readonly="readonly" autofocus="true" title="wallet address"
-      .ui.button.qr.label data-html="<img src='#{asset_path('qrcode')}' class='ui fluid image' style='border: 0;'>" data-position="top right"
+      input type="text" value=@address readonly="readonly" autofocus="true" title="wallet address"
+      .ui.button.qr.label data-position="top right"
         i.qrcode.large.black.icon
+      .ui.popup
+        canvas#address.ui.fluid.image style='border: 0;' data-address=@address
     .ui.horizontal.divider Note
     p
       small Keep above address for later, as it will become your unique Early Access code. Follow us on Facebook and Twitter to be notified when the Early Access begins.

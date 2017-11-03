@@ -41,6 +41,12 @@ gem 'devise'
 # For getting rid of erb
 gem 'slim-rails'
 
+# To make generating BTC wallets easy
+gem 'money-tree'
+
+# Easiest way to add multi-environment yaml settings to Rails
+gem 'config'
+
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug', platform: :mri
@@ -53,6 +59,8 @@ group :development do
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
   gem 'spring'
   gem 'spring-watcher-listen', '~> 2.0.0'
+  # To keep the code clean
+  gem 'rubocop'
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem

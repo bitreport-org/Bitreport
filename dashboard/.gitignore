@@ -173,3 +173,7 @@ fabric.properties
 .idea/sonarlint
 
 # End of https://www.gitignore.io/api/node,rails,rubymine
+
+config/settings.local.yml
+config/settings/*.local.yml
+config/environments/*.local.yml

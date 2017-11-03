@@ -21,3 +21,7 @@ $(document).on 'turbolinks:load', ->
     $('.ui.sidebar').sidebar('hide')
   $('.cta').on 'click', ->
     $('.ui.sidebar').sidebar('hide')
+    $.post 'wallet/use'
+  uri = "bitcoin:" + $('#address').data('address')
+  qrcodelib.toCanvas document.getElementById('address'), uri, (e) ->
+    return

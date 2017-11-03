@@ -14,4 +14,5 @@
 //= require jquery_ujs
 //= require turbolinks
 //= require semantic-ui/dist/semantic
+//= require qrcode/build/qrcode
 //= require_tree .

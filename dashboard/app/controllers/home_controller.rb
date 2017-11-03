@@ -1,6 +1,13 @@
 class HomeController < ApplicationController
-  # before_action :authenticate_user!
-
   def index
+    @address = session[:address] ||= initialize_wallet.address
+  end
+
+  private
+
+  def initialize_wallet
+    wallet = Wallet.create
+    session[:wallet_id] = wallet.id
+    wallet
   end
 end
