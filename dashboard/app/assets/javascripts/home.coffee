@@ -14,10 +14,10 @@ $(document).on 'turbolinks:load', ->
   $('.modal .qr').popup()
   # Scroll site after clicking features button
   $('button.features, a.features').on 'click', ->
-    $('html body').animate { scrollTop: $('.features.segment').offset().top }, 500
+    $('html, body').animate { scrollTop: $('.features.segment').offset().top }, 500
     $('.ui.sidebar').sidebar('hide')
   $('a.contact').on 'click', ->
-    $('html body').animate { scrollTop: $('.footer.segment').offset().top }, 500
+    $('html, body').animate { scrollTop: $('.footer.segment').offset().top }, 500
     $('.ui.sidebar').sidebar('hide')
   $('.cta').on 'click', ->
     $('.ui.sidebar').sidebar('hide')
