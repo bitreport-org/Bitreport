@@ -1,4 +1,6 @@
 bitcoin:
-  master_public_key: tpubDCrc2ZAfej5b1s4VmtcosXB5TiAeqgTPHBQormH6TiZivQ1K3H6fv3nokJUUxvLsoSmnhPDzjTCqaM69V5wCDgzJnNrKtr6xaA5AQ7jmghS
+  master_public_keys:
+    - tpubDC3aDREg5YfUoiUxPUsDS8EWEy3Nb7GJJw6Q88FGcU2hoPveXP8JmCriHBrduSws7kJ4ULMF5o1juYhEptiyhC22UQXxaJW9VJ3o7qiAxur
+    - tpubDC77bLZ5ADZLUbFURBfG4GDqaoB2b9o3GkHwExZVSj2dAzS36zz9yWYRd5xADSHHqo3zJa6VvpYHtdXQLPxC4PRw6kVfXqYF8VpSw875qGZ
   node_path: m/0/
   network: bitcoin_testnet

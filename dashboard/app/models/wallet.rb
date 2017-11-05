@@ -1,5 +1,5 @@
 class Wallet < ApplicationRecord
   def address
-    BtcWallet.derive(id)
+    @address ||= BtcWallet.new(id).derive
   end
 end
