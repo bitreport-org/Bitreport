@@ -47,6 +47,16 @@ gem 'money-tree'
 # Easiest way to add multi-environment yaml settings to Rails
 gem 'config'
 
+# File Attachment toolkit for Ruby applications
+gem 'shrine'
+# Shrine Dependencies
+gem 'fastimage'
+gem 'image_processing'
+gem 'mini_magick'
+
+# The ruby gnuplot gem
+gem 'gnuplot'
+
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug', platform: :mri

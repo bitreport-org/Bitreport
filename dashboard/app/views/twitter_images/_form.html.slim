@@ -1,0 +1,12 @@
+= form_for @twitter_image do |f|
+  - if @twitter_image.errors.any?
+    #error_explanation
+      h2 = "#{pluralize(@twitter_image.errors.count, "error")} prohibited this twitter_image from being saved:"
+      ul
+        - @twitter_image.errors.full_messages.each do |message|
+          li = message
+
+  .field
+    = f.label :name
+    = f.text_field :name
+  .actions = f.submit

@@ -1,0 +1,21 @@
+h1 Listing twitter_images
+
+table
+  thead
+    tr
+      th Name
+      th Image
+      th
+      th
+
+  tbody
+    - @twitter_images.each do |twitter_image|
+      tr
+        td = twitter_image.name
+        td = image_tag twitter_image.image_url if twitter_image.image_url
+        td = link_to 'Show', twitter_image
+        td = link_to 'Destroy', twitter_image, data: { confirm: 'Are you sure?' }, method: :delete
+
+br
+
+= link_to 'New Twitter image', new_twitter_image_path
