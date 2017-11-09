@@ -12,9 +12,9 @@ class Plotter
     @filename = SecureRandom.uuid + '.png'
   end
 
-  def plot(filename: nil)
+  def plot
     step = timestamps[0].to_i - timestamps[1].to_i
-    margin = 5 * (highs.max.to_i - lows.min.to_i) / 100
+    margin = (5 * (highs.max.to_f - lows.min.to_f) / 100)
     Gnuplot.open do |gp|
       Gnuplot::Plot.new(gp) do |plot|
         plot.terminal 'png font Verdana 9 size 1280,720 enhanced'
@@ -24,9 +24,7 @@ class Plotter
         plot.timefmt '"%s"'
         plot.format 'x "%d-%m-%y\n%H:%M"'
         plot.autoscale 'fix'
-        plot.offsets "#{step / 2}, #{10 * step}, #{margin}, #{margin}"
-
-        plot.xtics "#{12 * step}"
+        plot.offsets "#{step / 2}, #{(0.5 + 10 * @timestamps.length / 100) * step}, #{margin}, #{margin}"
 
         plot.palette 'defined (-1 "#db2828", 1 "#21ba45")'
         plot.cbrange '[-1:1]'
@@ -47,6 +45,6 @@ class Plotter
   end
 
   def output
-    File.join(Rails.root, 'tmp', filename)
+    File.join(Rails.root, 'public', 'uploads', filename)
   end
 end

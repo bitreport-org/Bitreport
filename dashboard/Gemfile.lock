@@ -99,6 +99,8 @@ GEM
     globalid (0.4.1)
       activesupport (>= 4.2.0)
     gnuplot (2.6.2)
+    httparty (0.15.6)
+      multi_xml (>= 0.5.2)
     i18n (0.9.0)
       concurrent-ruby (~> 1.0)
     image_processing (0.4.5)
@@ -128,6 +130,7 @@ GEM
     money-tree (0.9.0)
       ffi
     multi_json (1.12.2)
+    multi_xml (0.6.0)
     nio4r (2.1.0)
     nokogiri (1.8.1)
       mini_portile2 (~> 2.3.0)
@@ -246,6 +249,7 @@ DEPENDENCIES
   devise
   fastimage
   gnuplot
+  httparty
   image_processing
   jbuilder (~> 2.5)
   jquery-rails

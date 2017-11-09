@@ -2,7 +2,7 @@
 
 class TwitterImagesController < AdminController
   http_basic_authenticate_with name: 'admin', password: 'password'
-  before_action :set_twitter_image, only: %i[show destroy]
+  # before_action :set_twitter_image, only: %i[show destroy]
 
   # GET /twitter_images
   def index
@@ -10,7 +10,26 @@ class TwitterImagesController < AdminController
   end
 
   # GET /twitter_images/1
-  def show; end
+  def show
+    tf = params[:time] || '1h'
+    limit = params[:limit] || 100
+    response = HTTParty.get("http://10.78.28.120:5000/candles/#{params[:id]}/#{tf}/#{limit}")
+    timestamps = []
+    opens = []
+    highs = []
+    lows = []
+    closes = []
+    JSON.parse(response.body).each do |candle|
+      timestamps << Time.parse(candle[0]).to_i
+      closes << candle[1]
+      highs << candle[2]
+      lows << candle[3]
+      opens << candle[4]
+    end
+    plotter = Plotter.new(timestamps, opens, lows, highs, closes).plot
+    @path = plotter.filename
+    @patterns = HTTParty.get("http://10.78.28.120:5000/patterns/#{params[:id]}/#{tf}/#{limit}").body
+  end
 
   # GET /twitter_images/new
   def new
