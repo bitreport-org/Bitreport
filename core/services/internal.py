@@ -16,6 +16,7 @@ def import_numpy(client, db, pair, timeframe, limit):
 
     # Unwrap json :D
     candel_list = r.json()['results'][0]['series'][0]['values']
+    #candel_list.reverse()
 
     date_list=[]
     open_list=[]
