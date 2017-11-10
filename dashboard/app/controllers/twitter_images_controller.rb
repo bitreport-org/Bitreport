@@ -13,26 +13,13 @@ class TwitterImagesController < AdminController
   def show
     tf = params[:time] || '1h'
     limit = params[:limit] || 100
-    response = HTTParty.get("http://10.78.28.120:5000/data/#{params[:id]}/#{tf}?limit=#{limit}&patterns=ALL&indicators=BB,MACD")
-    timestamps = []
-    opens = []
-    highs = []
-    lows = []
-    closes = []
-    volumes = []
+    response = HTTParty.get("http://10.78.28.120:5000/data/#{params[:id]}/#{tf}?limit=#{limit}&patterns=ALL&indicators=EWO,BB,MACD,RSI")
     responsebody = JSON.parse(response.body)
-    responsebody['candles'].each do |candle|
-      timestamps << Time.parse(candle[0]).to_i
-      closes << candle[1]
-      highs << candle[2]
-      lows << candle[3]
-      opens << candle[4]
-      volumes << candle[5]
-    end
-    candles = { timestamps: timestamps, opens: opens, highs: highs, lows: lows, closes: closes, volumes: volumes }
-    plotter = Plotter.new(candles, responsebody['patterns'], responsebody['indicators']).plot
+    candles = responsebody['candles']
+    candles = { opens: candles['open'], highs: candles['high'], lows: candles['low'], closes: candles['close'], volumes: candles['volume'] }
+    plotter = Plotter.new(responsebody['dates'], candles, responsebody['patterns'], responsebody['indicators']).plot
     @path = plotter.filename
-    @patterns = responsebody['patterns']
+    @patterns = responsebody['indicators']
   end
 
   # GET /twitter_images/new
