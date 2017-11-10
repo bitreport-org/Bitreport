@@ -33,4 +33,4 @@ if __name__ == "__main__":
     pair = 'BTCUSD'
     timeframes = ['30m', '1h', '3h', '12h']
 
-    bitfinex_fill(client, db, pair, timeframes, 400)
+    bitfinex_fill(client, db, pair, timeframes, 100)

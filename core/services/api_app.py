@@ -3,10 +3,12 @@ from flask_restful import Resource, Api, reqparse
 from influxdb import InfluxDBClient
 import json
 
+
 # Internal import
 from services import internal
 from ta import patterns
 from ta import indicators
+from ta import levels
 
 app = Flask(__name__)
 api = Api(app)
@@ -19,7 +21,7 @@ client = InfluxDBClient('localhost', 8086, 'root', 'root', db)
 # next posted data has length = limit
 magic_limit = 34
 
-###############################################################
+#########################################################################################
 
 class get_ohlc(Resource):
     def get(self):
@@ -38,12 +40,17 @@ class get_ohlc(Resource):
         limit = args.get('limit')
 
         # Perform query and return JSON data
-        query = 'SELECT * FROM ' + pair + timeframe + ' ORDER BY time DESC LIMIT ' + str(limit) + ';'
-        params = 'db=' + db + '&q=' + query
-        r =client.request('query', params=params)
+        dict = {}
+        data = internal.import_numpy(client, db, pair, timeframe, limit + magic_limit)
 
+        dict['dates'] = data['date'].tolist()[magic_limit:],
+        dict['candles'] = {'open': data['open'].tolist()[magic_limit:],
+                           'high': data['high'].tolist()[magic_limit:],
+                           'close': data['close'].tolist()[magic_limit:],
+                           'low': data['low'].tolist()[magic_limit:],
+                           }
         # Unwrap json :D
-        return r.json()['results'][0]['series'][0]['values']
+        return dict
 
 class get_pair(Resource):
     def get(self):
@@ -88,7 +95,7 @@ class get_all(Resource):
     def get(self, pair, timeframe):
         global client, db
 
-        ################################## PARSER ########################################
+        ################################## PARSER #######################################
         parser = reqparse.RequestParser()
 
         parser.add_argument('limit', type=int, help='Limit must be int')
@@ -103,7 +110,11 @@ class get_all(Resource):
         args = parser.parse_args()
         patterns_list = args.get('patterns')
 
-        ############################### DATA REQUEST ###########################################
+        parser.add_argument('levels')
+        args = parser.parse_args()
+        levels_ask = args.get('levels')
+
+        ############################### DATA REQUEST #####################################
 
         # # Perform query and return JSON data
         # query = 'SELECT * FROM ' + pair + timeframe + ' ORDER BY time DESC LIMIT ' + str(limit) + ';'
@@ -116,16 +127,17 @@ class get_all(Resource):
 
         dict = {}
         data = internal.import_numpy(client, db, pair, timeframe, limit+magic_limit)
-        print(len(data['date'].tolist()[magic_limit:]))
 
-        dict['dates'] = data['date'].tolist()[magic_limit:],
+        dict['dates'] = data['date'][magic_limit:]
+
         dict['candles'] = { 'open': data['open'].tolist()[magic_limit:],
                             'high': data['high'].tolist()[magic_limit:],
                             'close': data['close'].tolist()[magic_limit:],
                             'low': data['low'].tolist()[magic_limit:],
+                            'volume': data['volume'].tolist()[magic_limit:]
                         }
 
-        ################################ INDICATORS ##########################################
+        ################################ INDICATORS ######################################
 
         if indicators_list != None:
             try:
@@ -142,6 +154,7 @@ class get_all(Resource):
 
             dict['indicators'] = indidict
 
+        ################################ PATTERNS ########################################
         if patterns_list != None:
             try:
                 patterns_list = patterns_list[0].split(',')
@@ -160,6 +173,10 @@ class get_all(Resource):
                 except:
                   pass
 
+        ################################ LEVELS ##########################################
+        if levels_ask == 'ALL':
+            dict['levels'] = levels.srlevels(data, strength=0.03)
+
         return dict
 
 
@@ -174,5 +191,5 @@ api.add_resource(get_ohlc, '/data/')
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', debug=True)
 

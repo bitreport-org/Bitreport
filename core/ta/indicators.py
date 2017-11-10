@@ -60,3 +60,8 @@ def EMA(data, start, timeperiod=20):
     real = talib.EMA(data['close'], timeperiod)
     return {'ema': real.tolist()[start:]}
 
+# Elliott Wave Oscillator
+def EWO(data, start, fast = 5, slow = 35):
+    close = data['close']
+    real = talib.EMA(close, fast) - talib.EMA(close, slow)
+    return {'ewo': real.tolist()[start:]}
