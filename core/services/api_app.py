@@ -19,7 +19,7 @@ client = InfluxDBClient('localhost', 8086, 'root', 'root', db)
 
 # to post data without NaN values indicators are calculated on period of length: limit + magic_limit
 # next posted data has length = limit
-magic_limit = 34
+magic_limit = 51
 
 #########################################################################################
 
@@ -187,7 +187,7 @@ class get_all(Resource):
 
 ##################### ENDPOINTS ############################
 # Table with name 'pair'
-api.add_resource(get_pair, '/')
+# api.add_resource(get_pair, '/')
 api.add_resource(get_all, '/data/<string:pair>/<string:timeframe>/')
 
 # List of last n=limit [close,  high,   low,    open,   volume] candles

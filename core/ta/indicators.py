@@ -57,7 +57,7 @@ def SMA(data, start):
         real = talib.SMA(data['close'], periods[i])
         dict[names[i]] = real.tolist()[start:]
 
-    return {'sma':dict}
+    return dict
 
 def EMA(data, start):
     periods = [10, 20, 50]
@@ -68,14 +68,10 @@ def EMA(data, start):
         real = talib.EMA(data['close'], periods[i])
         dict[names[i]] = real.tolist()[start:]
 
-    return {'sma': dict}
+    return dict
 
 def SAR(data, start):
-    real = talib.SAREXT(data['high'], data['low'],
-                        startvalue=0.02, offsetonreverse=0,
-                        accelerationinitlong=0.02, accelerationlong=0.02,
-                        accelerationmaxlong=0.2, accelerationinitshort=0.02,
-                        accelerationshort=0.02, accelerationmaxshort=0.2)
+    real = talib.SAR(data['high'], data['low'],acceleration=0.02, maximum=0.2)
 
     return {'sar': real.tolist()[start:]}
 
