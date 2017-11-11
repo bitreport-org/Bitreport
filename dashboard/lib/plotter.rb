@@ -16,7 +16,7 @@ class Plotter
   def plot
     out = []
     out << <<~TXT
-      set terminal png truecolor font Verdana 9 size 1280,720
+      set terminal pngcairo truecolor font "Verdana,12" size 1280,720
       set output "#{output}"
 
       set lmargin at screen 0.05
@@ -40,26 +40,41 @@ class Plotter
       set cbrange [-1:1]
       unset colorbox
 
-      set style fill transparent solid 0.3 border
+      set style fill solid border
       set boxwidth #{0.5 * step}
       set grid xtics ytics
 
       set y2range [0:#{5 * volumes.max}]
 
-      plot '-' using 1:4:(#{0.95 * step}):($3 < $2 ? -1 : 1) axes x1y2 notitle with boxes palette, \\
-           '-' using 1:2:4 notitle with filledcurves linecolor "#8fb6d8", \\
-           '-' using 1:2 notitle with lines linecolor "#3189d6", \\
-           '-' using 1:4 notitle with lines linecolor "#3189d6", \\
-           '-' using 1:2:3:4:5:($5 < $2 ? -1 : 1) notitle with candlesticks palette fs solid 1.0, \\
-           '-' using 1:3 notitle with lines linecolor "#3189d6"
+      plot '-' using 1:4:(#{0.95 * step}):($3 < $2 ? -1 : 1) axes x1y2 notitle with boxes palette fs solid 0.15 noborder, \\
+           '-' using 1:2:4 title "Bollinger Bands" with filledcurves linecolor "#cc8fb6d8", \\
+           '-' using 1:2 notitle with lines linecolor "#663189d6" lw 1.5, \\
+           '-' using 1:4 notitle with lines linecolor "#663189d6" lw 1.5, \\
+           '-' using 1:2:3:4:5:($5 < $2 ? -1 : 1) notitle with candlesticks palette, \\
+           '-' using 1:3 notitle with lines linecolor "#663189d6" lw 1.5, \\
+           '-' using 1:2 title "SAR" with points lt 6 ps 0.3, \\
+           '-' using 1:2 title "SMA slow" with lines lw 1.5, \\
+           '-' using 1:3 title "SMA medium" with lines lw 1.5, \\
+           '-' using 1:4 title "SMA fast" with lines lw 1.5, \\
+           '-' using 1:2 title "EMA slow" with lines lw 1.5, \\
+           '-' using 1:3 title "EMA medium" with lines lw 1.5, \\
+           '-' using 1:4 title "EMA slow" with lines lw 1.5, \\
+           '-' using 1:2 notitle with points lc "#000000" ps 1.5, \\
+           '-' using 1:2 notitle with points lc "#000000" ps 1.5
     TXT
     out << timestamps.zip(opens, closes, volumes).map { |candle| candle.join(' ') }.push('e')
     out << timestamps.zip(indicators['BB']['upperband'], indicators['BB']['middleband'], indicators['BB']['lowerband']).map { |candle| candle.join(' ') }.push('e') * 3
     out << timestamps.zip(opens, lows, highs, closes).map { |candle| candle.join(' ') }.push('e')
     out << timestamps.zip(indicators['BB']['upperband'], indicators['BB']['middleband'], indicators['BB']['lowerband']).map { |candle| candle.join(' ') }.push('e')
+    out << timestamps.zip(indicators['SAR']['sar']).map { |candle| candle.join(' ') }.push('e')
+    out << timestamps.zip(indicators['SMA']['slow'], indicators['SMA']['medium'], indicators['SMA']['fast']).map { |candle| candle.join(' ') }.push('e') * 3
+    out << timestamps.zip(indicators['EMA']['slow'], indicators['EMA']['medium'], indicators['EMA']['fast']).map { |candle| candle.join(' ') }.push('e') * 3
+    out << patterns.first[1]['up'].map { |t| "#{t} #{highs[timestamps.index(t) || 0]}" }.push('e')
+    out << patterns.first[1]['down'].map { |t| "#{t} #{lows[timestamps.index(t) || 0]}" }.push('e')
     # out << ewo
     # out << macd
-    out << rsi
+    # out << rsi
+    out << stoch
     io = IO::popen('gnuplot -persist', 'w+')
     io << out.join("\n")
     io.close_write
@@ -122,14 +137,39 @@ class Plotter
       set tmargin 0
 
       set offsets 0,#{(1 + 10 * timestamps.length / 100) * step},10,10
-      set arrow 1 from #{timestamps.first},20 to #{timestamps.last + (1 + 10 * timestamps.length / 100) * step},20 nohead lc rgb "#669526c1" lw 1.5
-      set arrow 2 from #{timestamps.first},80 to #{timestamps.last + (1 + 10 * timestamps.length / 100) * step},80 nohead lc rgb "#669526c1" lw 1.5
+      set object 1 rect from #{timestamps.first},20 to #{timestamps.last + (1 + 10 * timestamps.length / 100) * step},80 fc rgb "#dd9526c1" fs solid noborder
+      set arrow 1 from #{timestamps.first},20 to #{timestamps.last + (1 + 10 * timestamps.length / 100) * step},20 nohead lc rgb "#669526c1" lw 1.5 dt 2
+      set arrow 2 from #{timestamps.first},80 to #{timestamps.last + (1 + 10 * timestamps.length / 100) * step},80 nohead lc rgb "#669526c1" lw 1.5 dt 2
 
       set yrange [0:100]
 
       plot '-' using 1:2 notitle with lines linecolor "#9526c1"
     TXT
     out << timestamps.zip(indicators['RSI']['rsi']).map { |candle| candle.join(' ') }.push('e')
+    out
+  end
+
+  def stoch
+    out = []
+    out << <<~TXT
+      set size 1.0,0.25
+      set origin 0.0,0.05
+
+      set format x "%d-%m-%y\\n%H:%M"
+
+      set tmargin 0
+
+      set offsets 0,#{(1 + 10 * timestamps.length / 100) * step},10,10
+      set object 1 rect from #{timestamps.first},20 to #{timestamps.last + (1 + 10 * timestamps.length / 100) * step},80 fc rgb "#dd9526c1" fs solid noborder
+      set arrow 1 from #{timestamps.first},20 to #{timestamps.last + (1 + 10 * timestamps.length / 100) * step},20 nohead lc rgb "#669526c1" lw 1.5 dt 2
+      set arrow 2 from #{timestamps.first},80 to #{timestamps.last + (1 + 10 * timestamps.length / 100) * step},80 nohead lc rgb "#669526c1" lw 1.5 dt 2
+
+      set yrange [0:100]
+
+      plot '-' using 1:2 notitle with lines linecolor "#4286f4", \\
+           '-' using 1:3 notitle with lines linecolor "#f4a641"
+    TXT
+    out << timestamps.zip(indicators['STOCH']['slowk'], indicators['STOCH']['slowd']).map { |candle| candle.join(' ') }.push('e') * 2
     out
   end
 

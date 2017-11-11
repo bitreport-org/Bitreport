@@ -13,13 +13,13 @@ class TwitterImagesController < AdminController
   def show
     tf = params[:time] || '1h'
     limit = params[:limit] || 100
-    response = HTTParty.get("http://10.78.28.120:5000/data/#{params[:id]}/#{tf}?limit=#{limit}&patterns=ALL&indicators=EWO,BB,MACD,RSI")
+    response = HTTParty.get("http://127.0.0.1:5000/data/#{params[:id]}/#{tf}?limit=#{limit}&patterns=CDLHIKKAKE&indicators=EWO,BB,MACD,RSI,STOCH,SAR,SMA,EMA")
     responsebody = JSON.parse(response.body)
     candles = responsebody['candles']
     candles = { opens: candles['open'], highs: candles['high'], lows: candles['low'], closes: candles['close'], volumes: candles['volume'] }
     plotter = Plotter.new(responsebody['dates'], candles, responsebody['patterns'], responsebody['indicators']).plot
     @path = plotter.filename
-    @patterns = responsebody['indicators']
+    @patterns = responsebody['patterns']
   end
 
   # GET /twitter_images/new
