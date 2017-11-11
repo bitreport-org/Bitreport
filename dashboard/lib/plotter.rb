@@ -46,7 +46,7 @@ class Plotter
 
       set y2range [0:#{5 * volumes.max}]
 
-      plot '-' using 1:4:(#{0.95 * step}):($3 < $2 ? -1 : 1) axes x1y2 notitle with boxes palette fs solid 0.15 noborder, \\
+      plot '-' using 1:4:(#{0.95 * step}):($3 < $2 ? -1 : 1) axes x1y2 notitle with boxes palette fs transparent solid 0.15 noborder, \\
            '-' using 1:2:4 title "Bollinger Bands" with filledcurves linecolor "#cc8fb6d8", \\
            '-' using 1:2 notitle with lines linecolor "#663189d6" lw 1.5, \\
            '-' using 1:4 notitle with lines linecolor "#663189d6" lw 1.5, \\
