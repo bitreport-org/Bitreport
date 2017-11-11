@@ -1,5 +1,5 @@
 class TwitterImage < ApplicationRecord
-  include ImageUploader[:image]
+  include TwitterImageUploader[:image]
 
   validates :symbol, presence: true, inclusion: { in: %w[BTCUSD] }
   validates :timeframe, presence: true, inclusion: { in: %w[30m 1h 3h 12h] }

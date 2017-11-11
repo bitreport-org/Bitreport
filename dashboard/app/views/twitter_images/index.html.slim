@@ -1,32 +1,24 @@
 h1 Listing twitter_images
 
 h2 Latest chart:
-= image_tag @twitter_images.first.image_url, class: 'ui image' if @twitter_images&.first&.image_url
+= image_tag @twitter_images.first.image[:original].url, class: 'ui image' if @twitter_images&.first&.image
 
-table.ui.celled.table
-  thead
-    tr
-      th ID
-      th Symbol
-      th Timeframe
-      th Limit
-      th Patterns
-      th Indicators
-      th
-      th
-
-  tbody
-    - @twitter_images.each do |twitter_image|
-      tr
-        td = twitter_image.id
-        td = twitter_image.symbol
-        td = twitter_image.timeframe
-        td = twitter_image.limit
-        td = twitter_image.patterns
-        td = twitter_image.indicators
-        td = link_to 'Show', twitter_image
-        td = link_to 'Destroy', twitter_image, data: { confirm: 'Are you sure?' }, method: :delete
-
-br
+.ui.link.cards
+  - @twitter_images.each do |twitter_image|
+    .card
+      = link_to twitter_image, class: 'image' do
+        = image_tag twitter_image.image[:original].url if twitter_image&.image
+      = link_to twitter_image, class: 'content' do
+        .header
+          = "#{twitter_image.timeframe}#{twitter_image.symbol}#{twitter_image.limit}"
+        .meta
+          = twitter_image.id
+        .description
+          p = twitter_image.patterns
+          p = twitter_image.indicators
+      = link_to twitter_image, data: {confirm: 'Are you sure?'}, method: :delete do
+        .ui.bottom.attached.button
+          i.delete.icon
+          | Delete
 
 = link_to 'New Twitter image', new_twitter_image_path

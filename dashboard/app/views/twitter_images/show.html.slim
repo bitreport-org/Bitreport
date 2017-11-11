@@ -2,7 +2,7 @@ h1 = "#{@twitter_image.timeframe}#{@twitter_image.symbol}#{@twitter_image.limit}
 
 p#notice = notice
 
-= image_tag @twitter_image.image_url
+= image_tag @twitter_image.image[:original].url, class: 'ui image'
 
 p Patterns
 p = @twitter_image.patterns
