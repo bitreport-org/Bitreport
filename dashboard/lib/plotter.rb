@@ -1,21 +1,50 @@
 # frozen_string_literal: true
 
 class Plotter
-  attr_reader :timestamps, :candles, :patterns, :indicators, :step, :margin, :filename
+  attr_reader :timestamps, :candles, :patterns, :indicators, :levels, :step, :margin, :filename
 
-  def initialize(timestamps, candles, patterns, indicators)
+  def initialize(timestamps, candles, patterns, indicators, levels)
     @timestamps = timestamps
     @candles = candles
     @patterns = patterns || {}
     @indicators = indicators || {}
+    @levels = levels || {}
     @step = timestamps[1].to_i - timestamps[0].to_i
     @margin = (5 * (highs.max.to_f - lows.min.to_f) / 100)
     @filename = 'plot-' + SecureRandom.uuid + '.png'
+    @plots = []
+    @data = []
   end
 
   def plot
     out = []
-    out << <<~TXT
+    out << preamble
+    out << draw_levels
+    prepare_volume
+    prepare_bollinger_bg
+    prepare_candles
+    prepare_bollinger_fg
+    prepare_sar
+    prepare_sma
+    prepare_ema
+    prepare_patterns
+    out << commands
+    out << send((indicators.keys & %w[EWO MACD RSI STOCH]).first.downcase.to_sym)
+    io = IO::popen('gnuplot -persist', 'w+')
+    io << out.join("\n")
+    io.close_write
+    Rails.logger.info io.read
+    self
+  end
+
+  def output
+    File.join(Rails.root, 'tmp', filename)
+  end
+
+  private
+
+  def preamble
+    <<~GNU
       set terminal pngcairo truecolor font "Verdana,12" size 1280,720
       set output "#{output}"
 
@@ -47,52 +76,81 @@ class Plotter
       set grid xtics ytics
 
       set y2range [0:#{5 * volumes.max}]
-
-      plot '-' using 1:4:(#{0.95 * step}):($3 < $2 ? -1 : 1) axes x1y2 notitle with boxes palette fs transparent solid 0.15 noborder, \\
-           '-' using 1:2:4 title "Bollinger Bands" with filledcurves linecolor "#cc8fb6d8", \\
-           '-' using 1:2 notitle with lines linecolor "#663189d6" lw 1.5, \\
-           '-' using 1:4 notitle with lines linecolor "#663189d6" lw 1.5, \\
-           '-' using 1:2:3:4:5:($5 < $2 ? -1 : 1) notitle with candlesticks palette, \\
-           '-' using 1:3 notitle with lines linecolor "#663189d6" lw 1.5, \\
-           '-' using 1:2 title "SAR" with points lt 6 ps 0.3, \\
-           '-' using 1:2 title "SMA slow" with lines lw 1.5, \\
-           '-' using 1:3 title "SMA medium" with lines lw 1.5, \\
-           '-' using 1:4 title "SMA fast" with lines lw 1.5, \\
-           '-' using 1:2 title "EMA slow" with lines lw 1.5, \\
-           '-' using 1:3 title "EMA medium" with lines lw 1.5, \\
-           '-' using 1:4 title "EMA slow" with lines lw 1.5, \\
-           '-' using 1:2 notitle with points lc "#000000" ps 1.5, \\
-           '-' using 1:2 notitle with points lc "#000000" ps 1.5
-    TXT
-    out << timestamps.zip(opens, closes, volumes).map { |candle| candle.join(' ') }.push('e')
-    out << timestamps.zip(indicators['BB']['upperband'], indicators['BB']['middleband'], indicators['BB']['lowerband']).map { |candle| candle.join(' ') }.push('e') * 3
-    out << timestamps.zip(opens, lows, highs, closes).map { |candle| candle.join(' ') }.push('e')
-    out << timestamps.zip(indicators['BB']['upperband'], indicators['BB']['middleband'], indicators['BB']['lowerband']).map { |candle| candle.join(' ') }.push('e')
-    out << timestamps.zip(indicators['SAR']['sar']).map { |candle| candle.join(' ') }.push('e')
-    out << timestamps.zip(indicators['SMA']['slow'], indicators['SMA']['medium'], indicators['SMA']['fast']).map { |candle| candle.join(' ') }.push('e') * 3
-    out << timestamps.zip(indicators['EMA']['slow'], indicators['EMA']['medium'], indicators['EMA']['fast']).map { |candle| candle.join(' ') }.push('e') * 3
-    out << patterns.first[1]['up'].map { |t| "#{t} #{highs[timestamps.index(t) || 0]}" }.push('e')
-    out << patterns.first[1]['down'].map { |t| "#{t} #{lows[timestamps.index(t) || 0]}" }.push('e')
-    # out << ewo
-    # out << macd
-    # out << rsi
-    out << stoch
-    io = IO::popen('gnuplot -persist', 'w+')
-    io << out.join("\n")
-    io.close_write
-    Rails.logger.info io.read
-    self
+    GNU
   end
 
-  def output
-    File.join(Rails.root, 'tmp', filename)
+  def draw_levels
+    return unless levels['support'] || levels['resistance']
+    out = []
+    [levels['support'], levels['resistance']].flatten.each_with_index do |level, i|
+      out << <<~TXT
+        set arrow #{i + 1} from #{timestamps.first},#{level} to #{timestamps.last + (1 + 10 * timestamps.length / 100) * step},#{level} nohead lc rgb "#66eab631" lw 2
+      TXT
+    end
+    out
   end
 
-  private
+  def prepare_volume
+    @plots << "using 1:4:(#{0.95 * step}):($3 < $2 ? -1 : 1) axes x1y2 notitle with boxes palette fs transparent solid 0.15 noborder"
+    @data << timestamps.zip(opens, closes, volumes).map { |candle| candle.join(' ') }.push('e')
+  end
+
+  def prepare_bollinger_bg
+    return unless indicators['BB']
+    @plots << 'using 1:2:4 title "Bollinger Bands" with filledcurves linecolor "#cc8fb6d8"' <<
+              'using 1:2 notitle with lines linecolor "#663189d6" lw 1.5' <<
+              'using 1:4 notitle with lines linecolor "#663189d6" lw 1.5'
+    @data << timestamps.zip(indicators['BB']['upperband'], indicators['BB']['middleband'], indicators['BB']['lowerband']).map { |candle| candle.join(' ') }.push('e') * 3
+  end
+
+  def prepare_candles
+    @plots << 'using 1:2:3:4:5:($5 < $2 ? -1 : 1) notitle with candlesticks palette'
+    @data << timestamps.zip(opens, lows, highs, closes).map { |candle| candle.join(' ') }.push('e')
+  end
+
+  def prepare_bollinger_fg
+    return unless indicators['BB']
+    @plots << 'using 1:3 notitle with lines linecolor "#663189d6" lw 1.5'
+    @data << timestamps.zip(indicators['BB']['upperband'], indicators['BB']['middleband'], indicators['BB']['lowerband']).map { |candle| candle.join(' ') }.push('e')
+  end
+
+  def prepare_sar
+    return unless indicators['SAR']
+    @plots << 'using 1:2 title "SAR" with points lt 6 ps 0.3'
+    @data << timestamps.zip(indicators['SAR']['sar']).map { |candle| candle.join(' ') }.push('e')
+  end
+
+  def prepare_sma
+    return unless indicators['SMA']
+    @plots << 'using 1:2 title "SMA slow" with lines lw 1.5' <<
+              'using 1:3 title "SMA medium" with lines lw 1.5' <<
+              'using 1:4 title "SMA fast" with lines lw 1.5'
+    @data << timestamps.zip(indicators['SMA']['slow'], indicators['SMA']['medium'], indicators['SMA']['fast']).map { |candle| candle.join(' ') }.push('e') * 3
+  end
+
+  def prepare_ema
+    return unless indicators['EMA']
+    @plots << 'using 1:2 title "EMA slow" with lines lw 1.5' <<
+              'using 1:3 title "EMA medium" with lines lw 1.5' <<
+              'using 1:4 title "EMA slow" with lines lw 1.5'
+    @data << timestamps.zip(indicators['EMA']['slow'], indicators['EMA']['medium'], indicators['EMA']['fast']).map { |candle| candle.join(' ') }.push('e') * 3
+  end
+
+  def prepare_patterns
+    return unless patterns.any?
+    @plots << 'using 1:2 notitle with points lc "#000000" ps 1.5' <<
+              'using 1:2 notitle with points lc "#000000" ps 1.5'
+    @data << patterns.first[1]['up'].map { |t| "#{t} #{highs[timestamps.index(t) || 0]}" }.push('e') <<
+             patterns.first[1]['down'].map { |t| "#{t} #{lows[timestamps.index(t) || 0]}" }.push('e')
+  end
+
+  def commands
+    "plot '-'" + @plots.join(",\\\n'-' ") + "\n" + @data.join("\n")
+  end
 
   def ewo
     out = []
-    out << <<~TXT
+    out << <<~GNU
       set size 1.0,0.25
       set origin 0.0,0.05
 
@@ -102,14 +160,14 @@ class Plotter
       set offsets 0,#{(1 + 10 * timestamps.length / 100) * step},10,10
 
       plot '-' using 1:2:($2 < 0 ? -1 : 1) notitle with impulses palette
-    TXT
+    GNU
     out << timestamps.zip(indicators['EWO']['ewo']).map { |candle| candle.join(' ') }.push('e')
     out
   end
 
   def macd
     out = []
-    out << <<~TXT
+    out << <<~GNU
       set size 1.0,0.25
       set origin 0.0,0.05
 
@@ -122,14 +180,14 @@ class Plotter
       plot '-' using 1:2 notitle with impulses linecolor "#f455c7", \\
            '-' using 1:3 notitle with lines linecolor "#ff9b38", \\
            '-' using 1:4 notitle with lines linecolor "#2e99f7"
-    TXT
+    GNU
     out << timestamps.zip(indicators['MACD']['hist'], indicators['MACD']['signal'], indicators['MACD']['macd']).map { |candle| candle.join(' ') }.push('e') * 3
     out
   end
 
   def rsi
     out = []
-    out << <<~TXT
+    out << <<~GNU
       set size 1.0,0.25
       set origin 0.0,0.05
 
@@ -145,14 +203,14 @@ class Plotter
       set yrange [0:100]
 
       plot '-' using 1:2 notitle with lines linecolor "#9526c1"
-    TXT
+    GNU
     out << timestamps.zip(indicators['RSI']['rsi']).map { |candle| candle.join(' ') }.push('e')
     out
   end
 
   def stoch
     out = []
-    out << <<~TXT
+    out << <<~GNU
       set size 1.0,0.25
       set origin 0.0,0.05
 
@@ -169,7 +227,7 @@ class Plotter
 
       plot '-' using 1:2 notitle with lines linecolor "#4286f4", \\
            '-' using 1:3 notitle with lines linecolor "#f4a641"
-    TXT
+    GNU
     out << timestamps.zip(indicators['STOCH']['slowk'], indicators['STOCH']['slowd']).map { |candle| candle.join(' ') }.push('e') * 2
     out
   end

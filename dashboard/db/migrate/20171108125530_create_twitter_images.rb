@@ -6,6 +6,7 @@ class CreateTwitterImages < ActiveRecord::Migration[5.1]
       t.integer :limit
       t.string :patterns, array: true
       t.string :indicators, array: true
+      t.string :levels
       t.text :image_data
 
       t.timestamps

@@ -2,6 +2,8 @@ require 'image_processing/mini_magick'
 
 class TwitterImageUploader < Shrine
   include ImageProcessing::MiniMagick
+  plugin :pretty_location, namespace: '/'
+  plugin :moving
   plugin :processing
   plugin :versions
   plugin :delete_raw

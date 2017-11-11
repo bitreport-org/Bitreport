@@ -2,7 +2,7 @@ Rails.application.routes.draw do
   get 'home/index'
   post 'wallet/use'
 
-  scope 'admin' do
+  namespace 'admin' do
     resources :twitter_images
   end
 

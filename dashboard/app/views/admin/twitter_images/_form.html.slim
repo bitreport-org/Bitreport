@@ -1,0 +1,68 @@
+= form_for @twitter_image, html: { class: 'ui form' } do |f|
+  - if @twitter_image.errors.any?
+    #error_explanation
+      h2 = "#{pluralize(@twitter_image.errors.count, "error")} prohibited this twitter_image from being saved:"
+      ul
+        - @twitter_image.errors.full_messages.each do |message|
+          li = message
+
+  .field
+    = f.label :symbol
+    .ui.fluid.search.selection.dropdown
+      = f.hidden_field :symbol
+      i.dropdown.icon
+      .default.text Select currency pair
+      .menu
+        .item data-value='BTCUSD'
+          i.bitcoin.icon
+          | BTCUSD
+  .field
+    = f.label :timeframe
+    .ui.fluid.search.selection.dropdown
+      = f.hidden_field :timeframe
+      i.dropdown.icon
+      .default.text Select timeframe
+      .menu
+        .item data-value='30m' 30m
+        .item data-value='1h' 1h
+        .item data-value='3h' 3h
+        .item data-value='12h' 12h
+  .field
+    = f.label :limit
+    = f.text_field :limit, value: '100'
+  .field
+    = f.label :indicators
+    .ui.selection.dropdown
+      = f.hidden_field :indicators, { multiple: true, value: 'RSI' }
+      i.dropdown.icon
+      .default.text Indicator
+      .menu
+        .item data-value='EWO' EWO
+        .item data-value='MACD' MACD
+        .item data-value='RSI' RSI
+        .item data-value='STOCH' STOCH
+  .field
+    .ui.toggle.checkbox
+      = f.check_box :indicators, { multiple: true, class: 'hidden' }, 'BB', nil
+      = f.label :indicators, 'Draw Bollinger Bands'
+  .field
+    .ui.toggle.checkbox
+      = f.check_box :indicators, { multiple: true, class: 'hidden' }, 'EMA', nil
+      = f.label :indicators, 'Draw EMA'
+  .field
+    .ui.toggle.checkbox
+      = f.check_box :indicators, { multiple: true, class: 'hidden' }, 'SMA', nil
+      = f.label :indicators, 'Draw SMA'
+  .field
+    .ui.toggle.checkbox
+      = f.check_box :indicators, { multiple: true, class: 'hidden' }, 'SAR', nil
+      = f.label :indicators, 'Draw SAR'
+  .field
+    .ui.toggle.checkbox
+      = f.check_box :levels, { class: 'hidden' }, 'ALL', 'NONE'
+      = f.label :levels, 'Draw Levels'
+  .field
+    .ui.toggle.checkbox
+      = f.check_box :patterns, { multiple: true, class: 'hidden' }, 'ALL', 'NONE'
+      = f.label :patterns, 'Draw Patterns'
+  = f.submit class: 'ui button'

@@ -21,6 +21,7 @@ ActiveRecord::Schema.define(version: 20171108125530) do
     t.integer "limit"
     t.string "patterns", array: true
     t.string "indicators", array: true
+    t.string "levels"
     t.text "image_data"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
