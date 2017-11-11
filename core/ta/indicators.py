@@ -1,6 +1,5 @@
 import talib
 
-
 def BB(data, start, timeperiod=20, nbdevup=2, nbdevdn=2, matype=0):
     upperband, middleband, lowerband = talib.BBANDS(data['close'], timeperiod, nbdevup, nbdevdn, matype)
 
@@ -48,20 +47,45 @@ def AROON(data, start, timeperiod=14):
     aroondown, aroonup = talib.AROON(data['high'], data['low'], timeperiod)
     return {'down': aroondown.tolist()[start:], 'up': aroonup.tolist()[start:]}
 
-def SMA(data, start, timeperiod=20):
-    real = talib.SMA(data['close'], timeperiod)
-    return {'sma': real.tolist()[start:]}
+def SMA(data, start):
 
-def SAR(data, start, acceleration=0, maximum=0):
-    real = talib.SAR(data['high'], data['low'], acceleration, maximum)
+    periods = [10, 20 ,50]
+    names = ['fast', 'medium','slow']
+    dict = {}
+
+    for i in range(len(periods)):
+        real = talib.SMA(data['close'], periods[i])
+        dict[names[i]] = real.tolist()[start:]
+
+    return {'sma':dict}
+
+def EMA(data, start):
+    periods = [10, 20, 50]
+    names = ['fast', 'medium', 'slow']
+    dict = {}
+
+    for i in range(len(periods)):
+        real = talib.EMA(data['close'], periods[i])
+        dict[names[i]] = real.tolist()[start:]
+
+    return {'sma': dict}
+
+def SAR(data, start):
+    real = talib.SAREXT(data['high'], data['low'],
+                        startvalue=0.02, offsetonreverse=0,
+                        accelerationinitlong=0.02, accelerationlong=0.02,
+                        accelerationmaxlong=0.2, accelerationinitshort=0.02,
+                        accelerationshort=0.02, accelerationmaxshort=0.2)
+
     return {'sar': real.tolist()[start:]}
-
-def EMA(data, start, timeperiod=20):
-    real = talib.EMA(data['close'], timeperiod)
-    return {'ema': real.tolist()[start:]}
 
 # Elliott Wave Oscillator
 def EWO(data, start, fast = 5, slow = 35):
     close = data['close']
     real = talib.EMA(close, fast) - talib.EMA(close, slow)
     return {'ewo': real.tolist()[start:]}
+
+def TDS(data, start, candlesUntilSignal = 9, candlesPastTocompare = 4):
+    close = data['close']
+    low = data['low']
+    high = data['high']
