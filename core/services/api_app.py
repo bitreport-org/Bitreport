@@ -155,6 +155,9 @@ class get_all(Resource):
             dict['indicators'] = indidict
 
         ################################ PATTERNS ########################################
+        # Short data for patterns:
+        pat_data = internal.import_numpy(client, db, pair, timeframe, limit)
+
         if patterns_list != None:
             try:
                 patterns_list = patterns_list[0].split(',')
@@ -164,16 +167,17 @@ class get_all(Resource):
             value = 0
             if patterns_list == ['ALL']:
                 try:
-                    dict['patterns'] = patterns.CheckAllPatterns(data, 'none', 1)
+                    dict['patterns'] = patterns.CheckAllPatterns(pat_data, 'none', 1)
                 except:
                     pass
             else:
                 try:
-                    dict['patterns'] = patterns.CheckAllPatterns(data, patterns_list, 0)
+                    dict['patterns'] = patterns.CheckAllPatterns(pat_data, patterns_list, 0)
                 except:
                   pass
 
         ################################ LEVELS ##########################################
+
         if levels_ask == 'ALL':
             dict['levels'] = levels.srlevels(data, strength=0.03)
 
