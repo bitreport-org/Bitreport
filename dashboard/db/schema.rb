@@ -16,7 +16,11 @@ ActiveRecord::Schema.define(version: 20171108125530) do
   enable_extension "plpgsql"
 
   create_table "twitter_images", force: :cascade do |t|
-    t.string "name"
+    t.string "symbol", null: false
+    t.string "timeframe", null: false
+    t.integer "limit"
+    t.string "patterns", array: true
+    t.string "indicators", array: true
     t.text "image_data"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false

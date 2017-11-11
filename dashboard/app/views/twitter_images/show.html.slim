@@ -1,14 +1,12 @@
-/p#notice = notice
-/
-/p
-/  strong Name:
-/  = @twitter_image.name
-/p
-/  strong Image data:
-/  = @twitter_image.image_data
-/
-/=< link_to 'Back', twitter_images_path
+h1 = "#{@twitter_image.timeframe}#{@twitter_image.symbol}#{@twitter_image.limit}"
 
-img src="/uploads/#{@path}" style='float: left; width: 70%'
-pre style='float: left;'
-  = JSON.pretty_generate(@patterns)
+p#notice = notice
+
+= image_tag @twitter_image.image_url
+
+p Patterns
+p = @twitter_image.patterns
+p Indicators
+p = @twitter_image.indicators
+
+= link_to 'Back', twitter_images_path

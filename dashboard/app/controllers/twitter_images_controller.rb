@@ -2,25 +2,15 @@
 
 class TwitterImagesController < AdminController
   http_basic_authenticate_with name: 'admin', password: 'password'
-  # before_action :set_twitter_image, only: %i[show destroy]
+  before_action :set_twitter_image, only: %i[show destroy]
 
   # GET /twitter_images
   def index
-    @twitter_images = TwitterImage.all
+    @twitter_images = TwitterImage.order(created_at: :desc).limit(20)
   end
 
   # GET /twitter_images/1
-  def show
-    tf = params[:time] || '1h'
-    limit = params[:limit] || 100
-    response = HTTParty.get("http://127.0.0.1:5000/data/#{params[:id]}/#{tf}?limit=#{limit}&patterns=CDLHIKKAKE&indicators=EWO,BB,MACD,RSI,STOCH,SAR,SMA,EMA")
-    responsebody = JSON.parse(response.body)
-    candles = responsebody['candles']
-    candles = { opens: candles['open'], highs: candles['high'], lows: candles['low'], closes: candles['close'], volumes: candles['volume'] }
-    plotter = Plotter.new(responsebody['dates'], candles, responsebody['patterns'], responsebody['indicators']).plot
-    @path = plotter.filename
-    @patterns = responsebody['patterns']
-  end
+  def show; end
 
   # GET /twitter_images/new
   def new
@@ -53,6 +43,6 @@ class TwitterImagesController < AdminController
 
   # Never trust parameters from the scary internet, only allow the white list through.
   def twitter_image_params
-    params.require(:twitter_image).permit(:name, :image_data)
+    params.require(:twitter_image).permit(:symbol, :timeframe, :limit, :patterns, :indicators).merge(indicators: params[:twitter_image][:indicators].split(','), patterns: params[:twitter_image][:patterns].split(','))
   end
 end

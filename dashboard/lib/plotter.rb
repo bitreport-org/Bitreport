@@ -10,7 +10,7 @@ class Plotter
     @indicators = indicators || {}
     @step = timestamps[1].to_i - timestamps[0].to_i
     @margin = (5 * (highs.max.to_f - lows.min.to_f) / 100)
-    @filename = SecureRandom.uuid + '.png'
+    @filename = 'plot-' + SecureRandom.uuid + '.png'
   end
 
   def plot
@@ -27,6 +27,8 @@ class Plotter
       set format x ""
 
       set multiplot
+
+      set key left reverse
 
       set bmargin 0
 
@@ -78,13 +80,11 @@ class Plotter
     io = IO::popen('gnuplot -persist', 'w+')
     io << out.join("\n")
     io.close_write
-    puts io.read
-    # puts out.join("\n")
     self
   end
 
   def output
-    File.join(Rails.root, 'public', 'uploads', filename)
+    File.join(Rails.root, 'tmp', filename)
   end
 
   private
@@ -174,22 +174,22 @@ class Plotter
   end
 
   def opens
-    candles[:opens]
+    candles['open']
   end
 
   def closes
-    candles[:closes]
+    candles['close']
   end
 
   def highs
-    candles[:highs]
+    candles['high']
   end
 
   def lows
-    candles[:lows]
+    candles['low']
   end
 
   def volumes
-    candles[:volumes]
+    candles['volume']
   end
 end
