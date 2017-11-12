@@ -1,5 +1,4 @@
 import talib
-
 from services import internal
 
 
@@ -22,14 +21,15 @@ def FindPattern(dict, array, pattern_name, data):
 #CheckAllPatterns
 #Input: import_numpy
 #Output: { pattern_name: { up: ['2017-09-17 20:00:00', '2017-09-24 20:00:00'], down: [2017-09-25 08:00:00' }, ...}
-def CheckAllPatterns(data):
+def CheckAllPatterns(data, patterns_list, all = 1):
     open = data['open']
     high = data['high']
     low = data['low']
     close = data['close']
 
     patterns = {}
-    patterns_list = ['CDL2CROWS',
+    if all == 1:
+        patterns_list = ['CDL2CROWS',
     'CDL3BLACKCROWS',
     'CDL3INSIDE',
     'CDL3LINESTRIKE',
@@ -90,13 +90,9 @@ def CheckAllPatterns(data):
     'CDLUNIQUE3RIVER',
     'CDLXSIDEGAP3METHODS',
     'CDLXSIDEGAP3METHODS' ]
+
     for pattern in patterns_list:
         integer = getattr(talib,pattern)(open, high, low, close)
         FindPattern(patterns, integer, pattern, data)
 
     return patterns
-
-s = internal.internal('test')
-data = s.import_numpy('ETPUSD', '1h', 10)
-print(data)
-print(CheckAllPatterns(data))

@@ -50,6 +50,7 @@ class bitfinex_pair_dbservice():
                     "high": float(ticker[3]),
                     "low": float(ticker[4]),
                     "volume": float(ticker[5]),
+                    "ztime": int(ticker[0])
                 }
             }
         ]
@@ -67,12 +68,11 @@ class bitfinex_pair_dbservice():
             if response != 'hb':
                 now = time.time()
                 if now - self.start >= 60 and response[0]!= self.last1 and response[0] != self.last2:
-                    print(self.i, datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), ast.literal_eval(message)[1])
+                    print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), ast.literal_eval(message)[1])
                     self.write_ticker(response)
                     self.start = now
                     self.last2 = self.last1
                     self.last1 = response[0]
-                    self.i += 1
 
     def on_error(self, ws, error):
         print('Error. Time : ', datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
@@ -90,13 +90,15 @@ class bitfinex_pair_dbservice():
                     }')
         _thread.start_new_thread(run, ())
 
-def bitfinex_create_service(db_name, pair, timeframes, retentions='none'):
+
+def bitfinex_create_service(db_name, pair, timeframes, cq ='yes', retentions='none'):
     # Connect websockets
     service = bitfinex_pair_dbservice(db_name, pair)
 
     # Continuous queries
-    for tf in timeframes:
-        service.create_conquery(tf)
+    if cq == 'yes':
+        for tf in timeframes:
+            service.create_conquery(tf)
 
     # Retention policy
 
@@ -116,11 +118,11 @@ if __name__ == "__main__":
     # PARAMS
     db_name = 'test'
 
-    pairs = ['BTCUSD']
+    pairs = ['ETHUSD']
 
     timeframes = ['5m', '30m', '1h', '2h', '3h', '6h', '12h', '24h', '168h']
 
     # Creates bitfinex api services
     websocket.enableTrace(True)
     for pair in pairs:
-        bitfinex_create_service(db_name, pair, timeframes)
+        bitfinex_create_service(db_name, pair, timeframes, cq='yes')
