@@ -1,0 +1,38 @@
+DBSERVICE.py //////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Class bitfinex_pair_dbservice(db_name, pair):
+- creates influx database client to a given database
+- creates database db_name
+
+Class methods:
+- create_conquery(timeframe) for a given timeframe creates continuous query on influx database
+
+Function bitfinex_create_service(db_name, pair, timeframes, cq ='yes', retentions='none'):
+- creates bitfinex_pair_dbservice for a given database and pair
+- creates continuous queries for timeframes in a given timeframes list
+- creates connection to Bitfinex websockests channel for a given pair
+
+Main:
+- creates bitfinex_create_service for given database, pairs and timeframes
+
+INTERNAL.py //////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Function import_numpy(client, db, pair, timeframe, limit) - asks database for CHLOV records
+- queries given database 'SELECT * FROM pair+timeframe ORDER BY time DESC LIMIT limit;
+- changes database time to timestamp
+- returns: {'date' : list,
+            'open' : np.array,
+            'close' : np.array,
+            'high' : np.array,
+            'low' : np.array,
+            'volume' : np.array
+            }
+DBFILL.py //////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Function bitfinex_fill(client, db, pair, timeframes, limit) - fills database with Bitfinex data
+- For each timeframe in a given timeframes list ask Bitfinex API for last limit records of given pair at given timeframe
+- Writes records to influx databases db
+
+Main:
+- creates influx client for given database name
+- for given pairs list and timeframes list does bitfinex fill

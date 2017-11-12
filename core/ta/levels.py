@@ -2,11 +2,12 @@ import numpy as np
 import talib
 import statistics
 
-# followingMax finds first maximum in close
-# Input: (Bitfinex_numpy['close'], strength) the strength determinates how pointed maximas must be
-# Output: [max , max_position_in_close]
-# Remarks: strength in <0, 1> as a %
+
 def followingMax(close, strength):
+    # followingMax finds first maximum in close
+    # Input: (Bitfinex_numpy['close'], strength) the strength determinates how pointed maximas must be
+    # Output: [max , max_position_in_close]
+    # Remarks: strength in <0, 1> as a %
     max = close[0]
     max_pos = 0
     for i in range(0, close.size-1):
@@ -17,11 +18,12 @@ def followingMax(close, strength):
             break
     return [max, max_pos]
 
-# followingMin finds first minimum in close
-# Input: (Bitfinex_numpy['close'], strength) the strength determinates how pointed minimas must be
-# Output: [min , min_position_in_close]
-# Remarks:strength in <0, 1> as a %
 def followingMin(close, strength):
+    # followingMin finds first minimum in close
+    # Input: (Bitfinex_numpy['close'], strength) the strength determinates how pointed minimas must be
+    # Output: [min , min_position_in_close]
+    # Remarks:strength in <0, 1> as a %
+
     min = close[0]
     min_pos = 0
     for i in range(0, close.size-1):
@@ -32,14 +34,14 @@ def followingMin(close, strength):
             break
     return [min, min_pos]
 
-# Levels finds support and resistance [levels, position]
-# Input: (Bitfinex_numpy['close'], strength) the strength determinates how pointed extremas must be
-# Output: [[var1, var2,... ], [var1_position_in_close, ...], [var1_type,...]]
-# Remarks:
-#           strength in <0, 1> as a %
-#           var_type = 100 -> resistance
-#           var_type = -100 -> support
 def srlevels(data, strength=0.03):
+    # Levels finds support and resistance [levels, position]
+    # Input: (Bitfinex_numpy['close'], strength) the strength determinates how pointed extremas must be
+    # Output: [[var1, var2,... ], [var1_position_in_close, ...], [var1_type,...]]
+    # Remarks:
+    #           strength in <0, 1> as a %
+    #           var_type = 100 -> resistance
+    #           var_type = -100 -> support
     close = data['close']
     l =[]
     l_pos = []

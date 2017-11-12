@@ -24,72 +24,29 @@ magic_limit = 51
 #########################################################################################
 
 class get_ohlc(Resource):
-    def get(self):
+    def get(self, pair, timeframe):
         global client, db
         parser = reqparse.RequestParser()
-        parser.add_argument('pair')
-        args = parser.parse_args()
-        pair = args.get('pair')
 
-        parser.add_argument('timeframe')
-        args = parser.parse_args()
-        timeframe = args.get('timeframe')
-
-        parser.add_argument('limit')
+        parser.add_argument('limit', type = int)
         args = parser.parse_args()
         limit = args.get('limit')
 
         # Perform query and return JSON data
         dict = {}
-        data = internal.import_numpy(client, db, pair, timeframe, limit + magic_limit)
+        data = internal.import_numpy(client, db, pair, timeframe, limit)
+        print(data)
 
-        dict['dates'] = data['date'].tolist()[magic_limit:],
-        dict['candles'] = {'open': data['open'].tolist()[magic_limit:],
-                           'high': data['high'].tolist()[magic_limit:],
-                           'close': data['close'].tolist()[magic_limit:],
-                           'low': data['low'].tolist()[magic_limit:],
+
+        dict['dates'] = data['date'],
+        dict['candles'] = {'open': data['open'].tolist(),
+                           'high': data['high'].tolist(),
+                           'close': data['close'].tolist(),
+                           'low': data['low'].tolist(),
                            }
-        # Unwrap json :D
+        print(dict)
         return dict
 
-class get_pair(Resource):
-    def get(self):
-        global client, db
-        parser = reqparse.RequestParser()
-        parser.add_argument('pair')
-        args = parser.parse_args()
-        pair = args.get('pair')
-
-
-        # Perform query and return JSON data
-        query = 'SELECT * FROM ' + pair + ';'
-        params = 'db=' + db + '&q=' + query
-        r = client.request('query', params=params)
-
-        # Unwrap json :D
-        print(pair)
-        return r.json()['results'][0]['series'][0]['values']
-
-# class get_patterns(Resource):
-#     def get(self, pair, timeframe, limit, patterns_list, all ):
-#         global client, db
-#
-#         data = internal.import_numpy(db, client, pair, timeframe, limit)
-#         return patterns.CheckAllPatterns(data, patterns_list, all)
-#
-# class get_bb(Resource):
-#     def get(self, pair, timeframe, limit, timeperiod=5, nbdevup=2, nbdevdn=2, matype=0):
-#         global client, db
-#
-#         data = internal.import_numpy(client, db, pair, timeframe, limit)
-#         return indicators.BB(data, timeperiod=20, nbdevup=2, nbdevdn=2, matype=0)
-#
-# class get_macd(Resource):
-#     def get(self, pair, timeframe, limit, fastperiod=12, slowperiod=26, signalperiod=9):
-#         global client, db
-#
-#         data = internal.import_numpy(client, db, pair, timeframe, limit)
-#         return indicators.MACD(data, fastperiod=12, slowperiod=26, signalperiod=9)
 
 class get_all(Resource):
     def get(self, pair, timeframe):
@@ -115,15 +72,6 @@ class get_all(Resource):
         levels_ask = args.get('levels')
 
         ############################### DATA REQUEST #####################################
-
-        # # Perform query and return JSON data
-        # query = 'SELECT * FROM ' + pair + timeframe + ' ORDER BY time DESC LIMIT ' + str(limit) + ';'
-        # params = 'db=' + db + '&q=' + query
-        # r = client.request('query', params=params)
-        #
-        # data = internal.import_numpy(client, db, pair, timeframe, limit)
-        # dict = {}
-        # dict['candles'] = r.json()['results'][0]['series'][0]['values']
 
         dict = {}
         data = internal.import_numpy(client, db, pair, timeframe, limit+magic_limit)
@@ -189,10 +137,7 @@ class get_all(Resource):
 # Table with name 'pair'
 # api.add_resource(get_pair, '/')
 api.add_resource(get_all, '/data/<string:pair>/<string:timeframe>/')
-
-# List of last n=limit [close,  high,   low,    open,   volume] candles
-api.add_resource(get_ohlc, '/data/')
-
+api.add_resource(get_ohlc, '/test/<string:pair>/<string:timeframe>/')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)

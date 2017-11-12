@@ -30,7 +30,8 @@ if __name__ == "__main__":
     db = 'test'
     client = InfluxDBClient('localhost', 8086, 'root', 'root', db)
 
-    pair = 'BTCUSD'
+    pairs = ['BTCUSD']
     timeframes = ['30m', '1h', '3h', '12h']
 
-    bitfinex_fill(client, db, pair, timeframes, 100)
+    for pair in pairs:
+        bitfinex_fill(client, db, pair, timeframes, 100)

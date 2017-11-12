@@ -50,6 +50,7 @@ class bitfinex_pair_dbservice():
                     "high": float(ticker[3]),
                     "low": float(ticker[4]),
                     "volume": float(ticker[5]),
+                    "ztime": int(ticker[0])
                 }
             }
         ]
@@ -59,7 +60,7 @@ class bitfinex_pair_dbservice():
     #Websocket messages handler
     def on_message(self, ws, message):
         # Handling first message beacuse ast.literal_eval doesn't work
-        if self.connected < 3:
+        if self.connected < 2:
             print('Connected!')
             self.connected +=1
         else:
@@ -67,7 +68,7 @@ class bitfinex_pair_dbservice():
             if response != 'hb':
                 now = time.time()
                 if now - self.start >= 60 and response[0]!= self.last1 and response[0] != self.last2:
-                    #print(self.i, datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), ast.literal_eval(message)[1])
+                    print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), ast.literal_eval(message)[1])
                     self.write_ticker(response)
                     self.start = now
                     self.last2 = self.last1
@@ -117,11 +118,11 @@ if __name__ == "__main__":
     # PARAMS
     db_name = 'test'
 
-    pairs = ['BTCUSD']
+    pairs = ['ETHUSD']
 
     timeframes = ['5m', '30m', '1h', '2h', '3h', '6h', '12h', '24h', '168h']
 
     # Creates bitfinex api services
     websocket.enableTrace(True)
     for pair in pairs:
-        bitfinex_create_service(db_name, pair, timeframes, cq='no')
+        bitfinex_create_service(db_name, pair, timeframes, cq='yes')
