@@ -85,3 +85,18 @@ def TDS(data, start, candlesUntilSignal = 9, candlesPastTocompare = 4):
     close = data['close']
     low = data['low']
     high = data['high']
+
+def KELTNER(data):
+    # Keltner Channels
+    # Middle Line: 20-day exponential moving average
+    # Upper Channel Line: 20-day EMA + (2 x ATR(10))
+    # Lower Channel Line: 20-day EMA - (2 x ATR(10))
+    close = data['close']
+    high = data['high']
+    low = data['low']
+
+    mid = talib.SMA(close, 20)
+    upperch = mid + (2 * talib.ATR(high, low, close, 10))
+    lowerch = mid - (2 * talib.ATR(high, low, close, 10))
+    
+    return {'mid': mid, 'upperch': upperch, 'lowerch':lowerch}
