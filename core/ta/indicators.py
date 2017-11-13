@@ -81,7 +81,6 @@ def EWO(data, start, fast = 5, slow = 35):
     real = talib.EMA(close, fast) - talib.EMA(close, slow)
     return {'ewo': real.tolist()[start:]}
 
-
 def KELTNER(data,start):
     # Keltner Channels
     # Middle Line: 20-day exponential moving average
@@ -95,8 +94,9 @@ def KELTNER(data,start):
     upperch = mid + (2 * talib.ATR(high, low, close, 10))
     lowerch = mid - (2 * talib.ATR(high, low, close, 10))
     
-    return {'mid': mid.tolist()[start:], 'upperch': upperch.tolist()[start:], 'lowerch':lowerch.tolist()[start:]}
+    return {'middleband': mid.tolist()[start:], 'upperband': upperch.tolist()[start:], 'lowerband':lowerch.tolist()[start:]}
 
+# Tom Demark Sequential
 def TDS(data, start):
     close = data['close']
     low = data['low']
