@@ -3,7 +3,6 @@ from datetime import datetime
 import datetime
 import websocket
 import _thread
-import time
 import ast
 
 ################################## WEBSOCKETS ############################################
@@ -12,14 +11,12 @@ class bitfinex_pair_dbservice():
 
     def __init__(self, db_name, pair ):
         self.client = InfluxDBClient('localhost', 8086, 'root', 'root', db_name)
-        self.start = time.time()
         self.db = db_name
         self.last1 = 0
         self.last2 =0
         self.pair = pair
         self.client.create_database(db_name)
-        self.connected = 0
-        self.i = 0
+
 
     # Creates Continuous Query with a given timeframe
     def create_conquery(self, timeframe):
@@ -50,29 +47,32 @@ class bitfinex_pair_dbservice():
                     "high": float(ticker[3]),
                     "low": float(ticker[4]),
                     "volume": float(ticker[5]),
-                    "ztime": int(ticker[0])
                 }
             }
         ]
         self.client.write_points(json_body)
 
-
     #Websocket messages handler
     def on_message(self, ws, message):
-        # Handling first message beacuse ast.literal_eval doesn't work
-        if self.connected < 2:
-            print('Connected!')
-            self.connected +=1
-        else:
+        try:
             response = ast.literal_eval(message)[1]
             if response != 'hb':
-                now = time.time()
-                if now - self.start >= 60 and response[0]!= self.last1 and response[0] != self.last2:
-                    print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), ast.literal_eval(message)[1])
+                # Dump handling - normal ticker message has 6 values, dump is a longer message
+                if len(response) > 6:
+                    for ticker in response:
+                        self.write_ticker(ticker)
+                        print('Dump record : ', datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), ticker)
+
+                # Single ticker handling
+                elif  response[0]!= self.last1 and response[0] != self.last2:
+                    print('Ticker :',datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), response)
                     self.write_ticker(response)
-                    self.start = now
+                    #self.start = now
                     self.last2 = self.last1
                     self.last1 = response[0]
+        except:
+            print('Not a ticker')
+            pass
 
     def on_error(self, ws, error):
         print('Error. Time : ', datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
@@ -109,7 +109,9 @@ def bitfinex_create_service(db_name, pair, timeframes, cq ='yes', retentions='no
                                 on_error=service.on_error,
                                 on_close=service.on_close)
     ws.on_open = service.on_open
-    ws.run_forever()
+
+    while True:
+        ws.run_forever()
 
 
 #################################### MAIN ################################################
@@ -118,7 +120,7 @@ if __name__ == "__main__":
     # PARAMS
     db_name = 'test'
 
-    pairs = ['ETHUSD']
+    pairs = ['ETCUSD']
 
     timeframes = ['5m', '30m', '1h', '2h', '3h', '6h', '12h', '24h', '168h']
 
