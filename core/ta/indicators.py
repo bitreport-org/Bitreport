@@ -81,7 +81,55 @@ def EWO(data, start, fast = 5, slow = 35):
     real = talib.EMA(close, fast) - talib.EMA(close, slow)
     return {'ewo': real.tolist()[start:]}
 
-def TDS(data, start, candlesUntilSignal = 9, candlesPastTocompare = 4):
+
+def KELTNER(data,start):
+    # Keltner Channels
+    # Middle Line: 20-day exponential moving average
+    # Upper Channel Line: 20-day EMA + (2 x ATR(10))
+    # Lower Channel Line: 20-day EMA - (2 x ATR(10))
+    close = data['close']
+    high = data['high']
+    low = data['low']
+
+    mid = talib.SMA(close, 20)
+    upperch = mid + (2 * talib.ATR(high, low, close, 10))
+    lowerch = mid - (2 * talib.ATR(high, low, close, 10))
+    
+    return {'mid': mid.tolist()[start:], 'upperch': upperch.tolist()[start:], 'lowerch':lowerch.tolist()[start:]}
+
+def TDS(data, start):
     close = data['close']
     low = data['low']
     high = data['high']
+    m, n = 9, 4
+    #m2, n2 = 13, 2
+
+    # TD Sequential based on TD Setup 9,4
+    # https://www.ethz.ch/content/dam/ethz/special-interest/mtec/chair-of-entrepreneurial-risks-dam/documents/dissertation/LISSANDRIN_demark_thesis_final.pdf
+    start_point = n
+    td_list_type = []
+    while start_point < close.size:
+        # Check perfect buy:
+        if (low[start_point] < low[start_point - 3] and low[start_point] < low[start_point - 2]) or (
+                        low[start_point - 1] < low[start_point - 4] and low[start_point - 1] < low[
+                        start_point - 3]):
+            td_list_type.append('pbuy')
+
+        # Check buy:
+        elif close[start_point] < close[start_point - n]:
+            td_list_type.append('buy')
+
+        # Check perfect sell
+        elif (high[start_point] > high[start_point - 3] and high[start_point] > high[start_point - 2]) or (
+                        high[start_point - 1] > high[start_point - 4] and high[start_point - 1] > high[
+                        start_point - 3]):
+            td_list_type.append('psell')
+
+        # Check sell
+        elif close[start_point] > close[start_point - n]:
+            td_list_type.append('sell')
+        start_point += 1
+
+    td_list_type = [0]*n + td_list_type
+
+    return {'tds':td_list_type[start:]}
