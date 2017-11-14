@@ -34,50 +34,86 @@ def followingMin(close, strength):
             break
     return [min, min_pos]
 
-def srlevels(data, strength=0.03):
-    # Levels finds support and resistance [levels, position]
-    # Input: (Bitfinex_numpy['close'], strength) the strength determinates how pointed extremas must be
-    # Output: [[var1, var2,... ], [var1_position_in_close, ...], [var1_type,...]]
-    # Remarks:
-    #           strength in <0, 1> as a %
-    #           var_type = 100 -> resistance
-    #           var_type = -100 -> support
+def srlevels(data, p=80, pln=95):
     close = data['close']
-    l =[]
-    l_pos = []
-    l_type = []
-    c=0
-    while c < close.size-1:
-        check = c
-        if close[c+1] > (1 + strength) * close[c]:
-            l.append(followingMax(close[c:], 0)[0])
-            l_pos.append(c + followingMax(close[c:], 0)[1])
-            l_type.append(100)
-            c = c + followingMax(close[c:], strength)[1]
+    # Output: {'values': values, 'types' : types}
+    # Remarks:
+    #  strength in <0, 1> as a %
+    #  var_type = 100 -> resistance
+    #  var_type = -100 -> support
+    close = close[3:-3]
+    average = []
+    c = 0
+    for i in range(1, close.size):
+        average.append(abs(close[i] / close[i - 1] - 1))
 
-        elif close[c+1] < (1 - strength) *close[c]:
-            l.append(followingMin(close[c:], 0)[0])
-            l_pos.append(c + followingMin(close[c:], 0)[1])
-            l_type.append(-100)
+    strength = np.percentile(average, p)
+    print('percentile change : ', strength)
+    support, resistance = [], []
+    while c < close.size - 1:
+        check = c
+        if close[c + 1] > (1 + strength) * close[c]:
+            resistance.append(followingMax(close[c:], 0)[0])
+            c = c + followingMax(close[c:], strength)[1]
+            # print('max' , c)
+
+        elif close[c + 1] < (1 - strength) * close[c]:
+            support.append(followingMin(close[c:], 0)[0])
             c = c + followingMin(close[c:], 0)[1]
+            # print('min', c)
 
         if check == c:
             c += 1
 
-    levels = []
+    # calculate average candle lengtht
+    average = []
+    for i in range(1, close.size):
+        average.append(abs(close[i] - close[i - 1]))
+    strength = np.percentile(average, pln)
 
-    for i in range(0, len(l)):
-        levels.append( (l_pos[i], l[i], l_type[i]) )
-    lvl = sorted(levels, key=lambda tup: tup[0])
-
-    sup = []
-    res =[]
-
-    # 'position':lvl[i][0]
-    for i in range(0, len(lvl)):
-        if lvl[i][2] == -100: # type = support
-            sup.append(lvl[i][1]) # append value
+    # Remove levels which are to close
+    # average = []
+    # for i in range(1, len(resistance)):
+    #     average.append(abs(resistance[i] - resistance[i - 1]))
+    # strength = np.percentile(average, pln)
+    print('r', strength)
+    i = 0
+    while i < len(resistance):
+        j = i + 1
+        m=1
+        while j < len(resistance):
+            if abs(resistance[i] - resistance[j]) <= strength:
+                resistance.remove(min(resistance[i], resistance[j]))
+                m = 0
+                break
+            else:
+                j += 1
+        if m == 0:
+            i = 0
         else:
-            res.append(lvl[i][1]) # append value
+            i += 1
 
-    return {'support': sup, 'resistance': res}
+    # Remove levels which are to close
+    # average = []
+    # for i in range(1, len(support)):
+    #     average.append(abs(support[i] - support[i - 1]))
+    # strength = np.percentile(average, pln)
+    print('s', strength)
+    i = 0
+    while i < len(support):
+        j=i+1
+        m=1
+        while j < len(support):
+            if abs(support[i] - support[j]) <= strength:
+                support.remove(max(support[i], support[j]))
+                m = 0
+                break
+            else:
+                j += 1
+        if m ==0:
+            i = 0
+        else:
+            i+=1
+
+
+    return {'support': support, 'resistance': resistance}
