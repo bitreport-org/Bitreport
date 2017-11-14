@@ -21,12 +21,13 @@ class Plotter
     out << preamble
     out << draw_levels
     prepare_volume
-    prepare_bollinger_bg
+    prepare_bands_bg
     prepare_candles
-    prepare_bollinger_fg
+    prepare_bands_fg
     prepare_sar
     prepare_sma
     prepare_ema
+    prepare_tds
     prepare_patterns
     out << commands
     out << send((indicators.keys & %w[EWO MACD RSI STOCH]).first.downcase.to_sym)
@@ -57,7 +58,7 @@ class Plotter
 
       set multiplot
 
-      set key left reverse
+      set key left
 
       set bmargin 0
 
@@ -67,7 +68,7 @@ class Plotter
       set autoscale fix
       set offsets #{- step / 2},#{(0.5 + 10 * timestamps.length / 100) * step},#{margin},#{margin}
 
-      set palette defined (-1 '#db2828', 1 '#21ba45')
+      set palette defined (-1 '#db2828', 0 '#ffc700', 1 '#21ba45')
       set cbrange [-1:1]
       unset colorbox
 
@@ -95,12 +96,19 @@ class Plotter
     @data << timestamps.zip(opens, closes, volumes).map { |candle| candle.join(' ') }.push('e')
   end
 
-  def prepare_bollinger_bg
-    return unless indicators['BB']
-    @plots << 'using 1:2:4 title "Bollinger Bands" with filledcurves linecolor "#cc8fb6d8"' <<
-              'using 1:2 notitle with lines linecolor "#663189d6" lw 1.5' <<
-              'using 1:4 notitle with lines linecolor "#663189d6" lw 1.5'
-    @data << timestamps.zip(indicators['BB']['upperband'], indicators['BB']['middleband'], indicators['BB']['lowerband']).map { |candle| candle.join(' ') }.push('e') * 3
+  def prepare_bands_bg
+    if indicators['BB']
+      @plots << 'using 1:2:4 title "Bollinger Bands" with filledcurves linecolor "#cc8fb6d8"' <<
+                'using 1:2 notitle with lines linecolor "#663189d6" lw 1.5' <<
+                'using 1:4 notitle with lines linecolor "#663189d6" lw 1.5'
+      @data << timestamps.zip(indicators['BB']['upperband'], indicators['BB']['middleband'], indicators['BB']['lowerband']).map { |candle| candle.join(' ') }.push('e') * 3
+    end
+    if indicators['KC']
+      @plots << 'using 1:2:4 title "Keltner Channel" with filledcurves linecolor "#ccffd728"' <<
+        'using 1:2 notitle with lines linecolor "#66f9bb0e" lw 1.5' <<
+        'using 1:4 notitle with lines linecolor "#66f9bb0e" lw 1.5'
+      @data << timestamps.zip(indicators['KC']['upperband'], indicators['KC']['middleband'], indicators['KC']['lowerband']).map { |candle| candle.join(' ') }.push('e') * 3
+    end
   end
 
   def prepare_candles
@@ -108,10 +116,15 @@ class Plotter
     @data << timestamps.zip(opens, lows, highs, closes).map { |candle| candle.join(' ') }.push('e')
   end
 
-  def prepare_bollinger_fg
-    return unless indicators['BB']
-    @plots << 'using 1:3 notitle with lines linecolor "#663189d6" lw 1.5'
-    @data << timestamps.zip(indicators['BB']['upperband'], indicators['BB']['middleband'], indicators['BB']['lowerband']).map { |candle| candle.join(' ') }.push('e')
+  def prepare_bands_fg
+    if indicators['BB']
+      @plots << 'using 1:3 notitle with lines linecolor "#663189d6" lw 1.5'
+      @data << timestamps.zip(indicators['BB']['upperband'], indicators['BB']['middleband'], indicators['BB']['lowerband']).map { |candle| candle.join(' ') }.push('e')
+    end
+    if indicators['KELTNER']
+      @plots << 'using 1:3 notitle with lines linecolor "#66f9bb0e" lw 1.5'
+      @data << timestamps.zip(indicators['KELTNER']['upperband'], indicators['KELTNER']['middleband'], indicators['KELTNER']['lowerband']).map { |candle| candle.join(' ') }.push('e')
+    end
   end
 
   def prepare_sar
@@ -136,6 +149,24 @@ class Plotter
     @data << timestamps.zip(indicators['EMA']['slow'], indicators['EMA']['medium'], indicators['EMA']['fast']).map { |candle| candle.join(' ') }.push('e') * 3
   end
 
+  def prepare_tds
+    return unless indicators['TDS']
+    # 💩💩💩
+    tdsvals = { 'pbuy' => -1, 'buy' => 0, 'sell' => 0, 'psell' => 1 }
+    vals = indicators['TDS']['tds'].map { |v| tdsvals[v] }
+    prices = indicators['TDS']['tds'].each_with_index.map do |v, i|
+      v.include?('buy') ? lows[i] - @margin/2 : highs[i] + @margin/2
+    end
+    @plots << 'using 1:2:3 title "TD Sequential" with points pt 6 palette' <<
+              'using 1:2:3 notitle with points pt 7 palette'
+    @data << timestamps.zip(prices, vals).map { |candle| candle.join(' ') }.push('e')
+    counts = [1]
+    (1..indicators['TDS']['tds'].count).each do |i|
+      counts << ((indicators['TDS']['tds'][i] == indicators['TDS']['tds'][i - 1] || (indicators['TDS']['tds'][i] == 'buy' && indicators['TDS']['tds'][i - 1] == 'pbuy') || (indicators['TDS']['tds'][i] == 'pbuy' && indicators['TDS']['tds'] == 'buy') || (indicators['TDS']['tds'][i] == 'sell' && indicators['TDS']['tds'][i - 1] == 'psell') || (indicators['TDS']['tds'][i] == 'psell' && indicators['TDS']['tds'][i - 1] == 'sell')) ? counts.last + 1 : 1)
+    end
+    @data << timestamps.zip(prices, vals, counts).select { |el| el[3] >= 9 }.map { |candle| candle[0..2].join(' ') }.push('e')
+  end
+
   def prepare_patterns
     return unless patterns.any?
     @plots << 'using 1:2 notitle with points lc "#000000" ps 1.5' <<
@@ -145,7 +176,7 @@ class Plotter
   end
 
   def commands
-    "plot '-'" + @plots.join(",\\\n'-' ") + "\n" + @data.join("\n")
+    "plot '-' " + @plots.join(",\\\n'-' ") + "\n" + @data.join("\n")
   end
 
   def ewo

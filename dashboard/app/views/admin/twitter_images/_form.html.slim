@@ -47,6 +47,14 @@
       = f.label :indicators, 'Draw Bollinger Bands'
   .field
     .ui.toggle.checkbox
+      = f.check_box :indicators, { multiple: true, class: 'hidden' }, 'KC', nil
+      = f.label :indicators, 'Draw Keltner Channel'
+  .field
+    .ui.toggle.checkbox
+      = f.check_box :indicators, { multiple: true, class: 'hidden' }, 'TDS', nil
+      = f.label :indicators, 'Draw Tom DeMark Sequential'
+  .field
+    .ui.toggle.checkbox
       = f.check_box :indicators, { multiple: true, class: 'hidden' }, 'EMA', nil
       = f.label :indicators, 'Draw EMA'
   .field
