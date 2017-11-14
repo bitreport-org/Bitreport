@@ -81,7 +81,7 @@ def EWO(data, start, fast = 5, slow = 35):
     real = talib.EMA(close, fast) - talib.EMA(close, slow)
     return {'ewo': real.tolist()[start:]}
 
-def KELTNER(data,start):
+def KC(data,start):
     # Keltner Channels
     # Middle Line: 20-day exponential moving average
     # Upper Channel Line: 20-day EMA + (2 x ATR(10))

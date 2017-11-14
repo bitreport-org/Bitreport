@@ -10,7 +10,7 @@ Available timeframes:
 ['5m', '30m', '1h', '2h', '3h', '6h', '12h', '24h', '168h']
 
 Available indicators:
-ADX, AROON, BB, EMA, EWO, MACD, MOM, RSI, SAR, SMA, STOCH, STOCHRS
+ADX, AROON, BB, EMA, EWO, KC, MACD, MOM, RSI, SAR, SMA, STOCH, STOCHRS, TDS
 
 Avaiable Patterns:
 ALL - returns all following patterns
