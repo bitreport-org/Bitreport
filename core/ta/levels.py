@@ -35,26 +35,28 @@ def followingMin(close, strength):
     return [min, min_pos]
 
 def srlevels(data, p=80, pln=95):
-    close = data['close']
     # Output: {'values': values, 'types' : types}
     # Remarks:
     #  strength in <0, 1> as a %
     #  var_type = 100 -> resistance
     #  var_type = -100 -> support
+    close, open = data['close'], data['open']
     close = close[3:-3]
+    open = open[3:-3]
+
+    # Calculate p-th percentile of % change between two following candles
     average = []
     c = 0
     for i in range(1, close.size):
         average.append(abs(close[i] / close[i - 1] - 1))
-
     strength = np.percentile(average, p)
-    print('percentile change : ', strength)
+
     support, resistance = [], []
     while c < close.size - 1:
         check = c
-        if close[c + 1] > (1 + strength) * close[c]:
-            resistance.append(followingMax(close[c:], 0)[0])
-            c = c + followingMax(close[c:], strength)[1]
+        if open[c + 1] > (1 + strength) * open[c]:
+            resistance.append(followingMax(open[c:], 0)[0])
+            c = c + followingMax(open[c:], strength)[1]
             # print('max' , c)
 
         elif close[c + 1] < (1 - strength) * close[c]:
@@ -72,15 +74,11 @@ def srlevels(data, p=80, pln=95):
     strength = np.percentile(average, pln)
 
     # Remove levels which are to close
-    # average = []
-    # for i in range(1, len(resistance)):
-    #     average.append(abs(resistance[i] - resistance[i - 1]))
-    # strength = np.percentile(average, pln)
-    print('r', strength)
     i = 0
+    resistance.sort(reverse=True)
     while i < len(resistance):
         j = i + 1
-        m=1
+        m = 1
         while j < len(resistance):
             if abs(resistance[i] - resistance[j]) <= strength:
                 resistance.remove(min(resistance[i], resistance[j]))
@@ -94,15 +92,11 @@ def srlevels(data, p=80, pln=95):
             i += 1
 
     # Remove levels which are to close
-    # average = []
-    # for i in range(1, len(support)):
-    #     average.append(abs(support[i] - support[i - 1]))
-    # strength = np.percentile(average, pln)
-    print('s', strength)
     i = 0
+    support.sort()
     while i < len(support):
-        j=i+1
-        m=1
+        j = i + 1
+        m = 1
         while j < len(support):
             if abs(support[i] - support[j]) <= strength:
                 support.remove(max(support[i], support[j]))
@@ -110,10 +104,9 @@ def srlevels(data, p=80, pln=95):
                 break
             else:
                 j += 1
-        if m ==0:
+        if m == 0:
             i = 0
         else:
-            i+=1
-
+            i += 1
 
     return {'support': support, 'resistance': resistance}

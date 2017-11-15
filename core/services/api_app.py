@@ -127,7 +127,7 @@ class get_all(Resource):
         ################################ LEVELS ##########################################
 
         if levels_ask == 'ALL':
-            dict['levels'] = levels.srlevels(data, strength=0.03)
+            dict['levels'] = levels.srlevels(data)
 
         return dict
 
