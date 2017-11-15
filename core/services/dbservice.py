@@ -4,36 +4,40 @@ import datetime
 import websocket
 import _thread
 import ast
+from threading import Thread
+import threading
+import asyncio
 
 ################################## WEBSOCKETS ############################################
 
 class bitfinex_pair_dbservice():
-
-    def __init__(self, db_name, pair ):
+    def __init__(self, db_name, pair, timeframes ):
         self.client = InfluxDBClient('localhost', 8086, 'root', 'root', db_name)
         self.db = db_name
         self.last1 = 0
         self.last2 =0
         self.pair = pair
         self.client.create_database(db_name)
-
-
+        self.timeframes = timeframes
     # Creates Continuous Query with a given timeframe
-    def create_conquery(self, timeframe):
+    def create_conquery(self):
         # Continuous Queries for each par for each period
         # create cq BTCUSD1h on DATABASE begin ... into BTCUSD1h from tBTCUSD group by time(1h) end
+        try:
+            # Continuous queries
+            for tf in self.timeframes:
+                query = 'CREATE CONTINUOUS QUERY ' + self.pair + tf + ' ON ' + self.db + ' RESAMPLE EVERY 5m BEGIN SELECT  \
+                                   first(open) AS open, \
+                                   max(high) AS high, \
+                                   min(low) AS low, \
+                                   last(close) AS close, \
+                                   sum(volume) AS volume  \
+                                   INTO ' + self.pair + tf + ' FROM ' + self.pair + ' GROUP BY time(' + tf + ') END'
 
-        query = 'CREATE CONTINUOUS QUERY ' + self.pair + timeframe + ' ON ' + self.db + ' RESAMPLE EVERY 5m BEGIN SELECT  \
-                           first(open) AS open, \
-                           max(high) AS high, \
-                           min(low) AS low, \
-                           last(close) AS close, \
-                           sum(volume) AS volume  \
-                           INTO ' + self.pair + timeframe + ' FROM ' + self.pair + ' GROUP BY time(' + timeframe + ') END'
-
-        self.client.query(query)
-
-    #
+                self.client.query(query)
+        except:
+            print('CQs already exists')
+            pass
     # Writes candlestick from message to InfluxDB
     def write_ticker(self, ticker):
 
@@ -61,24 +65,27 @@ class bitfinex_pair_dbservice():
                 if len(response) > 6:
                     for ticker in response:
                         self.write_ticker(ticker)
-                        print('Dump record : ', datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), ticker)
+                        #print(self.pair, ' dump record : ', datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), ticker)
+                    print('Dump saved')
 
                 # Single ticker handling
                 elif  response[0]!= self.last1 and response[0] != self.last2:
-                    print('Ticker :',datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), response)
+                    print(self.pair, ' ticker :',datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), response)
                     self.write_ticker(response)
                     #self.start = now
                     self.last2 = self.last1
                     self.last1 = response[0]
         except:
-            print('Not a ticker')
+            print('Connected! Not a ticker')
             pass
 
     def on_error(self, ws, error):
         print('Error. Time : ', datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
+        self.on_open(ws)
 
     def on_close(self, ws):
         print("Connection closed. Time : ", datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
+        self.on_open(ws)
 
     # Subscribe to new channel
     def on_open(self, ws):
@@ -88,43 +95,43 @@ class bitfinex_pair_dbservice():
                         "channel": "candles", \
                         "key": "trade:1m:t' + self.pair +'" \
                     }')
-        _thread.start_new_thread(run, ())
 
+        Thread(target=run).start()
+    # create service
+    def create(self):
+        # Continuousqueries
+        self.create_conquery()
 
-def bitfinex_create_service(db_name, pair, timeframes, cq ='yes', retentions='none'):
-    # Connect websockets
-    service = bitfinex_pair_dbservice(db_name, pair)
+        # Retention policy
 
-    # Continuous queries
-    if cq == 'yes':
-        for tf in timeframes:
-            service.create_conquery(tf)
-
-    # Retention policy
-
-
-    # Websocket channel
-    ws = websocket.WebSocketApp("wss://api.bitfinex.com/ws/2",
-                                on_message=service.on_message,
-                                on_error=service.on_error,
-                                on_close=service.on_close)
-    ws.on_open = service.on_open
-
-    while True:
-        ws.run_forever()
-
+        # Websocket channel
+        ws = websocket.WebSocketApp("wss://api.bitfinex.com/ws/2",
+                                    on_message=self.on_message,
+                                    on_error=self.on_error,
+                                    on_close=self.on_close)
+        ws.on_open = self.on_open
+        while True:
+            ws.run_forever()
 
 #################################### MAIN ################################################
 if __name__ == "__main__":
 
     # PARAMS
     db_name = 'test'
-
-    pairs = ['ETCUSD']
-
+    pairs = ['BTCUSD', 'BCHUSD']
     timeframes = ['5m', '30m', '1h', '2h', '3h', '6h', '12h', '24h', '168h']
 
-    # Creates bitfinex api services
-    websocket.enableTrace(True)
+    threads = []
     for pair in pairs:
-        bitfinex_create_service(db_name, pair, timeframes, cq='yes')
+        service= bitfinex_pair_dbservice(db_name, pair, timeframes)
+        threads.append(threading.Thread(target=service.create))
+
+    for t in threads:
+        t.setDaemon(True)
+
+    for t in threads:
+        t.start()
+
+    while True:
+        pass
+
