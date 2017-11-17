@@ -9,6 +9,7 @@ from services import internal
 from ta import patterns
 from ta import indicators
 from ta import levels
+from services import microcaps
 
 app = Flask(__name__)
 api = Api(app)
@@ -131,13 +132,16 @@ class get_all(Resource):
 
         return dict
 
-
+class get_microcaps(Resource):
+    def get(self):
+        return microcaps.microcaps()
 
 ##################### ENDPOINTS ############################
 # Table with name 'pair'
 # api.add_resource(get_pair, '/')
 api.add_resource(get_all, '/data/<string:pair>/<string:timeframe>/')
 api.add_resource(get_ohlc, '/test/<string:pair>/<string:timeframe>/')
+api.add_resource(get_microcaps, '/microcaps')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)
