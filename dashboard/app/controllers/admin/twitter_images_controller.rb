@@ -6,7 +6,7 @@ module Admin
 
     # GET /twitter_images
     def index
-      @twitter_images = TwitterImage.order(created_at: :desc).limit(20)
+      @twitter_images = TwitterImage.order(created_at: :desc).limit(9)
     end
 
     # GET /twitter_images/1
@@ -28,6 +28,16 @@ module Admin
       end
     end
 
+    def preview
+      twitter_image = TwitterImage.new(twitter_image_params)
+
+      if twitter_image.valid?
+        send_data(twitter_image.preview_image, disposition: 'inline', type: 'image/png')
+      else
+        send_data('', disposition: 'inline', type: 'image/png')
+      end
+    end
+
     # DELETE /twitter_images/1
     def destroy
       @twitter_image.destroy
@@ -44,7 +54,7 @@ module Admin
     # Never trust parameters from the scary internet, only allow the white list through.
     def twitter_image_params
       params.require(:admin_twitter_image).permit(:symbol, :timeframe, :limit, :levels,
-                                            indicators: [], patterns: [])
+                                                  indicators: [], patterns: [])
     end
   end
 end

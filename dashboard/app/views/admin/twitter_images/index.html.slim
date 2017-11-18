@@ -3,7 +3,7 @@ h1 Listing twitter_images
 h2 Latest chart:
 = image_tag @twitter_images.first.image[:original].url, class: 'ui image' if @twitter_images&.first&.image
 
-.ui.link.cards
+.ui.link.centered.cards
   - @twitter_images.each do |twitter_image|
     .card
       = link_to twitter_image, class: 'image' do

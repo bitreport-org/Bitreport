@@ -16,8 +16,9 @@ class Plotter
     @data = []
   end
 
-  def plot
+  def plot(save = true)
     out = []
+    out << terminal(save)
     out << preamble
     out << draw_levels
     prepare_volume
@@ -31,11 +32,15 @@ class Plotter
     prepare_patterns
     out << commands
     out << send((indicators.keys & %w[EWO MACD RSI STOCH]).first.downcase.to_sym)
-    io = IO::popen('gnuplot -persist', 'w+')
+    io = IO.popen('gnuplot -persist', 'w+')
     io << out.join("\n")
     io.close_write
-    Rails.logger.info io.read
-    self
+    if save
+      Rails.logger.info io.read
+      self
+    else
+      io.read
+    end
   end
 
   def output
@@ -44,11 +49,14 @@ class Plotter
 
   private
 
+  def terminal(save)
+    out = ['set terminal pngcairo truecolor font "Verdana,12" size 1280,720']
+    out << (save ? "set output \"#{output}\"" : 'unset output')
+    out
+  end
+
   def preamble
     <<~GNU
-      set terminal pngcairo truecolor font "Verdana,12" size 1280,720
-      set output "#{output}"
-
       set lmargin at screen 0.05
       set rmargin at screen 0.95
 
