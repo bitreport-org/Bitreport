@@ -76,7 +76,7 @@ class Plotter
       set autoscale fix
       set offsets #{- step / 2},#{(0.5 + 10 * timestamps.length / 100) * step},#{margin},#{margin}
 
-      set palette defined (-1 '#db2828', 0 '#ffc700', 1 '#21ba45')
+      set palette defined (-1 '#db504a', 0 '#ffc700', 1 '#b0db43')
       set cbrange [-1:1]
       unset colorbox
 
