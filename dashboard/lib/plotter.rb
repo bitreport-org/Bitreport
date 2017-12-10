@@ -4,7 +4,7 @@ class Plotter
   attr_reader :timestamps, :candles, :patterns, :indicators, :levels, :step, :margin, :filename
 
   WHITE = 'e6e6e6'
-  BLACK = '353531'
+  BLACK = '383834'
   YELLOW = 'f6d60e'
   BLUE = '5bc0eb'
   GREEN = 'b0db43'
@@ -236,6 +236,7 @@ class Plotter
 
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
+      set yrange [*:*]
 
       plot '-' using 1:2:($2 < 0 ? -1 : 1) notitle with impulses palette lw 1.5
     GNU
@@ -258,6 +259,7 @@ class Plotter
 
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
+      set yrange [*:*]
 
       plot '-' using 1:2 notitle with impulses lc '##{PURPLE}' lw 1.5, \\
            '-' using 1:3 notitle with lines lc '##{YELLOW}' lw 1.5, \\
@@ -281,12 +283,11 @@ class Plotter
 
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
+      set yrange [0:100]
 
       set object 1 rect from #{timestamps.first},20 to #{timestamps.last},80 fc rgb '#ee#{PURPLE}' fs solid noborder
       set arrow 1 from #{timestamps.first},20 to #{timestamps.last},20 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
       set arrow 2 from #{timestamps.first},80 to #{timestamps.last},80 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
-
-      set yrange [0:100]
 
       plot '-' using 1:2 notitle with lines lc '##{PURPLE}' lw 1.5
     GNU
@@ -309,12 +310,11 @@ class Plotter
 
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
+      set yrange [0:100]
 
       set object 1 rect from #{timestamps.first},20 to #{timestamps.last},80 fc rgb '#ee#{PURPLE}' fs solid noborder
       set arrow 1 from #{timestamps.first},20 to #{timestamps.last},20 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
       set arrow 2 from #{timestamps.first},80 to #{timestamps.last},80 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
-
-      set yrange [0:100]
 
       plot '-' using 1:2 notitle with lines linecolor '##{BLUE}' lw 1.5, \\
            '-' using 1:3 notitle with lines linecolor '##{YELLOW}' lw 1.5
