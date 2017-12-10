@@ -85,7 +85,7 @@ class Plotter
 
       set autoscale fix
       set xrange [#{timestamps.first}:#{timestamps.last}]
-      set yrange [#{candles['low'].min - margin}:#{candles['high'].max + margin}]
+      set yrange [#{lows.min - margin}:#{highs.max + margin}]
 
       set palette defined (-1 '##{RED}', 0 '##{YELLOW}', 1 '##{GREEN}')
       set cbrange [-1:1]
@@ -108,8 +108,9 @@ class Plotter
     return unless levels['support'] || levels['resistance']
     out = []
     [levels['support'], levels['resistance']].flatten.each_with_index do |level, i|
+      next unless (lows.min..highs.max).cover?(level)
       out << <<~TXT
-        set arrow #{i + 1} from #{timestamps.first},#{level} to #{timestamps.last + (1 + 10 * timestamps.length / 100) * step},#{level} nohead lc rgb "#33#{YELLOW}" lw 2
+        set arrow #{i + 1} from #{timestamps.first},#{level} to #{timestamps.last},#{level} nohead lc rgb "#33#{YELLOW}" lw 2
       TXT
     end
     out
