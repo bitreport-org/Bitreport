@@ -6,71 +6,39 @@
         - @twitter_image.errors.full_messages.each do |message|
           li = message
 
-  .field
-    = f.label :symbol
-    .ui.fluid.search.selection.dropdown
-      = f.hidden_field :symbol
-      i.dropdown.icon
-      .default.text Select currency pair
-      .menu
-        .item data-value='BTCUSD'
-          i.bitcoin.icon
-          | BTCUSD
-  .field
-    = f.label :timeframe
-    .ui.fluid.search.selection.dropdown
-      = f.hidden_field :timeframe
-      i.dropdown.icon
-      .default.text Select timeframe
-      .menu
-        .item data-value='30m' 30m
-        .item data-value='1h' 1h
-        .item data-value='3h' 3h
-        .item data-value='12h' 12h
-  .field
-    = f.label :limit
-    = f.text_field :limit, value: '100'
-  .field
-    = f.label :indicators
-    .ui.selection.dropdown
-      = f.hidden_field :indicators, { multiple: true, value: 'RSI' }
-      i.dropdown.icon
-      .default.text Indicator
-      .menu
-        .item data-value='EWO' EWO
-        .item data-value='MACD' MACD
-        .item data-value='RSI' RSI
-        .item data-value='STOCH' STOCH
-  .field
-    .ui.toggle.checkbox
-      = f.check_box :indicators, { multiple: true, class: 'hidden' }, 'BB', nil
-      = f.label :indicators, 'Draw Bollinger Bands'
-  .field
-    .ui.toggle.checkbox
-      = f.check_box :indicators, { multiple: true, class: 'hidden' }, 'KC', nil
-      = f.label :indicators, 'Draw Keltner Channel'
-  .field
-    .ui.toggle.checkbox
-      = f.check_box :indicators, { multiple: true, class: 'hidden' }, 'TDS', nil
-      = f.label :indicators, 'Draw Tom DeMark Sequential'
-  .field
-    .ui.toggle.checkbox
-      = f.check_box :indicators, { multiple: true, class: 'hidden' }, 'EMA', nil
-      = f.label :indicators, 'Draw EMA'
-  .field
-    .ui.toggle.checkbox
-      = f.check_box :indicators, { multiple: true, class: 'hidden' }, 'SMA', nil
-      = f.label :indicators, 'Draw SMA'
-  .field
-    .ui.toggle.checkbox
-      = f.check_box :indicators, { multiple: true, class: 'hidden' }, 'SAR', nil
-      = f.label :indicators, 'Draw SAR'
-  .field
-    .ui.toggle.checkbox
-      = f.check_box :levels, { class: 'hidden' }, 'ALL', 'NONE'
-      = f.label :levels, 'Draw Levels'
-  .field
-    .ui.toggle.checkbox
-      = f.check_box :patterns, { multiple: true, class: 'hidden' }, 'ALL', 'NONE'
+  .ui.segment
+    h4.ui.dividing.header Settings
+    .three.fields
+      .field
+        = f.label :symbol
+        = f.select :symbol, options_for_select([['BTCUSD', 'BTCUSD']], 'BTCUSD'), { prompt: 'Select currency pair' }, { class: 'ui fluid search dropdown' }
+      .field
+        = f.label :timeframe
+        = f.select :timeframe, options_for_select([['30m', '30m'], ['1h', '1h'], ['3h', '3h'], ['12h', '12h']], '1h'), { prompt: 'Select timeframe' }, { class: 'ui fluid search dropdown' }
+      .field
+        = f.label :limit
+        = f.text_field :limit, value: '100'
+    .two.fields
+      .three.wide.field
+        = f.label :indicators, 'Main indicator'
+        .ui.selection.dropdown
+          = f.hidden_field :indicators, { multiple: true, value: 'RSI' }
+          i.dropdown.icon
+          .default.text Indicator
+          .menu
+            .item data-value='EWO' EWO
+            .item data-value='MACD' MACD
+            .item data-value='RSI' RSI
+            .item data-value='STOCH' STOCH
+      .thirteen.wide.field
+        = f.label :indicators
+        = f.select :indicators, options_for_select([['Bollinger Bands', 'BB'], ['Keltner Channel', 'KC'], ['Tom DeMark Sequential', 'TDS'], ['Ichimoku Cloud', 'ICM'], ['EMA', 'EMA'], ['SMA', 'SMA'], ['SAR', 'SAR']], ['BB', 'SAR']), { prompt: 'Indicators' }, { multiple: true, class: 'ui fluid search dropdown' }
+    .field
+      .ui.toggle.checkbox
+        = f.check_box :levels, { class: 'hidden' }, 'ALL', ''
+        = f.label :levels, 'Draw Levels'
+    .disabled.field
       = f.label :patterns, 'Draw Patterns'
-  = f.submit class: 'ui button'
+      = f.select :patterns, options_for_select([['All', 'ALL']]), { prompt: 'Select patterns' }, { multiple: true, class: 'ui fluid search dropdown' }
+    #reloader.ui.bottom.attached.progress data-percent=100
+      .bar

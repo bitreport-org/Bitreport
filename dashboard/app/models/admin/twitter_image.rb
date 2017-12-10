@@ -8,16 +8,28 @@ module Admin
 
     before_create :generate_image
 
+    def preview_image
+      generate_image(false)
+    end
+
     private
 
-    def generate_image
-      response = HTTParty.get("http://127.0.0.1:5000/data/#{symbol}/#{timeframe}/?limit=#{limit}&patterns=#{patterns.join(',')}&indicators=#{indicators.join(',')}&levels=#{levels}")
+    def data_url
+      "http://127.0.0.1:5000/data/#{symbol}/#{timeframe}/?limit=#{limit}&patterns=#{patterns.reject(&:empty?).join(',')}&indicators=#{indicators.join(',')}&levels=#{levels}"
+    end
+
+    def generate_image(save = true)
+      response = HTTParty.get(data_url)
       body = JSON.parse(response.body)
-      plotter = Plotter.new(body['dates'],
-                            body['candles'],
-                            body['patterns'],
-                            body['indicators'],
-                            body['levels']).plot
+      Plotter.new(body['dates'],
+                  body['candles'],
+                  body['patterns'],
+                  body['indicators'],
+                  body['levels']).plot(save)
+    end
+
+    def save_image
+      plotter = generate_image(true)
       self.image = File.open(plotter.output)
     end
   end
