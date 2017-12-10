@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Plotter
-  attr_reader :timestamps, :candles, :patterns, :indicators, :levels, :step, :margin, :filename
+  attr_reader :timestamps, :candles, :patterns, :indicators, :levels, :step, :margin, :right_margin, :filename
 
   WHITE = 'e6e6e6'
   BLACK = '353531'
@@ -19,6 +19,7 @@ class Plotter
     @levels = levels || {}
     @step = timestamps[1].to_i - timestamps[0].to_i
     @margin = (5 * (highs.max.to_f - lows.min.to_f) / 100)
+    @right_margin = indicators['ICM'] ? 0 : (0.5 + 10 * candles['open'].length / 100) * step
     @filename = 'plot-' + SecureRandom.uuid + '.png'
     @plots = []
     @data = []
@@ -68,7 +69,7 @@ class Plotter
   def preamble
     <<~GNU
       set lmargin at screen 0.05
-      set rmargin at screen 0.95
+      set rmargin at screen 0.99
 
       set xdata time
       set timefmt '%s'
@@ -84,7 +85,8 @@ class Plotter
       set origin 0.0,0.3
 
       set autoscale fix
-      set offsets #{- step / 2},#{(0.5 + 10 * candles['open'].length / 100) * step},#{margin},#{margin}
+      set offsets 0,#{right_margin},#{margin},#{margin}
+      set xrange [#{timestamps.first}:#{timestamps.last}]
 
       set palette defined (-1 '##{RED}', 0 '##{YELLOW}', 1 '##{GREEN}')
       set cbrange [-1:1]
@@ -228,10 +230,13 @@ class Plotter
       set size 1.0,0.25
       set origin 0.0,0.05
 
-      set bmargin 0
+      set format x "%d-%m-%y\\n%H:%M"
+
+      set bmargin 1
       set tmargin 0
 
-      set offsets 0,#{(1 + 10 * timestamps.length / 100) * step},#{margin},#{margin}
+      set offsets 0,#{right_margin},#{margin},#{margin}
+      set xrange [#{timestamps.first}:#{timestamps.last}]
 
       plot '-' using 1:2:($2 < 0 ? -1 : 1) notitle with impulses palette lw 1.5
     GNU
@@ -249,9 +254,11 @@ class Plotter
 
       set format x "%d-%m-%y\\n%H:%M"
 
+      set bmargin 1
       set tmargin 0
 
-      set offsets 0,#{(1 + 10 * timestamps.length / 100) * step},#{margin},#{margin}
+      set offsets 0,#{right_margin},#{margin},#{margin}
+      set xrange [#{timestamps.first}:#{timestamps.last}]
 
       plot '-' using 1:2 notitle with impulses lc '##{PURPLE}' lw 1.5, \\
            '-' using 1:3 notitle with lines lc '##{YELLOW}' lw 1.5, \\
@@ -270,12 +277,15 @@ class Plotter
 
       set format x "%d-%m-%y\\n%H:%M"
 
+      set bmargin 1
       set tmargin 0
 
-      set offsets 0,#{(1 + 10 * timestamps.length / 100) * step},#{margin},#{margin}
-      set object 1 rect from #{timestamps.first},20 to #{timestamps.last + (1 + 10 * timestamps.length / 100) * step},80 fc rgb '#ee#{PURPLE}' fs solid noborder
-      set arrow 1 from #{timestamps.first},20 to #{timestamps.last + (1 + 10 * timestamps.length / 100) * step},20 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
-      set arrow 2 from #{timestamps.first},80 to #{timestamps.last + (1 + 10 * timestamps.length / 100) * step},80 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
+      set offsets 0,#{right_margin},#{margin},#{margin}
+      set xrange [#{timestamps.first}:#{timestamps.last}]
+
+      set object 1 rect from #{timestamps.first},20 to #{timestamps.last + right_margin},80 fc rgb '#ee#{PURPLE}' fs solid noborder
+      set arrow 1 from #{timestamps.first},20 to #{timestamps.last + right_margin},20 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
+      set arrow 2 from #{timestamps.first},80 to #{timestamps.last + right_margin},80 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
 
       set yrange [0:100]
 
@@ -295,12 +305,15 @@ class Plotter
 
       set format x "%d-%m-%y\\n%H:%M"
 
+      set bmargin 1
       set tmargin 0
 
-      set offsets 0,#{(1 + 10 * timestamps.length / 100) * step},#{margin},#{margin}
-      set object 1 rect from #{timestamps.first},20 to #{timestamps.last + (1 + 10 * timestamps.length / 100) * step},80 fc rgb '#ee#{PURPLE}' fs solid noborder
-      set arrow 1 from #{timestamps.first},20 to #{timestamps.last + (1 + 10 * timestamps.length / 100) * step},20 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
-      set arrow 2 from #{timestamps.first},80 to #{timestamps.last + (1 + 10 * timestamps.length / 100) * step},80 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
+      set offsets 0,#{right_margin},#{margin},#{margin}
+      set xrange [#{timestamps.first}:#{timestamps.last}]
+
+      set object 1 rect from #{timestamps.first},20 to #{timestamps.last + right_margin},80 fc rgb '#ee#{PURPLE}' fs solid noborder
+      set arrow 1 from #{timestamps.first},20 to #{timestamps.last + right_margin},20 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
+      set arrow 2 from #{timestamps.first},80 to #{timestamps.last + right_margin},80 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
 
       set yrange [0:100]
 
