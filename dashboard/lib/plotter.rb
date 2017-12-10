@@ -31,8 +31,10 @@ class Plotter
     out << draw_levels
     prepare_volume
     prepare_bands_bg
+    prepare_ichimoku_bg
     prepare_candles
     prepare_bands_fg
+    prepare_ichimoku_fg
     prepare_sar
     prepare_sma
     prepare_ema
@@ -82,7 +84,7 @@ class Plotter
       set origin 0.0,0.3
 
       set autoscale fix
-      set offsets #{- step / 2},#{(0.5 + 10 * timestamps.length / 100) * step},#{margin},#{margin}
+      set offsets #{- step / 2},#{(0.5 + 10 * candles['open'].length / 100) * step},#{margin},#{margin}
 
       set palette defined (-1 '##{RED}', 0 '##{YELLOW}', 1 '##{GREEN}')
       set cbrange [-1:1]
@@ -132,6 +134,15 @@ class Plotter
     end
   end
 
+  def prepare_ichimoku_bg
+    return unless indicators['ICM']
+    @plots << "using 1:2:3 notitle with filledcurves above linecolor '#dd#{GREEN}'" <<
+              "using 1:2:3 notitle with filledcurves below linecolor '#dd#{RED}'" <<
+              "using 1:2 notitle with lines linecolor '#88#{GREEN}' lw 1.5" <<
+              "using 1:3 notitle with lines linecolor '#88#{RED}' lw 1.5"
+    @data << timestamps.zip(indicators['ICM']['leading span A'], indicators['ICM']['leading span B']).map { |candle| candle.join(' ') }.push('e') * 4
+  end
+
   def prepare_candles
     @plots << 'using 1:2:3:4:5:($5 < $2 ? -1 : 1) notitle with candlesticks palette lw 1.5'
     @data << timestamps.zip(opens, lows, highs, closes).map { |candle| candle.join(' ') }.push('e')
@@ -146,6 +157,14 @@ class Plotter
       @plots << "using 1:3 title 'Keltner Channel' with lines linecolor '#40#{YELLOW}' lw 1.5"
       @data << timestamps.zip(indicators['KC']['upperband'], indicators['KC']['middleband'], indicators['KC']['lowerband']).map { |candle| candle.join(' ') }.push('e')
     end
+  end
+
+  def prepare_ichimoku_fg
+    return unless indicators['ICM']
+    @plots << "using 1:2 title 'Tenkan-sen' with lines linecolor '##{BLUE}' lw 1.5" <<
+              "using 1:3 title 'Kijun-sen' with lines linecolor '##{YELLOW}' lw 1.5" <<
+              "using 1:4 title 'Chikou' with lines linecolor '#40#{GREEN}' lw 1.5"
+    @data << timestamps.zip(indicators['ICM']['conversion line'], indicators['ICM']['base line'], indicators['ICM']['lagging span']).map { |candle| candle.join(' ') }.push('e') * 3
   end
 
   def prepare_sar
