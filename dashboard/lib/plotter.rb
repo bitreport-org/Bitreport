@@ -157,18 +157,18 @@ class Plotter
   def prepare_sma
     #TODO: Set colors
     return unless indicators['SMA']
-    @plots << 'using 1:2 title "SMA slow" with lines lw 1.5' <<
-              'using 1:3 title "SMA medium" with lines lw 1.5' <<
-              'using 1:4 title "SMA fast" with lines lw 1.5'
+    @plots << "using 1:2 title 'SMA slow' with lines lw 1.5 lc '#c0#{YELLOW}'" <<
+              "using 1:3 title 'SMA medium' with lines lw 1.5 lc '#70#{YELLOW}'" <<
+              "using 1:4 title 'SMA fast' with lines lw 1.5 lc '#00#{YELLOW}'"
     @data << timestamps.zip(indicators['SMA']['slow'], indicators['SMA']['medium'], indicators['SMA']['fast']).map { |candle| candle.join(' ') }.push('e') * 3
   end
 
   def prepare_ema
     #TODO: Set colors
     return unless indicators['EMA']
-    @plots << 'using 1:2 title "EMA slow" with lines lw 1.5' <<
-              'using 1:3 title "EMA medium" with lines lw 1.5' <<
-              'using 1:4 title "EMA slow" with lines lw 1.5'
+    @plots << "using 1:2 title 'EMA slow' with lines lw 1.5 lc '#c0#{BLUE}'" <<
+              "using 1:3 title 'EMA medium' with lines lw 1.5 lc '#70#{BLUE}'" <<
+              "using 1:4 title 'EMA fast' with lines lw 1.5 lc '#00#{BLUE}'"
     @data << timestamps.zip(indicators['EMA']['slow'], indicators['EMA']['medium'], indicators['EMA']['fast']).map { |candle| candle.join(' ') }.push('e') * 3
   end
 
