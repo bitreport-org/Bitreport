@@ -138,7 +138,7 @@ def TDS(data, start):
     return {'tds':td_list_type[start:]}
 
 # Ichimoku Cloud:
-def ICM(data, start, timeframe):
+def ICM(data, start):
     open, high, low, close=data['open'], data['high'], data['low'], data['close']
     len = close.size
 
@@ -175,27 +175,9 @@ def ICM(data, start, timeframe):
         lagging_span.append(close[i+n4])
     lagging_span = np.array(lagging_span)
 
-    # Generate timestamps for future
-    dates = data['date']
-    last_time = dates[-1]
-    period = timeframe[-1]
-    timeframe = timeframe[:-1]
-    t = int(timeframe)
 
-    d=0
-    if period == '':
-        d = 60 * t
-    elif period == 'h':
-        d = 60 * 60 * t
-    elif period == 'W':
-        d = 60 * 60 * 168 * t
-
-    for i in range(0,n2):
-        dates.append(int(dates[-1]) + d)
-
-
-    return {'dates': dates[start:], 'indicator': {'conversion line': conversion_line.tolist()[start:],
+    return {'conversion line': conversion_line.tolist()[start:],
             'base line': base_line.tolist()[start:],
             'leading span A': leading_spanA.tolist()[start-n2:],
             'leading span B': leading_spanB.tolist()[start-n2:],
-            'lagging span': lagging_span.tolist()[start:]}}
+            'lagging span': lagging_span.tolist()[start:]}

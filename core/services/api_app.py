@@ -79,6 +79,30 @@ class get_all(Resource):
 
         dict['dates'] = data['date'][magic_limit:]
 
+        # SET margin
+        margin = 26 #timestamps
+
+        # Generate timestamps for future
+        date = data['date']
+        last_time = date[-1]
+        period = timeframe[-1]
+        timef = timeframe[:-1]
+        t = int(timef)
+
+        d = 0
+        if period == '':
+            d = 60 * t
+        elif period == 'h':
+            d = 60 * 60 * t
+        elif period == 'W':
+            d = 60 * 60 * 168 * t
+
+        for i in range(0, margin):
+            date.append(int(date[-1]) + d)
+
+        dict['dates'] = date[magic_limit:]
+
+
         dict['candles'] = { 'open': data['open'].tolist()[magic_limit:],
                             'high': data['high'].tolist()[magic_limit:],
                             'close': data['close'].tolist()[magic_limit:],
@@ -96,41 +120,33 @@ class get_all(Resource):
 
             indidict = {}
             for indic in indicators_list:
-                if indic != 'ICM':
-                    try:
-                        indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
-                    except:
-                        pass
-                else:
-                    try:
-                        indicator_response = getattr(indicators, indic)(data, start = magic_limit, timeframe = timeframe)
-                        indidict[indic] = indicator_response['indicator']
-                        dict['dates'] = indicator_response['dates']
-                    except:
-                        pass
+                try:
+                    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+                except:
+                    pass
             dict['indicators'] = indidict
 
         ################################ PATTERNS ########################################
         # Short data for patterns:
-        pat_data = internal.import_numpy(client, db, pair, timeframe, limit)
 
         if patterns_list != None:
+            pat_data = internal.import_numpy(client, db, pair, timeframe, limit)
+
             try:
                 patterns_list = patterns_list[0].split(',')
             except:
                 pass
 
-            value = 0
             if patterns_list == ['ALL']:
                 try:
-                    dict['patterns'] = patterns.CheckAllPatterns(pat_data, 'none', 1)
+                    dict['patterns'] = patterns.CheckAllPatterns(pat_data)
                 except:
                     pass
             else:
                 try:
                     dict['patterns'] = patterns.CheckAllPatterns(pat_data, patterns_list, 0)
                 except:
-                  pass
+                    pass
 
         ################################ LEVELS ##########################################
 
