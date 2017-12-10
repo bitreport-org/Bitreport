@@ -208,7 +208,7 @@ class Plotter
     (1..indicators['TDS']['tds'].count).each do |i|
       counts << ((indicators['TDS']['tds'][i] == indicators['TDS']['tds'][i - 1] || (indicators['TDS']['tds'][i] == 'buy' && indicators['TDS']['tds'][i - 1] == 'pbuy') || (indicators['TDS']['tds'][i] == 'pbuy' && indicators['TDS']['tds'] == 'buy') || (indicators['TDS']['tds'][i] == 'sell' && indicators['TDS']['tds'][i - 1] == 'psell') || (indicators['TDS']['tds'][i] == 'psell' && indicators['TDS']['tds'][i - 1] == 'sell')) ? counts.last + 1 : 1)
     end
-    @data << timestamps.zip(prices, vals, counts).select { |el| el[3] >= 9 }.map { |candle| candle[0..2].join(' ') }.push('e')
+    @data << timestamps.zip(prices, vals, counts).select { |el| el[1] && el[3] >= 9 }.map { |candle| candle[0..2].join(' ') }.push('e')
   end
 
   def prepare_patterns
