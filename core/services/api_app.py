@@ -20,7 +20,7 @@ client = InfluxDBClient('localhost', 8086, 'root', 'root', db)
 
 # to post data without NaN values indicators are calculated on period of length: limit + magic_limit
 # next posted data has length = limit
-magic_limit = 53
+magic_limit = 79
 
 #########################################################################################
 

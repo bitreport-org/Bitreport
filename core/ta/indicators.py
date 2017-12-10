@@ -1,6 +1,7 @@
 import talib
 import numpy as np
 
+# TA-LIB buildin indicators:
 def BB(data, start, timeperiod=20, nbdevup=2, nbdevdn=2, matype=0):
     upperband, middleband, lowerband = talib.BBANDS(data['close'], timeperiod, nbdevup, nbdevdn, matype)
 
@@ -76,12 +77,13 @@ def SAR(data, start):
 
     return {'sar': real.tolist()[start:]}
 
-# Elliott Wave Oscillator
+# Elliott Wave Oscillator:
 def EWO(data, start, fast = 5, slow = 35):
     close = data['close']
     real = talib.EMA(close, fast) - talib.EMA(close, slow)
     return {'ewo': real.tolist()[start:]}
 
+# Keltner channels:
 def KC(data,start):
     # Keltner Channels
     # Middle Line: 20-day exponential moving average
@@ -135,6 +137,7 @@ def TDS(data, start):
 
     return {'tds':td_list_type[start:]}
 
+# Ichimoku Cloud:
 def ICM(data, start):
     open, high, low, close=data['open'], data['high'], data['low'], data['close']
     len = close.size
@@ -166,14 +169,15 @@ def ICM(data, start):
     leading_spanB = np.array(leading_spanB)
 
     # Chikou Span (Lagging Span): Close plotted 26 days in the past
-    n4=26
-    lagging_span =[0]*n4
-    for i in range(n4, len):
-        lagging_span.append(close[i-n4])
+    n4 = 26
+    lagging_span =[]
+    for i in range(0, len-n4):
+        lagging_span.append(close[i+n4])
     lagging_span = np.array(lagging_span)
+
 
     return {'conversion line': conversion_line.tolist()[start:],
             'base line': base_line.tolist()[start:],
-            'leading span A': leading_spanA.tolist()[start:],
-            'leading span B': leading_spanB.tolist()[start:],
+            'leading span A': leading_spanA.tolist()[start-n2:],
+            'leading span B': leading_spanB.tolist()[start-n2:],
             'lagging span': lagging_span.tolist()[start:]}
