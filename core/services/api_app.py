@@ -96,11 +96,18 @@ class get_all(Resource):
 
             indidict = {}
             for indic in indicators_list:
-                try:
-                    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
-                except:
-                    pass
-
+                if indic != 'ICM':
+                    try:
+                        indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+                    except:
+                        pass
+                else:
+                    try:
+                        indicator_response = getattr(indicators, indic)(data, start = magic_limit, timeframe = timeframe)
+                        indidict[indic] = indicator_response['indicator']
+                        dict['dates'] = indicator_response['dates']
+                    except:
+                        pass
             dict['indicators'] = indidict
 
         ################################ PATTERNS ########################################
