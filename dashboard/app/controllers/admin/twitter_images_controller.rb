@@ -32,7 +32,16 @@ module Admin
       twitter_image = TwitterImage.new(twitter_image_params)
 
       if twitter_image.valid?
-        send_data(twitter_image.preview_image, disposition: 'inline', type: 'image/png')
+        img = twitter_image.preview_image
+        chart = MiniMagick::Image.read(img)
+        template = MiniMagick::Image.open(Rails.root.join('vendor', 'template.png'))
+        result = template.composite(chart) do |c|
+          c.compose 'Over'
+          c.geometry '668x420+0+110'
+        end
+        out = StringIO.new
+        result.write out
+        send_data(out.string, disposition: 'inline', type: 'image/png')
       else
         send_data('', disposition: 'inline', type: 'image/png')
       end

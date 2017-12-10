@@ -4,7 +4,7 @@ class Plotter
   attr_reader :timestamps, :candles, :patterns, :indicators, :levels, :step, :margin, :filename
 
   WHITE = 'e6e6e6'
-  BLACK = '353531'
+  BLACK = '383834'
   YELLOW = 'f6d60e'
   BLUE = '5bc0eb'
   GREEN = 'b0db43'
@@ -85,7 +85,7 @@ class Plotter
 
       set autoscale fix
       set xrange [#{timestamps.first}:#{timestamps.last}]
-      set yrange [#{candles['low'].min - margin}:#{candles['high'].max + margin}]
+      set yrange [#{lows.min - margin}:#{highs.max + margin}]
 
       set palette defined (-1 '##{RED}', 0 '##{YELLOW}', 1 '##{GREEN}')
       set cbrange [-1:1]
@@ -108,8 +108,9 @@ class Plotter
     return unless levels['support'] || levels['resistance']
     out = []
     [levels['support'], levels['resistance']].flatten.each_with_index do |level, i|
+      next unless (lows.min..highs.max).cover?(level)
       out << <<~TXT
-        set arrow #{i + 1} from #{timestamps.first},#{level} to #{timestamps.last + (1 + 10 * timestamps.length / 100) * step},#{level} nohead lc rgb "#33#{YELLOW}" lw 2
+        set arrow #{i + 1} from #{timestamps.first},#{level} to #{timestamps.last},#{level} nohead lc rgb "#33#{YELLOW}" lw 2
       TXT
     end
     out
@@ -207,7 +208,7 @@ class Plotter
     (1..indicators['TDS']['tds'].count).each do |i|
       counts << ((indicators['TDS']['tds'][i] == indicators['TDS']['tds'][i - 1] || (indicators['TDS']['tds'][i] == 'buy' && indicators['TDS']['tds'][i - 1] == 'pbuy') || (indicators['TDS']['tds'][i] == 'pbuy' && indicators['TDS']['tds'] == 'buy') || (indicators['TDS']['tds'][i] == 'sell' && indicators['TDS']['tds'][i - 1] == 'psell') || (indicators['TDS']['tds'][i] == 'psell' && indicators['TDS']['tds'][i - 1] == 'sell')) ? counts.last + 1 : 1)
     end
-    @data << timestamps.zip(prices, vals, counts).select { |el| el[3] >= 9 }.map { |candle| candle[0..2].join(' ') }.push('e')
+    @data << timestamps.zip(prices, vals, counts).select { |el| el[1] && el[3] >= 9 }.map { |candle| candle[0..2].join(' ') }.push('e')
   end
 
   def prepare_patterns
@@ -236,6 +237,7 @@ class Plotter
 
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
+      set yrange [*:*]
 
       plot '-' using 1:2:($2 < 0 ? -1 : 1) notitle with impulses palette lw 1.5
     GNU
@@ -258,6 +260,7 @@ class Plotter
 
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
+      set yrange [*:*]
 
       plot '-' using 1:2 notitle with impulses lc '##{PURPLE}' lw 1.5, \\
            '-' using 1:3 notitle with lines lc '##{YELLOW}' lw 1.5, \\
@@ -281,12 +284,11 @@ class Plotter
 
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
+      set yrange [0:100]
 
       set object 1 rect from #{timestamps.first},20 to #{timestamps.last},80 fc rgb '#ee#{PURPLE}' fs solid noborder
       set arrow 1 from #{timestamps.first},20 to #{timestamps.last},20 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
       set arrow 2 from #{timestamps.first},80 to #{timestamps.last},80 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
-
-      set yrange [0:100]
 
       plot '-' using 1:2 notitle with lines lc '##{PURPLE}' lw 1.5
     GNU
@@ -309,12 +311,11 @@ class Plotter
 
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
+      set yrange [0:100]
 
       set object 1 rect from #{timestamps.first},20 to #{timestamps.last},80 fc rgb '#ee#{PURPLE}' fs solid noborder
       set arrow 1 from #{timestamps.first},20 to #{timestamps.last},20 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
       set arrow 2 from #{timestamps.first},80 to #{timestamps.last},80 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
-
-      set yrange [0:100]
 
       plot '-' using 1:2 notitle with lines linecolor '##{BLUE}' lw 1.5, \\
            '-' using 1:3 notitle with lines linecolor '##{YELLOW}' lw 1.5
