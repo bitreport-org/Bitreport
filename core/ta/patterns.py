@@ -21,7 +21,7 @@ def FindPattern(dict, array, pattern_name, data):
 #CheckAllPatterns
 #Input: import_numpy
 #Output: { pattern_name: { up: ['2017-09-17 20:00:00', '2017-09-24 20:00:00'], down: [2017-09-25 08:00:00' }, ...}
-def CheckAllPatterns(data, patterns_list, all = 1):
+def CheckAllPatterns(data, patterns_list = 'none', all = 1):
     open = data['open']
     high = data['high']
     low = data['low']
