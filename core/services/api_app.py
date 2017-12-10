@@ -90,7 +90,7 @@ class get_all(Resource):
         t = int(timef)
 
         d = 0
-        if period == '':
+        if period == 'm':
             d = 60 * t
         elif period == 'h':
             d = 60 * 60 * t
