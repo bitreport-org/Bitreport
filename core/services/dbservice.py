@@ -2,11 +2,10 @@ from influxdb import InfluxDBClient
 from datetime import datetime
 import datetime
 import websocket
-import _thread
 import ast
 from threading import Thread
 import threading
-import asyncio
+import time
 
 ################################## WEBSOCKETS ############################################
 
@@ -118,7 +117,7 @@ if __name__ == "__main__":
 
     # PARAMS
     db_name = 'test'
-    pairs = ['BTCUSD', 'BCHUSD']
+    pairs = ['ETHUSD', 'ETCUSD']
     timeframes = ['5m', '30m', '1h', '2h', '3h', '6h', '12h', '24h', '168h']
 
     threads = []
@@ -133,5 +132,7 @@ if __name__ == "__main__":
         t.start()
 
     while True:
-        pass
+        time.sleep(120)
+
+
 
