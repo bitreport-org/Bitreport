@@ -18,7 +18,7 @@ def microcaps():
                             float(coin['available_supply']) / float(coin['total_supply']) > 0.66):
 
                 tempdict = {}
-                for key in ['symbol', 'price_usd', 'price_btc', '24h_volume_usd', 'market_cap_usd',
+                for key in [ 'id', 'symbol', 'price_usd', 'price_btc', '24h_volume_usd', 'market_cap_usd',
                             'available_supply', 'total_supply', 'percent_change_24h', 'percent_change_7d']:
                     tempdict[key] = coin[key]
 
