@@ -8,7 +8,7 @@ import json
 from services import internal
 from ta import patterns
 from ta import indicators
-from ta import levels
+from ta import levels, channels
 from services import microcaps
 
 app = Flask(__name__)
@@ -71,6 +71,10 @@ class get_all(Resource):
         parser.add_argument('levels')
         args = parser.parse_args()
         levels_ask = args.get('levels')
+
+        parser.add_argument('channel')
+        args = parser.parse_args()
+        channel = args.get('channel')
 
         ############################### DATA REQUEST #####################################
 
@@ -152,6 +156,10 @@ class get_all(Resource):
 
         if levels_ask == 'ALL':
             dict['levels'] = levels.srlevels(data)
+
+        ################################ CHANNELS #########################################
+        if channel == 'True':
+            dict['channels'] = channels.talib_channel_front(data, magic_limit)
 
         return dict
 
