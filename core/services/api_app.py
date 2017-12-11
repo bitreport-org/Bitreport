@@ -72,9 +72,9 @@ class get_all(Resource):
         args = parser.parse_args()
         levels_ask = args.get('levels')
 
-        parser.add_argument('channel')
+        parser.add_argument('channels',  action='append')
         args = parser.parse_args()
-        channel = args.get('channel')
+        channel_list = args.get('channels')
 
         ############################### DATA REQUEST #####################################
 
@@ -158,8 +158,18 @@ class get_all(Resource):
             dict['levels'] = levels.srlevels(data)
 
         ################################ CHANNELS #########################################
-        if channel == 'True':
-            dict['channels'] = channels.talib_channel_front(data, magic_limit)
+        try:
+            channel_list = channel_list[0].split(',')
+        except:
+            pass
+
+        chdict = {}
+        for ch in channel_list:
+            try:
+                chdict[ch] = getattr(channels, ch)(data, magic_limit = magic_limit)
+            except:
+                pass
+        dict['channels'] = chdict
 
         return dict
 
