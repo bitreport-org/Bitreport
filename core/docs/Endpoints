@@ -1,10 +1,18 @@
 REST endpoints
 
+Microcaps endpoint:
+/micropcaps
+
+DB test ednpoint
 Last n records of pair at given timeframe:
 /test/<string:pair>/<string:timeframe>/?limit=n
 
 Main endpoint
-/data/<string:pair>/<string:timeframe>/?limit=n&indicators=name1,name2&patterns=name1,name2&levels=ALL
+/data/<string:pair>/<string:timeframe>/?limit=n
+                                               &indicators=name1,name2
+                                               &patterns=name1,name2
+                                               &levels=ALL
+                                               &channels=name1,name2
 
 Available timeframes:
 ['5m', '30m', '1h', '2h', '3h', '6h', '12h', '24h', '168h']
@@ -80,5 +88,9 @@ For a given pair, timeframe and limit returns:
 {pattern_name1 : {'up': up, 'down': down}, pattern_name2: {'up': up, 'down': down}, ...}
 
 
-Avaiable levels:
+Available levels:
 ALL - for a given pair, timeframe and limit returns {'support': sup, 'resistance': res}
+
+Available channels - each channel is returnen as {'upperband', 'middleband', 'lowerband'}:
+parabola
+channel
