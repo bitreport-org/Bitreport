@@ -1,15 +1,10 @@
 from flask import Flask
 from flask_restful import Resource, Api, reqparse
 from influxdb import InfluxDBClient
-import json
-
 
 # Internal import
-from services import internal
-from ta import patterns
-from ta import indicators
-from ta import levels, channels
-from services import microcaps
+from services import internal, microcaps
+from ta import patterns, indicators, channels, levels
 
 app = Flask(__name__)
 api = Api(app)
