@@ -22,7 +22,7 @@ client = InfluxDBClient(host, port, 'root', 'root', db)
 
 # to post data without NaN values indicators are calculated on period of length: limit + magic_limit
 # next posted data has length = limit
-magic_limit = conf['magic_limit']
+magic_limit = int(conf['magic_limit'])
 
 #########################################################################################
 
@@ -166,12 +166,13 @@ class get_all(Resource):
             pass
 
         chdict = {}
-        for ch in channel_list:
-            try:
-                chdict[ch] = getattr(channels, ch)(data, magic_limit = magic_limit)
-            except:
-                pass
-        dict['channels'] = chdict
+        if channel_list != None:
+            for ch in channel_list:
+                try:
+                    chdict[ch] = getattr(channels, ch)(data, magic_limit = magic_limit)
+                except:
+                    pass
+            dict['channels'] = chdict
 
         return dict
 
