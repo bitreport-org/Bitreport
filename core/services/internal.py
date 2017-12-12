@@ -1,8 +1,25 @@
-import requests
 import numpy as np
-from datetime import datetime
 import time
 import iso8601
+import configparser
+
+def Config(file, section):
+
+    Config = configparser.ConfigParser()
+    Config.read(file)
+    #print(Config.sections())
+
+    dict1 = {}
+    options = Config.options(section)
+    for option in options:
+        try:
+            dict1[option] = Config.get(section, option)
+            if dict1[option] == -1:
+                print("skip: %s" % option)
+        except:
+            print("exception on %s!" % option)
+            dict1[option] = None
+    return dict1
 
 def import_numpy(client, db, pair, timeframe, limit):
     # Perform query and return JSON data

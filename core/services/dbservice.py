@@ -6,12 +6,13 @@ import ast
 from threading import Thread
 import threading
 import time
+from services import internal
 
 ################################## WEBSOCKETS ############################################
 
 class bitfinex_pair_dbservice():
-    def __init__(self, db_name, pair, timeframes ):
-        self.client = InfluxDBClient('localhost', 8086, 'root', 'root', db_name)
+    def __init__(self, db_name, host, port, pair, timeframes ):
+        self.client = InfluxDBClient(host, port, 'root', 'root', db_name)
         self.db = db_name
         self.last1 = 0
         self.last2 =0
@@ -115,14 +116,21 @@ class bitfinex_pair_dbservice():
 #################################### MAIN ################################################
 if __name__ == "__main__":
 
-    # PARAMS
-    db_name = 'test'
-    pairs = ['ETHUSD', 'ETCUSD']
-    timeframes = ['5m', '30m', '1h', '2h', '3h', '6h', '12h', '24h', '168h']
+    ################### CONFIG ###################
+
+    conf = internal.Config('config.ini', 'services')
+    db_name = conf['db_name']
+    host = conf['host']
+    port = int(conf['port'])
+
+    pairs = conf['pairs'].split(',')
+    timeframes = conf['fill_timeframes'].split(',')
+
+    ##############################################
 
     threads = []
     for pair in pairs:
-        service= bitfinex_pair_dbservice(db_name, pair, timeframes)
+        service= bitfinex_pair_dbservice(db_name, host, port, pair, timeframes)
         threads.append(threading.Thread(target=service.create))
 
     for t in threads:

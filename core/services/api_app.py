@@ -14,9 +14,16 @@ from services import microcaps
 app = Flask(__name__)
 api = Api(app)
 
-# PARAMETERS
-db = 'test'
-client = InfluxDBClient('localhost', 8086, 'root', 'root', db)
+################### CONFIG ###################
+
+conf = internal.Config('config.ini', 'services')
+db = conf['db_name']
+host = conf['host']
+port = int(conf['port'])
+
+##############################################
+
+client = InfluxDBClient(host, port, 'root', 'root', db)
 
 # to post data without NaN values indicators are calculated on period of length: limit + magic_limit
 # next posted data has length = limit
