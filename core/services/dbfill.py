@@ -1,8 +1,7 @@
 import requests
 from influxdb import InfluxDBClient
 from services import internal
-
-
+import time
 
 def bitfinex_fill(client, db, pair, timeframes, limit):
     for timeframe in timeframes:
@@ -40,6 +39,8 @@ def bitfinex_fill(client, db, pair, timeframes, limit):
                 except:
                     print(pair, timeframe, 'failed to fill.')
                     pass
+        # Avoid blocked API
+        time.sleep(10)
 
 if __name__ == "__main__":
     ################### CONFIG ###################
