@@ -35,12 +35,12 @@ def bitfinex_fill(client, db, pair, timeframes, limit):
                             }
                         ]
                         client.write_points(json_body)
-                    print(pair, timeframe, 'filled successfuly!')
+                    print(pair, timeframe, 'filled successfuly! Records:', len(candel_list))
                 except:
-                    print(pair, timeframe, 'failed to fill.')
+                    print(pair, timeframe, 'failed to fill.Records:', len(candel_list))
                     pass
         # Avoid blocked API
-        time.sleep(10)
+        time.sleep(4)
 
 if __name__ == "__main__":
     ################### CONFIG ###################
