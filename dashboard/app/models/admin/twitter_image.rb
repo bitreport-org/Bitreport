@@ -1,5 +1,7 @@
 module Admin
   class TwitterImage < ApplicationRecord
+    attr_reader :price
+
     include TwitterImageUploader[:image]
 
     validates :symbol, presence: true, inclusion: { in: %w[BTCUSD] }
@@ -21,6 +23,7 @@ module Admin
     def generate_image(save = true)
       response = HTTParty.get(data_url)
       body = JSON.parse(response.body)
+      @price = body['candles']['close'].last
       Plotter.new(body['dates'],
                   body['candles'],
                   body['patterns'],

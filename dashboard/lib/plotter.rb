@@ -4,7 +4,7 @@ class Plotter
   attr_reader :timestamps, :candles, :patterns, :indicators, :levels, :step, :margin, :filename
 
   WHITE = 'e6e6e6'
-  BLACK = '383834'
+  BLACK = '363631'
   YELLOW = 'f6d60e'
   BLUE = '5bc0eb'
   GREEN = 'b0db43'
@@ -60,7 +60,7 @@ class Plotter
   private
 
   def terminal(save)
-    out = ["set terminal pngcairo truecolor font 'Verdana,12' size 1280,720 background rgb '##{BLACK}'"]
+    out = ["set terminal pngcairo truecolor font 'Verdana,12' size 1400,930 background rgb '##{BLACK}'"]
     out << (save ? "set output '#{output}'" : 'unset output')
     out
   end
