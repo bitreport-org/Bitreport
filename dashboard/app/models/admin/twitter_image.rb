@@ -1,6 +1,6 @@
 module Admin
   class TwitterImage < ApplicationRecord
-    attr_reader :price
+    attr_reader :price, :change
 
     include TwitterImageUploader[:image]
 
@@ -24,6 +24,7 @@ module Admin
       response = HTTParty.get(data_url)
       body = JSON.parse(response.body)
       @price = body['candles']['close'].last
+      @change = body['candles']['close'].last - body['candles']['open'].first
       Plotter.new(body['dates'],
                   body['candles'],
                   body['patterns'],

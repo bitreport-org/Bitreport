@@ -4,6 +4,7 @@ h1 New twitter_image
 
 .ui.segment
   h4.ui.dividing.header Preview
-  img#preview.ui.image src=""
+  canvas#preview.ui.image width='2048' height='1024'
+    = image_tag 'template.png', id: 'background'
 
 = link_to 'Back', admin_twitter_images_path

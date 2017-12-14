@@ -1,6 +1,9 @@
 class HomeController < ApplicationController
-  def index
+  def index; end
+
+  def show
     @address = session[:address] ||= initialize_wallet.address
+    render params[:page]
   end
 
   private
