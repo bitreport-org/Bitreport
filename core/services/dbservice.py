@@ -1,12 +1,13 @@
 from influxdb import InfluxDBClient
 from datetime import datetime
-import datetime
 import websocket
 import ast
 from threading import Thread
 import threading
 import time
+import os
 from services import internal
+import datetime
 
 ################################## WEBSOCKETS ############################################
 
@@ -19,13 +20,18 @@ class bitfinex_pair_dbservice():
         self.pair = pair
         self.client.create_database(db_name)
         self.timeframes = timeframes
+
+        # Create retention policy
+        # self.client.create_retention_policy('ticker_delete', '1h', '1', default=False)
+
     # Creates Continuous Query with a given timeframe
     def create_conquery(self):
         # Continuous Queries for each par for each period
         # create cq BTCUSD1h on DATABASE begin ... into BTCUSD1h from tBTCUSD group by time(1h) end
-        try:
-            # Continuous queries
-            for tf in self.timeframes:
+
+        # Continuous queries
+        for tf in self.timeframes:
+            try:
                 query = 'CREATE CONTINUOUS QUERY ' + self.pair + tf + ' ON ' + self.db + ' RESAMPLE EVERY 5m BEGIN SELECT  \
                                    first(open) AS open, \
                                    max(high) AS high, \
@@ -35,9 +41,11 @@ class bitfinex_pair_dbservice():
                                    INTO ' + self.pair + tf + ' FROM ' + self.pair + ' GROUP BY time(' + tf + ') END'
 
                 self.client.query(query)
-        except:
-            print('CQs already exists')
-            pass
+            except:
+                print('CQs',tf,'already exists')
+                pass
+
+
     # Writes candlestick from message to InfluxDB
     def write_ticker(self, ticker):
 
@@ -54,7 +62,23 @@ class bitfinex_pair_dbservice():
                 }
             }
         ]
-        self.client.write_points(json_body)
+        status = self.client.write_points(json_body) #retention_policy = 'testrp')
+
+        return status
+
+    # Writes error message
+    def write_error(self, message, pair):
+        json_body = [
+            {
+                "measurement": 'Error',
+                "time": int(time.mktime(datetime.datetime.now().timetuple())) * 1000000000,
+                "tags": {
+                    "Message": message,
+                    "Pair" : pair,
+                }
+            }
+        ]
+        status = self.client.write_points(json_body)
 
     #Websocket messages handler
     def on_message(self, ws, message):
@@ -66,25 +90,32 @@ class bitfinex_pair_dbservice():
                     for ticker in response:
                         self.write_ticker(ticker)
                         #print(self.pair, ' dump record : ', datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), ticker)
-                    print('Dump saved')
+                    print(self.pair, 'dump saved.')
 
                 # Single ticker handling
                 elif  response[0]!= self.last1 and response[0] != self.last2:
-                    print(self.pair, ' ticker :',datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), response)
-                    self.write_ticker(response)
-                    #self.start = now
-                    self.last2 = self.last1
-                    self.last1 = response[0]
+                    try:
+                        status = self.write_ticker(response)
+                        #print(self.pair, ' ticker :',datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), response, status)
+                        self.last2 = self.last1
+                        self.last1 = response[0]
+                    except:
+                        print('Ticker write failed', self.pair)
+                        pass
         except:
-            print('Connected! Not a ticker')
+            print(self.pair, 'connected!')
             pass
 
     def on_error(self, ws, error):
-        print('Error. Time : ', datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
+        message = self.pair + 'Error. Time : ' + str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
+        self.write_error(message, self.pair)
+        print(message)
         self.on_open(ws)
 
     def on_close(self, ws):
-        print("Connection closed. Time : ", datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
+        message = self.pair + 'Connection closed. Time : ' + str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
+        self.write_error(message, self.pair)
+        print(message)
         self.on_open(ws)
 
     # Subscribe to new channel
@@ -101,8 +132,6 @@ class bitfinex_pair_dbservice():
     def create(self):
         # Continuousqueries
         self.create_conquery()
-
-        # Retention policy
 
         # Websocket channel
         ws = websocket.WebSocketApp("wss://api.bitfinex.com/ws/2",
@@ -124,7 +153,7 @@ if __name__ == "__main__":
     port = int(conf['port'])
 
     pairs = conf['pairs'].split(',')
-    timeframes = conf['fill_timeframes'].split(',')
+    timeframes = conf['timeframes'].split(',')
 
     ##############################################
 
@@ -139,8 +168,11 @@ if __name__ == "__main__":
     for t in threads:
         t.start()
 
+    clear = lambda: os.system('clear')
     while True:
-        time.sleep(120)
+        print('Active threads:', threading.active_count()-1)
+        time.sleep(60*5)
+        #clear()
 
 
 
