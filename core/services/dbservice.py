@@ -90,7 +90,7 @@ class bitfinex_pair_dbservice():
                     for ticker in response:
                         self.write_ticker(ticker)
                         #print(self.pair, ' dump record : ', datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), ticker)
-                    print(self.pair, 'dump saved.')
+                    print(self.pair, 'dump saved.', len(response), 'records.')
 
                 # Single ticker handling
                 elif  response[0]!= self.last1 and response[0] != self.last2:
