@@ -52,6 +52,7 @@ gem 'shrine'
 # Shrine Dependencies
 gem 'fastimage'
 gem 'image_processing'
+gem 'mini_magick'
 
 # The ruby gnuplot gem
 gem 'gnuplot'
