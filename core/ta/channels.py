@@ -1,7 +1,7 @@
 import numpy as np
 import talib
 
-def channel(data, magic_limit, percent=70):
+def channel(data, magic_limit, margin=26,percent=70):
     close, open, high, low = data['close'], data['open'], data['high'], data['low']
     avg = (close+open)/2
 
@@ -14,7 +14,7 @@ def channel(data, magic_limit, percent=70):
     std = talib.STDDEV(avg, timeperiod=close.size, nbdev=0.5)[-1]
 
     up_channel, bottom_channel , channel= [], [], []
-    for i in range(close.size):
+    for i in range(close.size+margin):
         up_channel.append(i*a+b+std)
         bottom_channel.append(i * a + b - std)
         channel.append(i * a + b)
@@ -23,7 +23,7 @@ def channel(data, magic_limit, percent=70):
     return {'upperband': up_channel[magic_limit:], 'middleband': channel[magic_limit:],'lowerband':bottom_channel[magic_limit:]}
 
 
-def parabola(data, magic_limit):
+def parabola(data, magic_limit, margin=26):
     open = data['open']
     close = data['close']
 
@@ -36,7 +36,7 @@ def parabola(data, magic_limit):
     end = close.size # max(mini,maxi)+1
 
     x = np.array(range(start, end))
-    longer_x = np.array(range(close.size))
+    longer_x = np.array(range(close.size+margin))
 
     y = avg # [start : end]
 
@@ -64,7 +64,7 @@ def linear(data, magic_limit, period = 20):
         probe_data = close[i-period : i]
         a = talib.LINEARREG_SLOPE(probe_data, period)[-1]
         b = talib.LINEARREG_INTERCEPT(probe_data, period)[-1]
-        y = a*i+b
+        y = a*period+b
         std = talib.STDDEV(probe_data, timeperiod=probe_data.size, nbdev=1)[-1]
 
         indicator_values.append(y)
