@@ -44,11 +44,11 @@ def import_numpy(client, db, pair, timeframe, limit):
         dt = int(time.mktime(dt.timetuple()))
 
         date_list.append(dt)
-        close_list.append(candel_list[i][1])
-        high_list.append(candel_list[i][2])
-        low_list.append(candel_list[i][3])
-        open_list.append(candel_list[i][4])
-        volume_list.append(candel_list[i][5])
+        close_list.append(float(candel_list[i][1]))
+        high_list.append(float(candel_list[i][2]))
+        low_list.append(float(candel_list[i][3]))
+        open_list.append(float(candel_list[i][4]))
+        volume_list.append(float(candel_list[i][5]))
 
     date_list.reverse()
     close_list.reverse()
