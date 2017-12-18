@@ -183,17 +183,17 @@ class Plotter
     end
     if indicators['linear']
       name = 'linear'
-      @plots << "using 1:3 title 'Keltner Channel' with lines linecolor '#40#{YELLOW}' lw 1.5"
+      @plots << "using 1:3 title 'Linear Channel' with lines linecolor '#40#{YELLOW}' lw 1.5"
       @data << timestamps.zip(indicators[name]['upperband'], indicators[name]['middleband'], indicators[name]['lowerband']).map { |candle| candle.join(' ') }.push('e')
     end
     if indicators['channel']
       name = 'channel'
-      @plots << "using 1:3 title 'Keltner Channel' with lines linecolor '#40#{YELLOW}' lw 1.5"
+      @plots << "using 1:3 title 'Auto Channel' with lines linecolor '#40#{YELLOW}' lw 1.5"
       @data << timestamps.zip(indicators[name]['upperband'], indicators[name]['middleband'], indicators[name]['lowerband']).map { |candle| candle.join(' ') }.push('e')
     end
     if indicators['parabola']
       name = 'parabola'
-      @plots << "using 1:3 title 'Keltner Channel' with lines linecolor '#40#{YELLOW}' lw 1.5"
+      @plots << "using 1:3 title 'Parabolic Channel' with lines linecolor '#40#{YELLOW}' lw 1.5"
       @data << timestamps.zip(indicators[name]['upperband'], indicators[name]['middleband'], indicators[name]['lowerband']).map { |candle| candle.join(' ') }.push('e')
     end
   end
