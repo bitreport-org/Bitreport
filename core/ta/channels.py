@@ -66,7 +66,6 @@ def linear(data, magic_limit, period = 20):
         b = talib.LINEARREG_INTERCEPT(probe_data, period)[-1]
         y = a*i+b
         std = talib.STDDEV(probe_data, timeperiod=probe_data.size, nbdev=1)[-1]
-        print(std)
 
         indicator_values.append(y)
         up_channel.append(y + std)
