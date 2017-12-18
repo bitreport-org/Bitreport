@@ -15,6 +15,9 @@ Function bitfinex_create_service(db_name, pair, timeframes, cq ='yes', retention
 Main:
 - creates bitfinex_create_service for given database, pairs and timeframes
 
+INFO:
+Dump has a length of 240 records. That means last 240 minutes = 4h.
+
 INTERNAL.py //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Function import_numpy(client, db, pair, timeframe, limit) - asks database for CHLOV records
