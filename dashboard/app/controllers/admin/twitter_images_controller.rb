@@ -6,7 +6,7 @@ module Admin
 
     # GET /twitter_images
     def index
-      @twitter_images = TwitterImage.order(created_at: :desc).limit(9)
+      redirect_to new_admin_twitter_image_path
     end
 
     # GET /twitter_images/1
@@ -33,37 +33,7 @@ module Admin
 
       if twitter_image.valid?
         img = twitter_image.preview_image
-        chart = MiniMagick::Image.read(img)
-        template = MiniMagick::Image.open(Rails.root.join('vendor', 'template.png'))
-        ticker = "#{twitter_image_params[:symbol]} #{twitter_image_params[:timeframe]}"
-        template = template.composite(chart) do |c|
-          c.compose 'over'
-          c.gravity 'center'
-          c.geometry '1400x930-250+25'
-        end
-        result = template.combine_options do |c|
-          c.font Rails.root.join('vendor', 'PT_Sans-Web-Bold.ttf')
-          c.pointsize 50
-          c.fill '#EEEEEE'
-          c.region '735x110'
-          c.gravity 'East'
-          c.draw "text 0,0 '#{ticker}'"
-          c.font Rails.root.join('vendor', 'PT_Sans-Web-Bold.ttf')
-          c.pointsize 50
-          c.fill '#b0db43'
-          c.region '580x110+750'
-          c.gravity 'West'
-          c.draw "text 0,0 '#{twitter_image.price}'"
-          c.font Rails.root.join('vendor', 'PT_Sans-Web-Regular.ttf')
-          c.pointsize 16
-          c.fill '#363631'
-          c.region '500x40+1400+1020'
-          c.gravity 'center'
-          c.draw "text 0,0 'Generated on #{Time.zone.now}'"
-        end
-        out = StringIO.new
-        result.write out
-        send_data(out.string, disposition: 'inline', type: 'image/png')
+        send_data(img, disposition: 'inline', type: 'image/png')
       else
         send_data('', disposition: 'inline', type: 'image/png')
       end
@@ -84,7 +54,7 @@ module Admin
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def twitter_image_params
-      params.require(:admin_twitter_image).permit(:symbol, :timeframe, :limit, :levels,
+      params.require(:admin_twitter_image).permit(:symbol, :timeframe, :limit, :levels, :comment,
                                                   indicators: [], patterns: [])
     end
   end

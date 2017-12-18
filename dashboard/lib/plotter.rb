@@ -60,7 +60,7 @@ class Plotter
   private
 
   def terminal(save)
-    out = ["set terminal pngcairo truecolor font 'Verdana,12' size 1400,930 background rgb '##{BLACK}'"]
+    out = ["set terminal pngcairo truecolor font 'Verdana,14' size 1570,890 background rgb '##{BLACK}'"]
     out << (save ? "set output '#{output}'" : 'unset output')
     out
   end
@@ -230,7 +230,7 @@ class Plotter
       set size 1.0,0.25
       set origin 0.0,0.05
 
-      set format x "%d-%m-%y\\n%H:%M"
+      set format x "%Y-%m-%d\\n%H:%M"
 
       set bmargin 1
       set tmargin 0
@@ -253,7 +253,7 @@ class Plotter
       set size 1.0,0.25
       set origin 0.0,0.05
 
-      set format x "%d-%m-%y\\n%H:%M"
+      set format x "%Y-%m-%d\\n%H:%M"
 
       set bmargin 1
       set tmargin 0
@@ -277,7 +277,7 @@ class Plotter
       set size 1.0,0.25
       set origin 0.0,0.05
 
-      set format x "%d-%m-%y\\n%H:%M"
+      set format x "%Y-%m-%d\\n%H:%M"
 
       set bmargin 1
       set tmargin 0
@@ -304,7 +304,7 @@ class Plotter
       set size 1.0,0.25
       set origin 0.0,0.05
 
-      set format x "%d-%m-%y\\n%H:%M"
+      set format x "%Y-%m-%d\\n%H:%M"
 
       set bmargin 1
       set tmargin 0
