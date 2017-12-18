@@ -29,10 +29,12 @@
             .item data-value='EWO' EWO
             .item data-value='MACD' MACD
             .item data-value='RSI' RSI
+            .item data-value='LINO' LINO
+            .item data-value='CORRO' CORRO
             .item data-value='STOCH' STOCH
       .thirteen.wide.field
         = f.label :indicators
-        = f.select :indicators, options_for_select([['Bollinger Bands', 'BB'], ['Keltner Channel', 'KC'], ['Tom DeMark Sequential', 'TDS'], ['Ichimoku Cloud', 'ICM'], ['EMA', 'EMA'], ['SMA', 'SMA'], ['SAR', 'SAR']], ['BB', 'SAR']), { prompt: 'Indicators' }, { multiple: true, class: 'ui fluid search dropdown' }
+        = f.select :indicators, options_for_select([['Bollinger Bands', 'BB'],['Channel','channel'], ['Parabolic channel', 'parabola'], ['Linear channel','linear'], ['Keltner Channel', 'KC'], ['Tom DeMark Sequential', 'TDS'], ['Ichimoku Cloud', 'ICM'], ['EMA', 'EMA'], ['SMA', 'SMA'],['Linear', 'LIN'], ['SAR', 'SAR']], ['BB', 'SAR']), { prompt: 'Indicators' }, { multiple: true, class: 'ui fluid search dropdown' }
     .field
       .ui.toggle.checkbox
         = f.check_box :levels, { class: 'hidden' }, 'ALL', ''

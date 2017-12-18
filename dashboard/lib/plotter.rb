@@ -38,10 +38,11 @@ class Plotter
     prepare_sar
     prepare_sma
     prepare_ema
+    prepare_lin
     prepare_tds
     prepare_patterns
     out << commands
-    out << send((indicators.keys & %w[EWO MACD RSI STOCH]).first.downcase.to_sym)
+    out << send((indicators.keys & %w[EWO MACD RSI STOCH LINO CORRO]).first.downcase.to_sym)
     io = IO.popen('gnuplot -persist', 'w+')
     io << out.join("\n")
     io.close_write
@@ -134,6 +135,27 @@ class Plotter
                 "using 1:4 notitle with lines linecolor '#40#{YELLOW}' lw 1.5"
       @data << timestamps.zip(indicators['KC']['upperband'], indicators['KC']['middleband'], indicators['KC']['lowerband']).map { |candle| candle.join(' ') }.push('e') * 3
     end
+    if indicators['parabola']
+      name = 'parabola'
+      @plots << "using 1:2:4 notitle with filledcurves linecolor '#f4#{YELLOW}'" <<
+          "using 1:2 notitle with lines linecolor '#40#{YELLOW}' lw 1.5" <<
+          "using 1:4 notitle with lines linecolor '#40#{YELLOW}' lw 1.5"
+      @data << timestamps.zip(indicators[name]['upperband'], indicators[name]['middleband'], indicators[name]['lowerband']).map { |candle| candle.join(' ') }.push('e') * 3
+    end
+    if indicators['channel']
+      name = 'channel'
+      @plots << "using 1:2:4 notitle with filledcurves linecolor '#f4#{YELLOW}'" <<
+          "using 1:2 notitle with lines linecolor '#40#{YELLOW}' lw 1.5" <<
+          "using 1:4 notitle with lines linecolor '#40#{YELLOW}' lw 1.5"
+      @data << timestamps.zip(indicators[name]['upperband'], indicators[name]['middleband'], indicators[name]['lowerband']).map { |candle| candle.join(' ') }.push('e') * 3
+    end
+    if indicators['linear']
+      name = 'linear'
+      @plots << "using 1:2:4 notitle with filledcurves linecolor '#f4#{YELLOW}'" <<
+          "using 1:2 notitle with lines linecolor '#40#{YELLOW}' lw 1.5" <<
+          "using 1:4 notitle with lines linecolor '#40#{YELLOW}' lw 1.5"
+      @data << timestamps.zip(indicators[name]['upperband'], indicators[name]['middleband'], indicators[name]['lowerband']).map { |candle| candle.join(' ') }.push('e') * 3
+    end
   end
 
   def prepare_ichimoku_bg
@@ -159,6 +181,21 @@ class Plotter
       @plots << "using 1:3 title 'Keltner Channel' with lines linecolor '#40#{YELLOW}' lw 1.5"
       @data << timestamps.zip(indicators['KC']['upperband'], indicators['KC']['middleband'], indicators['KC']['lowerband']).map { |candle| candle.join(' ') }.push('e')
     end
+    if indicators['linear']
+      name = 'linear'
+      @plots << "using 1:3 title 'Keltner Channel' with lines linecolor '#40#{YELLOW}' lw 1.5"
+      @data << timestamps.zip(indicators[name]['upperband'], indicators[name]['middleband'], indicators[name]['lowerband']).map { |candle| candle.join(' ') }.push('e')
+    end
+    if indicators['channel']
+      name = 'channel'
+      @plots << "using 1:3 title 'Keltner Channel' with lines linecolor '#40#{YELLOW}' lw 1.5"
+      @data << timestamps.zip(indicators[name]['upperband'], indicators[name]['middleband'], indicators[name]['lowerband']).map { |candle| candle.join(' ') }.push('e')
+    end
+    if indicators['parabola']
+      name = 'parabola'
+      @plots << "using 1:3 title 'Keltner Channel' with lines linecolor '#40#{YELLOW}' lw 1.5"
+      @data << timestamps.zip(indicators[name]['upperband'], indicators[name]['middleband'], indicators[name]['lowerband']).map { |candle| candle.join(' ') }.push('e')
+    end
   end
 
   def prepare_ichimoku_fg
@@ -175,12 +212,19 @@ class Plotter
     @data << timestamps.zip(indicators['SAR']['sar']).map { |candle| candle.join(' ') }.push('e')
   end
 
+  def prepare_lin
+    #TODO: Set colors
+    return unless indicators['LIN']
+    @plots << "using 1:2 title 'Linear' with lines lw 1.5 lc '#00#{YELLOW}'"
+    @data << timestamps.zip(indicators['LIN']['lin']).map { |candle| candle.join(' ') }.push('e') * 3
+  end
+
   def prepare_sma
     #TODO: Set colors
     return unless indicators['SMA']
     @plots << "using 1:2 title 'SMA slow' with lines lw 1.5 lc '#c0#{YELLOW}'" <<
-              "using 1:3 title 'SMA medium' with lines lw 1.5 lc '#70#{YELLOW}'" <<
-              "using 1:4 title 'SMA fast' with lines lw 1.5 lc '#00#{YELLOW}'"
+        "using 1:3 title 'SMA medium' with lines lw 1.5 lc '#70#{YELLOW}'" <<
+        "using 1:4 title 'SMA fast' with lines lw 1.5 lc '#00#{YELLOW}'"
     @data << timestamps.zip(indicators['SMA']['slow'], indicators['SMA']['medium'], indicators['SMA']['fast']).map { |candle| candle.join(' ') }.push('e') * 3
   end
 
@@ -293,6 +337,62 @@ class Plotter
       plot '-' using 1:2 notitle with lines lc '##{PURPLE}' lw 1.5
     GNU
     out << timestamps.zip(indicators['RSI']['rsi']).map { |candle| candle.join(' ') }.push('e')
+    out
+  end
+
+  def lino
+    dic_name = 'LINO'
+    indicator = dic_name.downcase
+    margin = 10 * (indicators[dic_name][indicator].max - indicators[dic_name][indicator].min) / 100
+    maxi = indicators[dic_name][indicator].max
+    out = []
+    out << <<~GNU
+      set size 1.0,0.25
+      set origin 0.0,0.05
+
+      set format x "%Y-%m-%d\\n%H:%M"
+
+      set bmargin 1
+      set tmargin 0
+
+      set offsets 0,0,#{margin},#{margin}
+      set xrange [#{timestamps.first}:#{timestamps.last}]
+      set yrange [-100:100]
+      
+      set object 1 rect from #{timestamps.first},-45 to #{timestamps.last},45 fc rgb '#ee#{PURPLE}' fs solid noborder
+      set arrow 1 from #{timestamps.first},-45 to #{timestamps.last},-45 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
+      set arrow 2 from #{timestamps.first},45 to #{timestamps.last},45 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
+     
+
+      plot '-' using 1:2 notitle with lines lc '##{PURPLE}' lw 1.5
+    GNU
+    out << timestamps.zip(indicators[dic_name][indicator]).map { |candle| candle.join(' ') }.push('e')
+    out
+  end
+
+  def corro
+    margin = 10 * (indicators['CORRO']['corro'].max - indicators['CORRO']['corro'].min) / 100
+    out = []
+    out << <<~GNU
+      set size 1.0,0.25
+      set origin 0.0,0.05
+
+      set format x "%Y-%m-%d\\n%H:%M"
+
+      set bmargin 1
+      set tmargin 0
+
+      set offsets 0,0,#{margin},#{margin}
+      set xrange [#{timestamps.first}:#{timestamps.last}]
+      set yrange [-1.1:1.1]
+
+      set object 1 rect from #{timestamps.first},-0.9 to #{timestamps.last},0.9 fc rgb '#ee#{PURPLE}' fs solid noborder
+      set arrow 1 from #{timestamps.first},-0.9 to #{timestamps.last},-0.9 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
+      set arrow 2 from #{timestamps.first},0.9 to #{timestamps.last},0.9 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
+
+      plot '-' using 1:2 notitle with lines lc '##{PURPLE}' lw 1.5
+    GNU
+    out << timestamps.zip(indicators['CORRO']['corro']).map { |candle| candle.join(' ') }.push('e')
     out
   end
 
