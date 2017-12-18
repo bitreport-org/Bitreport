@@ -9,6 +9,7 @@ def BB(data, start, timeperiod=20, nbdevup=2, nbdevdn=2, matype=0):
             'middleband':middleband.tolist()[start:],
             'lowerband':lowerband.tolist()[start:]}
 
+
 def MACD(data, start, fastperiod=12, slowperiod=26, signalperiod=9 ):
     macd, signal, hist = talib.MACD(data['close'], fastperiod, slowperiod, signalperiod)
     #
@@ -20,6 +21,7 @@ def MACD(data, start, fastperiod=12, slowperiod=26, signalperiod=9 ):
             'signal':signal.tolist()[start:],
             'hist':hist.tolist()[start:]}
 
+
 def RSI(data, start, timeperiod=14):
     real = talib.RSI(data['close'], timeperiod)
 
@@ -28,26 +30,32 @@ def RSI(data, start, timeperiod=14):
 
     return {'rsi':real.tolist()[start:]} #,'date': data['date'].tolist()[start:]}
 
+
 def STOCH(data, start, fastk_period=5, slowk_period=3, slowk_matype=0, slowd_period=3, slowd_matype=0):
     slowk, slowd = talib.STOCH(data['high'], data['low'], data['close'],
                                fastk_period, slowk_period, slowk_matype, slowd_period, slowd_matype)
     return {'slowk': slowk.tolist()[start:], 'slowd': slowd.tolist()[start:]}
 
+
 def STOCHRSI(data, start, timeperiod=14, fastk_period=5, fastd_period=3, fastd_matype=0):
     fastk, fastd = talib.STOCHRSI(data['close'], timeperiod, fastk_period, fastd_period, fastd_matype)
     return {'fastk': fastk.tolist()[start:], 'fastd': fastd.tolist()[start:]}
+
 
 def MOM(data, start, timeperiod=10):
     real = talib.MOM(data['close'], timeperiod)
     return {'mom': real.tolist()[start:]}
 
+
 def ADX(data, start, timeperiod=14):
     real = talib.ADX(data['high'], data['low'], data['close'], timeperiod)
     return {'adx': real.tolist()[start:]}
 
+
 def AROON(data, start, timeperiod=14):
     aroondown, aroonup = talib.AROON(data['high'], data['low'], timeperiod)
     return {'down': aroondown.tolist()[start:], 'up': aroonup.tolist()[start:]}
+
 
 def SMA(data, start):
 
@@ -61,6 +69,7 @@ def SMA(data, start):
 
     return dict
 
+
 def EMA(data, start):
     periods = [10, 20, 50]
     names = ['fast', 'medium', 'slow']
@@ -72,16 +81,19 @@ def EMA(data, start):
 
     return dict
 
+
 def SAR(data, start):
     real = talib.SAR(data['high'], data['low'],acceleration=0.02, maximum=0.2)
 
     return {'sar': real.tolist()[start:]}
+
 
 # Elliott Wave Oscillator:
 def EWO(data, start, fast = 5, slow = 35):
     close = data['close']
     real = talib.EMA(close, fast) - talib.EMA(close, slow)
     return {'ewo': real.tolist()[start:]}
+
 
 # Keltner channels:
 def KC(data,start):
@@ -98,6 +110,7 @@ def KC(data,start):
     lowerch = mid - (2 * talib.ATR(high, low, close, 10))
     
     return {'middleband': mid.tolist()[start:], 'upperband': upperch.tolist()[start:], 'lowerband':lowerch.tolist()[start:]}
+
 
 # Tom Demark Sequential
 def TDS(data, start):
@@ -136,6 +149,7 @@ def TDS(data, start):
     td_list_type = [0]*n + td_list_type
 
     return {'tds':td_list_type[start:]}
+
 
 # Ichimoku Cloud:
 def ICM(data, start):
@@ -181,3 +195,40 @@ def ICM(data, start):
             'leading span A': leading_spanA.tolist()[start-n2:],
             'leading span B': leading_spanB.tolist()[start-n2:],
             'lagging span': lagging_span.tolist()[start:]}
+
+
+# Linear indicator
+def LIN(data, start, period = 20):
+    close = data['close']
+
+    indicator_values = [0] * period
+    for i in range(period,close.size):
+        probe_data = close[i-period : i]
+        a = talib.LINEARREG_SLOPE(probe_data, period)[-1]
+        b = talib.LINEARREG_INTERCEPT(probe_data, period)[-1]
+        indicator_values.append(a*i+b)
+
+    return {'lin':indicator_values[start:]}
+
+
+# Linear oscillator
+def LINO(data, start, period=20):
+    close = data['close']
+
+    a = talib.LINEARREG_SLOPE(close, period)
+    a = np.degrees(np.arctan(a))
+
+    return {'lino': a.tolist()[start:]}
+
+
+# Correlation Oscillator
+def CORRO(data, start, oscillator='RSI', period=20):
+    close = data['close']
+
+    oscillator_values = getattr(talib, oscillator)(close)
+
+    corr_list= [0]*period
+    for i in range(period, close.size):
+        corr_list.append(np.corrcoef(close[i-period:i], oscillator_values[i-period:i])[0][1])
+
+    return {'corro': corr_list[start:]}
