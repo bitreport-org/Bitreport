@@ -53,3 +53,23 @@ def parabola(data, magic_limit):
         zp.append(poly(point) - vector+std)
 
     return {'middleband': z[magic_limit:], 'upperband': zp[magic_limit:], 'lowerband':zm[magic_limit:]}
+
+def linear(data, magic_limit, period = 20):
+    close = data['close']
+
+    indicator_values = [0] * period
+    up_channel, bottom_channel = [0] * period, [0] * period
+
+    for i in range(period,close.size):
+        probe_data = close[i-period : i]
+        a = talib.LINEARREG_SLOPE(probe_data, period)[-1]
+        b = talib.LINEARREG_INTERCEPT(probe_data, period)[-1]
+        y = a*i+b
+        std = talib.STDDEV(probe_data, timeperiod=probe_data.size, nbdev=1)[-1]
+        print(std)
+
+        indicator_values.append(y)
+        up_channel.append(y + std)
+        bottom_channel.append(y - std)
+
+    return {'upperband': up_channel[magic_limit:], 'middleband':indicator_values[magic_limit:], 'lowerband': bottom_channel[magic_limit:]}
