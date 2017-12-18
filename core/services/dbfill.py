@@ -13,7 +13,7 @@ def bitfinex_fill(client, db, pair, timeframes, limit):
         # Map timeframes for influx
         if timeframe == '1D':
             timeframe = '24h'
-        elif timeframe =='14D':
+        elif timeframe == '14D':
             timeframe = '168h'
 
         # check if any response and if not error then write candles to influx
@@ -35,7 +35,7 @@ def bitfinex_fill(client, db, pair, timeframes, limit):
                             }
                         ]
                         client.write_points(json_body)
-                    print(pair, timeframe, 'filled successfuly! Records:', len(candel_list))
+                    print(pair, timeframe, 'filled successfully! Records:', len(candel_list))
                 except:
                     print(pair, timeframe, 'failed to fill.Records:', len(candel_list))
                     pass
