@@ -17,7 +17,7 @@
         = f.select :timeframe, options_for_select([['30m', '30m'], ['1h', '1h'], ['3h', '3h'], ['12h', '12h']], '1h'), { prompt: 'Select timeframe' }, { class: 'ui fluid search dropdown' }
       .field
         = f.label :limit
-        = f.text_field :limit, value: '100'
+        = f.text_field :limit, value: '200'
     .two.fields
       .three.wide.field
         = f.label :indicators, 'Main indicator'
@@ -32,6 +32,9 @@
             .item data-value='LINO' LINO
             .item data-value='CORRO' CORRO
             .item data-value='STOCH' STOCH
+            .item data-value='HTphasor' HTphasor
+            .item data-value='HTmode' HTmode
+            .item data-value='HTsin' HTsin
       .thirteen.wide.field
         = f.label :indicators
         = f.select :indicators, options_for_select([['Bollinger Bands', 'BB'],['Channel','channel'], ['Parabolic channel', 'parabola'], ['Linear channel','linear'], ['Keltner Channel', 'KC'], ['Tom DeMark Sequential', 'TDS'], ['Ichimoku Cloud', 'ICM'], ['EMA', 'EMA'], ['SMA', 'SMA'],['Linear', 'LIN'], ['SAR', 'SAR']], ['BB', 'SAR']), { prompt: 'Indicators' }, { multiple: true, class: 'ui fluid search dropdown' }

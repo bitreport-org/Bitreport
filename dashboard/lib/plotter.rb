@@ -42,7 +42,7 @@ class Plotter
     prepare_tds
     prepare_patterns
     out << commands
-    out << send((indicators.keys & %w[EWO MACD RSI STOCH LINO CORRO]).first.downcase.to_sym)
+    out << send((indicators.keys & %w[EWO MACD RSI STOCH LINO HTphasor HTmode HTsin CORRO]).first.downcase.to_sym)
     io = IO.popen('gnuplot -persist', 'w+')
     io << out.join("\n")
     io.close_write
@@ -137,9 +137,9 @@ class Plotter
     end
     if indicators['parabola']
       name = 'parabola'
-      @plots << "using 1:2:4 notitle with filledcurves linecolor '#f4#{YELLOW}'" <<
-          "using 1:2 notitle with lines linecolor '#40#{YELLOW}' lw 1.5" <<
-          "using 1:4 notitle with lines linecolor '#40#{YELLOW}' lw 1.5"
+      @plots << "using 1:2:4 notitle with filledcurves linecolor '#f4#{RED}'" <<
+          "using 1:2 notitle with lines linecolor '#40#{RED}' lw 1.5" <<
+          "using 1:4 notitle with lines linecolor '#40#{RED}' lw 1.5"
       @data << timestamps.zip(indicators[name]['upperband'], indicators[name]['middleband'], indicators[name]['lowerband']).map { |candle| candle.join(' ') }.push('e') * 3
     end
     if indicators['channel']
@@ -193,7 +193,7 @@ class Plotter
     end
     if indicators['parabola']
       name = 'parabola'
-      @plots << "using 1:3 title 'Parabolic Channel' with lines linecolor '#40#{YELLOW}' lw 1.5"
+      @plots << "using 1:3 title 'Parabolic Channel' with lines linecolor '#40#{RED}' lw 1.5"
       @data << timestamps.zip(indicators[name]['upperband'], indicators[name]['middleband'], indicators[name]['lowerband']).map { |candle| candle.join(' ') }.push('e')
     end
   end
@@ -311,6 +311,78 @@ class Plotter
            '-' using 1:4 notitle with lines lc '##{BLUE}' lw 1.5
     GNU
     out << timestamps.zip(indicators['MACD']['hist'], indicators['MACD']['signal'], indicators['MACD']['macd']).map { |candle| candle.join(' ') }.push('e') * 3
+    out
+  end
+
+  def htphasor
+    data = [indicators['HTphasor']['inphase'], indicators['HTphasor']['quadrature']].flatten
+    margin = 10 * (data.max - data.min) / 100
+    out = []
+    out << <<~GNU
+      set size 1.0,0.25
+      set origin 0.0,0.05
+
+      set format x "%Y-%m-%d\\n%H:%M"
+
+      set bmargin 1
+      set tmargin 0
+
+      set offsets 0,0,#{margin},#{margin}
+      set xrange [#{timestamps.first}:#{timestamps.last}]
+      set yrange [*:*]
+
+      plot '-' using 1:2 notitle with lines lc '##{YELLOW}' lw 1.5, \\
+           '-' using 1:3 notitle with lines lc '##{BLUE}' lw 1.5
+    GNU
+    out << timestamps.zip(indicators['HTphasor']['inphase'], indicators['HTphasor']['quadrature']).map { |candle| candle.join(' ') }.push('e') * 3
+    out
+  end
+
+  def htsin
+    data = [indicators['HTsin']['sine'], indicators['HTsin']['leadsine']].flatten
+    margin = 10 * (data.max - data.min) / 100
+    out = []
+    out << <<~GNU
+      set size 1.0,0.25
+      set origin 0.0,0.05
+
+      set format x "%Y-%m-%d\\n%H:%M"
+
+      set bmargin 1
+      set tmargin 0
+
+      set offsets 0,0,#{margin},#{margin}
+      set xrange [#{timestamps.first}:#{timestamps.last}]
+      set yrange [*:*]
+
+      plot '-' using 1:2 notitle with lines lc '##{YELLOW}' lw 1.5, \\
+           '-' using 1:3 notitle with lines lc '##{BLUE}' lw 1.5
+    GNU
+    out << timestamps.zip(indicators['HTsin']['sine'], indicators['HTsin']['leadsine']).map { |candle| candle.join(' ') }.push('e') * 3
+    out
+  end
+
+  def htmode
+    margin = 10 * (indicators['HTmode']['htmode'].max - indicators['HTmode']['htmode'].min) / 100
+    out = []
+    out << <<~GNU
+      set size 1.0,0.25
+      set origin 0.0,0.05
+
+      set format x "%Y-%m-%d\\n%H:%M"
+
+      set bmargin 1
+      set tmargin 0
+
+      set offsets 0,0,#{margin},#{margin}
+      set xrange [#{timestamps.first}:#{timestamps.last}]
+      set yrange [-0.5:1.5]
+
+      
+
+      plot '-' using 1:2 notitle with lines lc '##{PURPLE}' lw 1.5
+    GNU
+    out << timestamps.zip(indicators['HTmode']['htmode']).map { |candle| candle.join(' ') }.push('e')
     out
   end
 
