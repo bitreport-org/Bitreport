@@ -39,7 +39,6 @@ fetchImage = ->
       ctx.textAlign = 'center'
       ctx.fillText('2017-12-14 19:14 UTC', 1810, 200)
       ctx.font = '17px PT Sans'
-#      ctx.fillText('Generated on 2017-12-14 19:14:52 UTC', 1810, 980)
       ctx.fillText('Provided information is not an investing advice', 1810, 1007)
       ctx.font = 'bold 22px PT Sans'
       ctx.textAlign = 'left'
@@ -92,4 +91,9 @@ $(document).on 'turbolinks:load', ->
   ctx = canvas.getContext('2d')
   background = document.getElementById('background')
   ctx.drawImage(background, 0, 0)
-
+  downloadLink = $('#save-image')
+  downloadLink.on 'click', (e) ->
+    downloadLink.attr('href', canvas.toDataURL())
+    symbol = $('#admin_twitter_image_symbol').val()
+    date = $.format.date($.now(), 'yyyy-MM-dd HH:mm')
+    downloadLink.attr('download', "Twitter #{symbol} #{date}.png")

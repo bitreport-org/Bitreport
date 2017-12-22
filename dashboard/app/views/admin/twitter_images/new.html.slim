@@ -1,10 +1,19 @@
-h1 New twitter_image
+.ui.padded.basic.segment
+  h1 New twitter_image
 
-== render 'form'
+  == render 'form'
 
-.ui.segment
-  h4.ui.dividing.header Preview
-  canvas#preview.ui.image width='2048' height='1024'
-    = image_tag 'template.png', id: 'background'
+  .ui.segment
+    h4.ui.dividing.header Preview
+    canvas#preview.ui.image width='2048' height='1024'
+      = image_tag 'template.png', id: 'background'
+    h4.ui.dividing.header Actions
+    a.ui.green.labeled.icon.button#save-image
+      i.download.icon
+      | Save Image
 
-= link_to 'Back', admin_twitter_images_path
+  .ui.basic.segment
+    .ui.disabled.labeled.icon.button
+      i.arrow.left.icon
+      | Back
+

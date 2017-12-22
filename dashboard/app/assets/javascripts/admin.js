@@ -14,4 +14,5 @@
 //= require jquery_ujs
 //= require turbolinks
 //= require semantic-ui/dist/semantic
+//= require jquery-dateformat/dist/jquery-dateFormat
 //= require_tree ./admin

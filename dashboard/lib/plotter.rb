@@ -334,7 +334,7 @@ class Plotter
       plot '-' using 1:2 notitle with lines lc '##{YELLOW}' lw 1.5, \\
            '-' using 1:3 notitle with lines lc '##{BLUE}' lw 1.5
     GNU
-    out << timestamps.zip(indicators['HTphasor']['inphase'], indicators['HTphasor']['quadrature']).map { |candle| candle.join(' ') }.push('e') * 3
+    out << timestamps.zip(indicators['HTphasor']['inphase'], indicators['HTphasor']['quadrature']).map { |candle| candle.join(' ') }.push('e') * 2
     out
   end
 
@@ -358,7 +358,7 @@ class Plotter
       plot '-' using 1:2 notitle with lines lc '##{YELLOW}' lw 1.5, \\
            '-' using 1:3 notitle with lines lc '##{BLUE}' lw 1.5
     GNU
-    out << timestamps.zip(indicators['HTsin']['sine'], indicators['HTsin']['leadsine']).map { |candle| candle.join(' ') }.push('e') * 3
+    out << timestamps.zip(indicators['HTsin']['sine'], indicators['HTsin']['leadsine']).map { |candle| candle.join(' ') }.push('e') * 2
     out
   end
 
@@ -377,8 +377,6 @@ class Plotter
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
       set yrange [-0.5:1.5]
-
-      
 
       plot '-' using 1:2 notitle with lines lc '##{PURPLE}' lw 1.5
     GNU
@@ -430,11 +428,10 @@ class Plotter
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
       set yrange [-100:100]
-      
+
       set object 1 rect from #{timestamps.first},-45 to #{timestamps.last},45 fc rgb '#ee#{PURPLE}' fs solid noborder
       set arrow 1 from #{timestamps.first},-45 to #{timestamps.last},-45 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
       set arrow 2 from #{timestamps.first},45 to #{timestamps.last},45 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
-     
 
       plot '-' using 1:2 notitle with lines lc '##{PURPLE}' lw 1.5
     GNU

@@ -1623,6 +1623,10 @@ istextorbinary@1.0.2:
     binaryextensions "~1.0.0"
     textextensions "~1.0.0"
 
+jquery-dateformat@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/jquery-dateformat/-/jquery-dateformat-1.0.3.tgz#31f21dac18e8b921e5c9b12de0be80128bd9b77e"
+
 jquery@^3.2.1:
   version "3.2.1"
   resolved "https://registry.yarnpkg.com/jquery/-/jquery-3.2.1.tgz#5c4d9de652af6cd0a770154a631bba12b015c787"

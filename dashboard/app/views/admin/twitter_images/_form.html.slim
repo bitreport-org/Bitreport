@@ -17,7 +17,7 @@
         = f.select :timeframe, options_for_select([['30m', '30m'], ['1h', '1h'], ['3h', '3h'], ['12h', '12h']], '1h'), { prompt: 'Select timeframe' }, { class: 'ui fluid search dropdown' }
       .field
         = f.label :limit
-        = f.text_field :limit, value: '200'
+        = f.text_field :limit, value: '100'
     .two.fields
       .three.wide.field
         = f.label :indicators, 'Main indicator'
