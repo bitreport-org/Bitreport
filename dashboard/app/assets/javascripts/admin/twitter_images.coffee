@@ -44,7 +44,6 @@ fetchImage = ->
       ctx.textAlign = 'left'
       ctx.fillText('Patterns', 1610, 260)
       ctx.fillText('Levels', 1610, 460)
-      ctx.fillText('Comment', 1610, 610)
       ctx.font = '22px PT Sans'
       ctx.fillText('Bałwanek', 1610, 300)
       ctx.fillText('Kula śniegu', 1610, 340)
@@ -59,7 +58,11 @@ fetchImage = ->
       ctx.fillText('Resistance', 1610, 540)
       ctx.fillText('15400.0', 1760, 500)
       ctx.fillText('17218.0', 1760, 540)
-      wrapText(ctx, 'Wczoraj padał śnieg, więc cena Bitkojna mocno wzrosła. Cena innych kojnów też wzrosła. Jutro przychodzi odwilż, więc można się spodziewać, ze cena i tak urośnie. Ale jak będzie to się dopiero okaże...', 1610, 650, 410, 36)
+      if $('#admin_twitter_image_comment').val() != ''
+        ctx.font = 'bold 22px PT Sans'
+        ctx.fillText('Comment', 1610, 610)
+        ctx.font = '22px PT Sans'
+        wrapText(ctx, $('#admin_twitter_image_comment').val(), 1610, 650, 410, 36)
     chart.src = newUrl
 
 countdown = ->
