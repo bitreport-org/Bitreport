@@ -61,7 +61,7 @@ class Plotter
   private
 
   def terminal(save)
-    out = ["set terminal pngcairo truecolor font 'Verdana,14' size 1570,890 background rgb '##{BLACK}'"]
+    out = ["set terminal pngcairo truecolor font 'PT Sans,18' size 1570,890 background rgb '##{BLACK}'"]
     out << (save ? "set output '#{output}'" : 'unset output')
     out
   end
@@ -77,7 +77,7 @@ class Plotter
 
       set multiplot
 
-      set key left
+      set key center top outside horizontal Left reverse samplen 1
 
       set bmargin 0
 
@@ -138,22 +138,22 @@ class Plotter
     if indicators['parabola']
       name = 'parabola'
       @plots << "using 1:2:4 notitle with filledcurves linecolor '#f4#{RED}'" <<
-          "using 1:2 notitle with lines linecolor '#40#{RED}' lw 1.5" <<
-          "using 1:4 notitle with lines linecolor '#40#{RED}' lw 1.5"
+                "using 1:2 notitle with lines linecolor '#40#{RED}' lw 1.5" <<
+                "using 1:4 notitle with lines linecolor '#40#{RED}' lw 1.5"
       @data << timestamps.zip(indicators[name]['upperband'], indicators[name]['middleband'], indicators[name]['lowerband']).map { |candle| candle.join(' ') }.push('e') * 3
     end
     if indicators['channel']
       name = 'channel'
       @plots << "using 1:2:4 notitle with filledcurves linecolor '#f4#{YELLOW}'" <<
-          "using 1:2 notitle with lines linecolor '#40#{YELLOW}' lw 1.5" <<
-          "using 1:4 notitle with lines linecolor '#40#{YELLOW}' lw 1.5"
+                "using 1:2 notitle with lines linecolor '#40#{YELLOW}' lw 1.5" <<
+                "using 1:4 notitle with lines linecolor '#40#{YELLOW}' lw 1.5"
       @data << timestamps.zip(indicators[name]['upperband'], indicators[name]['middleband'], indicators[name]['lowerband']).map { |candle| candle.join(' ') }.push('e') * 3
     end
     if indicators['linear']
       name = 'linear'
       @plots << "using 1:2:4 notitle with filledcurves linecolor '#f4#{YELLOW}'" <<
-          "using 1:2 notitle with lines linecolor '#40#{YELLOW}' lw 1.5" <<
-          "using 1:4 notitle with lines linecolor '#40#{YELLOW}' lw 1.5"
+                "using 1:2 notitle with lines linecolor '#40#{YELLOW}' lw 1.5" <<
+                "using 1:4 notitle with lines linecolor '#40#{YELLOW}' lw 1.5"
       @data << timestamps.zip(indicators[name]['upperband'], indicators[name]['middleband'], indicators[name]['lowerband']).map { |candle| candle.join(' ') }.push('e') * 3
     end
   end
@@ -279,6 +279,8 @@ class Plotter
       set bmargin 1
       set tmargin 0
 
+      set label 'EWO' at graph 0.5, graph 0.55 center font ',60' front textcolor '#e6#{WHITE}'
+
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
       set yrange [*:*]
@@ -301,6 +303,8 @@ class Plotter
 
       set bmargin 1
       set tmargin 0
+
+      set label 'MACD' at graph 0.5, graph 0.55 center font ',60' front textcolor '#e6#{WHITE}'
 
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
@@ -327,6 +331,8 @@ class Plotter
       set bmargin 1
       set tmargin 0
 
+      set label 'HTPHASOR' at graph 0.5, graph 0.55 center font ',60' front textcolor '#e6#{WHITE}'
+
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
       set yrange [*:*]
@@ -351,6 +357,8 @@ class Plotter
       set bmargin 1
       set tmargin 0
 
+      set label 'HTSIN' at graph 0.5, graph 0.55 center font ',60' front textcolor '#e6#{WHITE}'
+
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
       set yrange [*:*]
@@ -374,6 +382,8 @@ class Plotter
       set bmargin 1
       set tmargin 0
 
+      set label 'HTMODE' at graph 0.5, graph 0.55 center font ',60' front textcolor '#e6#{WHITE}'
+
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
       set yrange [-0.5:1.5]
@@ -395,6 +405,8 @@ class Plotter
 
       set bmargin 1
       set tmargin 0
+
+      set label 'RSI' at graph 0.5, graph 0.55 center font ',60' front textcolor '#e6#{WHITE}'
 
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
@@ -425,6 +437,8 @@ class Plotter
       set bmargin 1
       set tmargin 0
 
+      set label 'LINO' at graph 0.5, graph 0.55 center font ',60' front textcolor '#e6#{WHITE}'
+
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
       set yrange [-100:100]
@@ -450,6 +464,8 @@ class Plotter
 
       set bmargin 1
       set tmargin 0
+
+      set label 'CORRO' at graph 0.5, graph 0.55 center font ',60' front textcolor '#e6#{WHITE}'
 
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
@@ -477,6 +493,8 @@ class Plotter
 
       set bmargin 1
       set tmargin 0
+
+      set label 'STOCH' at graph 0.5, graph 0.55 center font ',60' front textcolor '#e6#{WHITE}'
 
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]

@@ -27,12 +27,12 @@ fetchImage = ->
       background = document.getElementById('background')
       ctx.drawImage(background, 0, 0)
       ctx.drawImage(chart, 0, 110)
-      ctx.font = 'bold 50px PT Sans'
+      ctx.font = 'bold 56px PT Sans'
       ctx.fillStyle = '#EEEEEE'
       ctx.textAlign = 'center'
       symbol = $('#admin_twitter_image_symbol').val()
       timeframe = $('#admin_twitter_image_timeframe').val()
-      ctx.fillText("#{symbol} #{timeframe}", 780, 80)
+      ctx.fillText("#{symbol} #{timeframe}", 820, 80)
 #      ctx.fillStyle = '#db504a'
 #      ctx.textAlign = 'left'
 #      ctx.fillText('16464.0', 790, 80)
