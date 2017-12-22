@@ -216,15 +216,15 @@ class Plotter
     #TODO: Set colors
     return unless indicators['LIN']
     @plots << "using 1:2 title 'Linear' with lines lw 1.5 lc '#00#{YELLOW}'"
-    @data << timestamps.zip(indicators['LIN']['lin']).map { |candle| candle.join(' ') }.push('e') * 3
+    @data << timestamps.zip(indicators['LIN']['lin']).map { |candle| candle.join(' ') }.push('e')
   end
 
   def prepare_sma
     #TODO: Set colors
     return unless indicators['SMA']
     @plots << "using 1:2 title 'SMA slow' with lines lw 1.5 lc '#c0#{YELLOW}'" <<
-        "using 1:3 title 'SMA medium' with lines lw 1.5 lc '#70#{YELLOW}'" <<
-        "using 1:4 title 'SMA fast' with lines lw 1.5 lc '#00#{YELLOW}'"
+              "using 1:3 title 'SMA medium' with lines lw 1.5 lc '#70#{YELLOW}'" <<
+              "using 1:4 title 'SMA fast' with lines lw 1.5 lc '#00#{YELLOW}'"
     @data << timestamps.zip(indicators['SMA']['slow'], indicators['SMA']['medium'], indicators['SMA']['fast']).map { |candle| candle.join(' ') }.push('e') * 3
   end
 

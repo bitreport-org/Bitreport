@@ -38,15 +38,29 @@
       .thirteen.wide.field
         = f.label :indicators
         = f.select :indicators, options_for_select([['Bollinger Bands', 'BB'],['Channel','channel'], ['Parabolic channel', 'parabola'], ['Linear channel','linear'], ['Keltner Channel', 'KC'], ['Tom DeMark Sequential', 'TDS'], ['Ichimoku Cloud', 'ICM'], ['EMA', 'EMA'], ['SMA', 'SMA'],['Linear', 'LIN'], ['SAR', 'SAR']], ['BB', 'SAR']), { prompt: 'Indicators' }, { multiple: true, class: 'ui fluid search dropdown' }
-    .field
-      .ui.toggle.checkbox
-        = f.check_box :levels, { class: 'hidden' }, 'ALL', ''
-        = f.label :levels, 'Draw Levels'
-    .disabled.field
-      = f.label :patterns, 'Draw Patterns'
-      = f.select :patterns, options_for_select([['All', 'ALL']]), { prompt: 'Select patterns' }, { multiple: true, class: 'ui fluid search dropdown' }
+    .two.fields
+      .three.wide.field
+        .ui.toggle.checkbox
+          = check_box_tag :draw_patterns, 'ALL', false, { class: 'hidden' }
+          = label_tag :draw_patterns, 'Draw Patterns'
+      .ui.thirteen.wide.disabled.field
+        = f.select :patterns, options_for_select([['ALL', 'ALL']]), { prompt: 'Select patterns' }, { multiple: true, class: 'ui fluid search dropdown' }
+    .two.fields
+      .three.wide.field
+        .ui.toggle.checkbox
+          = f.check_box :levels, { class: 'hidden' }, 'ALL', ''
+          = f.label :levels, 'Draw Levels'
+      .ui.thirteen.wide.disabled.field
+        = select_tag :selected_levels, nil, prompt: 'Select levels', multiple: true, class: 'ui fluid search dropdown'
     .field
       = f.label :comment
       = f.text_field :comment, class: 'ui fluid search dropdown'
+    .two.fields
+      .ui.eight.wide.field
+        = label_tag :support, 'Support'
+        = text_field_tag :support, ''
+      .ui.eight.wide.field
+        = label_tag :resistance, 'Resistance'
+        = text_field_tag :resistance, ''
     #reloader.ui.bottom.attached.progress data-percent=100
       .bar

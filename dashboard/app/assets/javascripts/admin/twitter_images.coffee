@@ -29,40 +29,56 @@ fetchImage = ->
       ctx.drawImage(chart, 0, 110)
       ctx.font = 'bold 50px PT Sans'
       ctx.fillStyle = '#EEEEEE'
-      ctx.textAlign = 'right'
-      ctx.fillText('BTCUSD 1h', 780, 80)
-      ctx.fillStyle = '#db504a'
-      ctx.textAlign = 'left'
-      ctx.fillText('16464.0', 790, 80)
+      ctx.textAlign = 'center'
+      symbol = $('#admin_twitter_image_symbol').val()
+      timeframe = $('#admin_twitter_image_timeframe').val()
+      ctx.fillText("#{symbol} #{timeframe}", 780, 80)
+#      ctx.fillStyle = '#db504a'
+#      ctx.textAlign = 'left'
+#      ctx.fillText('16464.0', 790, 80)
       ctx.font = 'bold 32px PT Sans'
       ctx.fillStyle = '#363631'
       ctx.textAlign = 'center'
-      ctx.fillText('2017-12-14 19:14 UTC', 1810, 200)
+      date = $.format.date($.now(), 'yyyy-MM-dd HH:mm UTC')
+      ctx.fillText(date, 1810, 200)
       ctx.font = '17px PT Sans'
       ctx.fillText('Provided information is not an investing advice', 1810, 1007)
-      ctx.font = 'bold 22px PT Sans'
       ctx.textAlign = 'left'
-      ctx.fillText('Patterns', 1610, 260)
-      ctx.fillText('Levels', 1610, 460)
-      ctx.font = '22px PT Sans'
-      ctx.fillText('Bałwanek', 1610, 300)
-      ctx.fillText('Kula śniegu', 1610, 340)
-      ctx.fillText('Sanki', 1610, 380)
-      ctx.fillText('2017-12-13 18:00', 1760, 300)
-      ctx.fillText('2017-12-14 01:14', 1760, 340)
-      ctx.fillText('2017-12-14 01:17', 1760, 380)
-      ctx.fillText('↗', 1970, 300)
-      ctx.fillText('↗', 1970, 340)
-      ctx.fillText('↘', 1970, 380)
-      ctx.fillText('Support', 1610, 500)
-      ctx.fillText('Resistance', 1610, 540)
-      ctx.fillText('15400.0', 1760, 500)
-      ctx.fillText('17218.0', 1760, 540)
+      offset = 260
+      if $('#draw_patterns').is(':checked')
+        ctx.font = 'bold 22px PT Sans'
+        ctx.fillText('Patterns', 1610, offset)
+        offset += 40
+        ctx.font = '22px PT Sans'
+        ctx.fillText('Bałwanek', 1610, offset)
+        ctx.fillText('2017-12-13 18:00', 1760, offset)
+        ctx.fillText('↗', 1970, offset)
+        offset += 40
+        ctx.fillText('Kula śniegu', 1610, offset)
+        ctx.fillText('2017-12-14 01:14', 1760, offset)
+        ctx.fillText('↗', 1970, offset)
+        offset += 40
+        ctx.fillText('Sanki', 1610, offset)
+        ctx.fillText('2017-12-14 01:17', 1760, offset)
+        ctx.fillText('↘', 1970, offset)
+        offset += 80
+      if $('#support').val() != '' && $('#resistance').val() != ''
+        ctx.font = 'bold 22px PT Sans'
+        ctx.fillText('Levels', 1610, offset)
+        offset += 40
+        ctx.font = '22px PT Sans'
+        ctx.fillText('Support', 1610, offset)
+        ctx.fillText($('#support').val(), 1760, offset)
+        offset += 40
+        ctx.fillText('Resistance', 1610, offset)
+        ctx.fillText($('#resistance').val(), 1760, offset)
+        offset += 80
       if $('#admin_twitter_image_comment').val() != ''
         ctx.font = 'bold 22px PT Sans'
-        ctx.fillText('Comment', 1610, 610)
+        ctx.fillText('Comment', 1610, offset)
+        offset += 40
         ctx.font = '22px PT Sans'
-        wrapText(ctx, $('#admin_twitter_image_comment').val(), 1610, 650, 410, 36)
+        wrapText(ctx, $('#admin_twitter_image_comment').val(), 1610, offset, 410, 36)
     chart.src = newUrl
 
 countdown = ->
@@ -71,13 +87,13 @@ countdown = ->
   if @time == 10
     fetchImage()
   else
-    @timeout = setTimeout(countdown, 250)
+    @timeout = setTimeout(countdown, 200)
 
 tryFetchImage = ->
   clearTimeout(@timeout)
   $('#reloader').progress('reset')
   @time = 0
-  @timeout = setTimeout(countdown, 250)
+  @timeout = setTimeout(countdown, 200)
 
 $(document).on 'turbolinks:load', ->
   $('.ui.dropdown').dropdown()
