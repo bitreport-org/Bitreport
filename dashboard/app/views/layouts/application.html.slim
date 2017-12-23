@@ -7,7 +7,8 @@ html
     = csrf_meta_tags
     = stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track': 'reload'
     = javascript_include_tag 'application', 'data-turbolinks-track': 'reload'
-  body
+    link rel="manifest" href="/manifest.json"
+  body class="#{controller_name} #{action_name}"
     /p.notice= notice
     /p.alert= alert
     = yield

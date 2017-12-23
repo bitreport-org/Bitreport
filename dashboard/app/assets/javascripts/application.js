@@ -15,4 +15,5 @@
 //= require turbolinks
 //= require semantic-ui/dist/semantic
 //= require qrcode/build/qrcode
+//= require serviceworker-companion
 //= require_tree ./app

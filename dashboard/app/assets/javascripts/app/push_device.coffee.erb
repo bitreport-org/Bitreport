@@ -1,0 +1,53 @@
+getSubscription = ->
+  navigator.serviceWorker.ready.then (registration) ->
+    registration.pushManager.getSubscription()
+
+subscribe = ->
+  navigator.serviceWorker.ready.then((registration) ->
+    options =
+      userVisibleOnly: true
+      applicationServerKey: new Uint8Array(<%= Base64.urlsafe_decode64(Settings.push.vapid.public_key).bytes %>)
+    registration.pushManager.subscribe options
+  ).then((subscription) ->
+    console.log 'Subscribed', subscription.endpoint
+    fetch '/soon/push_devices',
+      method: 'post'
+      headers: 'Content-type': 'application/json'
+      body: JSON.stringify(
+        subscription: subscription.toJSON()
+      )
+  ).then setUnsubscribeButton
+
+unsubscribe = ->
+  getSubscription().then((subscription) ->
+    subscription.unsubscribe().then ->
+      console.log 'Unsubscribed', subscription.endpoint
+      fetch '/soon/push_devices',
+        method: 'delete'
+        headers: 'Content-type': 'application/json'
+        body: JSON.stringify(
+          subscription: subscription.toJSON()
+        )
+  ).then setSubscribeButton
+
+setSubscribeButton = ->
+  $('#subscribe').off 'click'
+  $('#subscribe').on 'click', subscribe
+  $('#subscribe').text 'Subscribe!'
+
+setUnsubscribeButton = ->
+  $('#subscribe').off 'click'
+  $('#subscribe').on 'click', unsubscribe
+  $('#subscribe').text 'Unsubscribe!'
+
+$(document).on 'turbolinks:load', ->
+  return unless $('body').hasClass('push_devices')
+    return
+  if 'Notification' of window
+    getSubscription().then (subscription) ->
+      $('#subscribe').attr 'disabled', false
+      if subscription
+        console.log 'Already subscribed', subscription.endpoint
+        setUnsubscribeButton()
+      else
+        setSubscribeButton()

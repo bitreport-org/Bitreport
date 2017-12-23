@@ -96,6 +96,7 @@ tryFetchImage = ->
   @timeout = setTimeout(countdown, 200)
 
 $(document).on 'turbolinks:load', ->
+  return unless $('body').hasClass('twitter_images')
   $('.ui.dropdown').dropdown()
   $('.ui.checkbox').checkbox()
   $('#reloader').progress

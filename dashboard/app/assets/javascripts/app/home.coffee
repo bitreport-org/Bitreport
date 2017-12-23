@@ -1,4 +1,5 @@
 $(document).on 'turbolinks:load', ->
+  return unless $('body').hasClass('home')
   # Fix menu when passed
   $('.masthead').visibility
     once: false

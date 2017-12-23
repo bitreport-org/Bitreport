@@ -60,6 +60,11 @@ gem 'gnuplot'
 # Makes http fun again!
 gem 'httparty'
 
+# Encryption Utilities for Web Push protocol
+gem 'webpush'
+# Use Service Worker with the Rails asset pipeline
+gem 'serviceworker-rails'
+
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug', platform: :mri

@@ -4,3 +4,8 @@ bitcoin:
     - tpubDC77bLZ5ADZLUbFURBfG4GDqaoB2b9o3GkHwExZVSj2dAzS36zz9yWYRd5xADSHHqo3zJa6VvpYHtdXQLPxC4PRw6kVfXqYF8VpSw875qGZ
   node_path: m/0/
   network: bitcoin_testnet
+
+push:
+  vapid:
+    public_key: BNFNxK1HHFrH4cnkOHD57AGLV7b3M6utn_hBJPeJ1gdVxvR-OAjTMZ23sXzgiPOpwUlxBUJxnnE7-p2ZLcivcV8=
+    private_key: -cZ7PoJeBVt5cV6baD2VU-n8qIuuoXW38kyLCwpvCbE=

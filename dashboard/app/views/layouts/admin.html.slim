@@ -7,6 +7,6 @@ html
     = csrf_meta_tags
     = stylesheet_link_tag    'admin', media: 'all', 'data-turbolinks-track': 'reload'
     = javascript_include_tag 'admin', 'data-turbolinks-track': 'reload'
-  body
+  body class="#{controller_name} #{action_name}"
     .ui.container
       = yield
