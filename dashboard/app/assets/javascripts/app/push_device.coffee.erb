@@ -43,7 +43,7 @@ setUnsubscribeButton = ->
 $(document).on 'turbolinks:load', ->
   return unless $('body').hasClass('push_devices')
     return
-  if 'Notification' of window
+  if 'serviceWorker' of navigator && 'Notification' of window
     getSubscription().then (subscription) ->
       $('#subscribe').attr 'disabled', false
       if subscription
