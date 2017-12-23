@@ -3,6 +3,7 @@ getSubscription = ->
     registration.pushManager.getSubscription()
 
 subscribe = ->
+  $('#subscribe').attr 'disabled', true
   navigator.serviceWorker.ready.then((registration) ->
     options =
       userVisibleOnly: true
@@ -19,6 +20,7 @@ subscribe = ->
   ).then setUnsubscribeButton
 
 unsubscribe = ->
+  $('#subscribe').attr 'disabled', true
   getSubscription().then((subscription) ->
     subscription.unsubscribe().then ->
       console.log 'Unsubscribed', subscription.endpoint
@@ -31,11 +33,13 @@ unsubscribe = ->
   ).then setSubscribeButton
 
 setSubscribeButton = ->
+  $('#subscribe').attr 'disabled', false
   $('#subscribe').off 'click'
   $('#subscribe').on 'click', subscribe
   $('#subscribe').text 'Subscribe!'
 
 setUnsubscribeButton = ->
+  $('#subscribe').attr 'disabled', false
   $('#subscribe').off 'click'
   $('#subscribe').on 'click', unsubscribe
   $('#subscribe').text 'Unsubscribe!'
