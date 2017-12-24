@@ -1,6 +1,7 @@
-from flask import Flask
+from flask import Flask, request
 from flask_restful import Resource, Api, reqparse
 from influxdb import InfluxDBClient
+import ast, time, datetime
 
 # Internal import
 from services import internal, microcaps
@@ -8,17 +9,9 @@ from ta import patterns, indicators, channels, levels
 
 app = Flask(__name__)
 api = Api(app)
-
-################### CONFIG ###################
-
 conf = internal.Config('config.ini', 'services')
-db = conf['db_name']
-host = conf['host']
-port = int(conf['port'])
 
 ##############################################
-
-client = InfluxDBClient(host, port, 'root', 'root', db)
 
 # to post data without NaN values indicators are calculated on period of length: limit + magic_limit
 # next posted data has length = limit
@@ -28,32 +21,29 @@ magic_limit = int(conf['magic_limit'])
 
 class get_ohlc(Resource):
     def get(self, pair, timeframe):
-        global client, db
         parser = reqparse.RequestParser()
 
-        parser.add_argument('limit', type = int)
+        parser.add_argument('limit', type=int)
         args = parser.parse_args()
         limit = args.get('limit')
 
         # Perform query and return JSON data
-        dict = {}
-        data = internal.import_numpy(client, db, pair, timeframe, limit)
+        dic = {}
+        data = internal.import_numpy(pair, timeframe, limit)
         print(data)
 
 
-        dict['dates'] = data['date'],
-        dict['candles'] = {'open': data['open'].tolist(),
+        dic['dates'] = data['date'],
+        dic['candles'] = {'open': data['open'].tolist(),
                            'high': data['high'].tolist(),
                            'close': data['close'].tolist(),
                            'low': data['low'].tolist(),
                            }
-        print(dict)
-        return dict
+        return dic
 
 
 class get_all(Resource):
     def get(self, pair, timeframe):
-        global client, db
 
         ################################## PARSER #######################################
         parser = reqparse.RequestParser()
@@ -81,7 +71,7 @@ class get_all(Resource):
         ############################### DATA REQUEST #####################################
 
         dict = {}
-        data = internal.import_numpy(client, db, pair, timeframe, limit+magic_limit)
+        data = internal.import_numpy(pair, timeframe, limit+magic_limit)
 
         dict['dates'] = data['date'][magic_limit:]
 
@@ -90,7 +80,6 @@ class get_all(Resource):
 
         # Generate timestamps for future
         date = data['date']
-        last_time = date[-1]
         period = timeframe[-1]
         timef = timeframe[:-1]
         t = int(timef)
@@ -107,7 +96,6 @@ class get_all(Resource):
             date.append(int(date[-1]) + d)
 
         dict['dates'] = date[magic_limit:]
-
 
         dict['candles'] = { 'open': data['open'].tolist()[magic_limit:],
                             'high': data['high'].tolist()[magic_limit:],
@@ -128,7 +116,8 @@ class get_all(Resource):
             for indic in indicators_list:
                 try:
                     indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
-                except:
+                except Exception as e:
+                    #print(indic, e)
                     pass
             dict['indicators'] = indidict
 
@@ -136,7 +125,7 @@ class get_all(Resource):
         # Short data for patterns:
 
         if patterns_list != None:
-            pat_data = internal.import_numpy(client, db, pair, timeframe, limit)
+            pat_data = internal.import_numpy(pair, timeframe, limit)
 
             try:
                 patterns_list = patterns_list[0].split(',')
@@ -170,7 +159,8 @@ class get_all(Resource):
             for ch in channel_list:
                 try:
                     chdict[ch] = getattr(channels, ch)(data, magic_limit = magic_limit)
-                except:
+                except Exception as e:
+                    #print(ch, e)
                     pass
             dict['channels'] = chdict
 
@@ -180,13 +170,29 @@ class get_microcaps(Resource):
     def get(self):
         return microcaps.microcaps()
 
+
+events_list = []
+class events(Resource):
+    def get(self):
+        return events_list
+
+    def put(self):
+        events_list.append(ast.literal_eval(request.form['data']))
+        now = int(time.mktime(datetime.datetime.now().timetuple()))
+        for event in events_list:
+            if now - event['time'] > 60*int(conf['event_limit']):
+                events_list.pop(events_list.index(event))
+
+
+
 ##################### ENDPOINTS ############################
 # Table with name 'pair'
 # api.add_resource(get_pair, '/')
 api.add_resource(get_all, '/data/<string:pair>/<string:timeframe>/')
 api.add_resource(get_ohlc, '/test/<string:pair>/<string:timeframe>/')
 api.add_resource(get_microcaps, '/microcaps')
+api.add_resource(events, '/events')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)
+    app.run(host='0.0.0.0', debug=False)
 

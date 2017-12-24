@@ -3,7 +3,7 @@ from influxdb import InfluxDBClient
 from services import internal
 import time
 
-def bitfinex_fill(client, db, pair, timeframes, limit):
+def bitfinex_fill(client, pair, timeframes, limit):
     for timeframe in timeframes:
         url = 'https://api.bitfinex.com/v2/candles/trade:' + timeframe + ':t' + pair + '/hist?limit=' + str(
             limit) + '&start=946684800000'
@@ -59,4 +59,4 @@ if __name__ == "__main__":
     client = InfluxDBClient(host, port, 'root', 'root', db_name)
 
     for pair in pairs:
-        bitfinex_fill(client, db_name, pair, timeframes, limit)
+        bitfinex_fill(client, pair, timeframes, limit)
