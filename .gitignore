@@ -6,3 +6,4 @@ core/ta/__pycache__
 internal.cpython-36.pyc
 pip-selfcheck.json
 pyvenv.cfg
+tests.py
