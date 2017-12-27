@@ -52,21 +52,7 @@ class get_all(Resource):
         args = parser.parse_args()
         limit = args.get('limit')
 
-        parser.add_argument('indicators', action='append', help='Indicators must be line or ALL')
-        args = parser.parse_args()
-        indicators_list = args.get('indicators')
-
-        parser.add_argument('patterns', action='append')
-        args = parser.parse_args()
-        patterns_list = args.get('patterns')
-
-        parser.add_argument('levels')
-        args = parser.parse_args()
-        levels_ask = args.get('levels')
-
-        parser.add_argument('channels',  action='append')
-        args = parser.parse_args()
-        channel_list = args.get('channels')
+        indicators_list = dir(indicators)
 
         ############################### DATA REQUEST #####################################
 
@@ -106,63 +92,45 @@ class get_all(Resource):
 
         ################################ INDICATORS ######################################
 
-        if indicators_list != None:
+        indidict = {}
+        for indic in indicators_list:
             try:
-                indicators_list = indicators_list[0].split(',')
-            except:
+                indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+            except Exception as e:
+                #print(indic, e)
                 pass
-
-            indidict = {}
-            for indic in indicators_list:
-                try:
-                    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
-                except Exception as e:
-                    #print(indic, e)
-                    pass
-            dict['indicators'] = indidict
+        dict['indicators'] = indidict
 
         ################################ PATTERNS ########################################
         # Short data for patterns:
 
-        if patterns_list != None:
-            pat_data = internal.import_numpy(pair, timeframe, limit)
+        pat_data = internal.import_numpy(pair, timeframe, limit)
 
-            try:
-                patterns_list = patterns_list[0].split(',')
-            except:
-                pass
-
-            if patterns_list == ['ALL']:
-                try:
-                    dict['patterns'] = patterns.CheckAllPatterns(pat_data)
-                except:
-                    pass
-            else:
-                try:
-                    dict['patterns'] = patterns.CheckAllPatterns(pat_data, patterns_list, 0)
-                except:
-                    pass
-
-        ################################ LEVELS ##########################################
-
-        if levels_ask == 'ALL':
-            dict['levels'] = levels.srlevels(data)
-
-        ################################ CHANNELS #########################################
         try:
-            channel_list = channel_list[0].split(',')
+            dict['patterns'] = patterns.CheckAllPatterns(pat_data)
         except:
             pass
 
-        chdict = {}
-        if channel_list != None:
-            for ch in channel_list:
-                try:
-                    chdict[ch] = getattr(channels, ch)(data, magic_limit = magic_limit)
-                except Exception as e:
-                    #print(ch, e)
-                    pass
-            dict['channels'] = chdict
+        ################################ LEVELS ##########################################
+
+        dict['levels'] = levels.srlevels(data)
+
+        ################################ CHANNELS #########################################
+        # TODO after channels implementation it must be adjusted
+        # try:
+        #     channel_list = channel_list[0].split(',')
+        # except:
+        #     pass
+        #
+        # chdict = {}
+        # if channel_list != None:
+        #     for ch in channel_list:
+        #         try:
+        #             chdict[ch] = getattr(channels, ch)(data, magic_limit = magic_limit)
+        #         except Exception as e:
+        #             #print(ch, e)
+        #             pass
+        #     dict['channels'] = chdict
 
         return dict
 
@@ -194,5 +162,5 @@ api.add_resource(get_microcaps, '/microcaps')
 api.add_resource(events, '/events')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=False)
+    app.run(host='0.0.0.0', debug=True)
 
