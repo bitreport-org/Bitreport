@@ -39,6 +39,16 @@ module Admin
       end
     end
 
+    def data
+      twitter_image = TwitterImage.new(twitter_image_params)
+
+      if twitter_image.valid?
+        render json: twitter_image.raw_data
+      else
+        head :bad_request
+      end
+    end
+
     # DELETE /twitter_images/1
     def destroy
       @twitter_image.destroy
@@ -55,7 +65,7 @@ module Admin
     # Never trust parameters from the scary internet, only allow the white list through.
     def twitter_image_params
       params.require(:admin_twitter_image).permit(:symbol, :timeframe, :limit, :levels, :comment,
-                                                  indicators: [], patterns: [])
+                                                  :patterns, indicators: [])
     end
   end
 end

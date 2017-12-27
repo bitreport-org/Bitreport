@@ -7,5 +7,6 @@ bitcoin:
 
 push:
   vapid:
-    public_key: BNFNxK1HHFrH4cnkOHD57AGLV7b3M6utn_hBJPeJ1gdVxvR-OAjTMZ23sXzgiPOpwUlxBUJxnnE7-p2ZLcivcV8=
-    private_key: -cZ7PoJeBVt5cV6baD2VU-n8qIuuoXW38kyLCwpvCbE=
+    public_key: BEGWlY-pPkuEWL3MmJzbynW3tnqve8_-5qBD9M4C1ljUaHJG83mIs8UWsRUlHjplqxtNNAwzRo-k3RjO_PLT5mc=
+    private_key: JVQGb7_PDTwQDMaH4nJumsJAz9ssnitGiKeTyht9kCE=
+

@@ -17,17 +17,18 @@ ActiveRecord::Schema.define(version: 20171223195020) do
 
   create_table "push_devices", force: :cascade do |t|
     t.string "endpoint", null: false
-    t.string "p256dh", null: false
-    t.string "auth", null: false
+    t.string "p256dh"
+    t.string "auth"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["endpoint"], name: "index_push_devices_on_endpoint"
   end
 
   create_table "twitter_images", force: :cascade do |t|
     t.string "symbol", null: false
     t.string "timeframe", null: false
     t.integer "limit"
-    t.string "patterns", array: true
+    t.string "patterns"
     t.string "indicators", array: true
     t.string "levels"
     t.text "comment"
