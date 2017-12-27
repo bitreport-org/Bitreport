@@ -3,8 +3,8 @@ Rails.application.routes.draw do
 
   namespace :admin do
     resources :twitter_images
-    get :twitter_image_data, to: 'twitter_images#data'
     get :twitter_image_preview, to: 'twitter_images#preview'
+    get 'twitter_image_preview/:id', to: 'twitter_images#preview'
   end
 
   namespace :api, constraints: { ip: /127\.0\.0\.1/ } do

@@ -2,7 +2,7 @@
 
 module Admin
   class TwitterImagesController < AdminController
-    before_action :set_twitter_image, only: %i[show destroy]
+    before_action :set_twitter_image, only: %i[show edit update preview destroy]
 
     # GET /twitter_images
     def index
@@ -22,30 +22,43 @@ module Admin
       @twitter_image = TwitterImage.new(twitter_image_params)
 
       if @twitter_image.save
-        redirect_to @twitter_image, notice: 'Twitter image was successfully created.'
+        redirect_to edit_admin_twitter_image_path(@twitter_image)
       else
         render :new
       end
     end
 
-    def preview
-      twitter_image = TwitterImage.new(twitter_image_params)
-
-      if twitter_image.valid?
-        img = twitter_image.preview_image
-        send_data(img, disposition: 'inline', type: 'image/png')
+    def update
+      if @twitter_image.update(twitter_image_params)
+        redirect_to @twitter_image, notice: 'Twitter image was successfully created.'
       else
-        send_data('', disposition: 'inline', type: 'image/png')
+        render :edit
       end
     end
 
-    def data
-      twitter_image = TwitterImage.new(twitter_image_params)
+    def edit
+      @levels = @twitter_image.raw_data['levels'].map do |type, levels|
+        levels.map do |level|
+          [type.capitalize, level]
+        end
+      end.flatten
+      @patterns = @twitter_image.raw_data['patterns'].map do |name, directions|
+        directions.map do |direction, timestamps|
+          timestamps.map do |timestamp|
+            [name, direction == 'up' ? '➚' : '➘', Time.at(timestamp).utc.strftime('%F %H:%M')]
+          end
+        end
+      end.flatten
+    end
 
-      if twitter_image.valid?
-        render json: twitter_image.raw_data
+    def preview
+      @twitter_image.assign_attributes(twitter_image_params)
+
+      if @twitter_image.valid?
+        img = @twitter_image.preview_image
+        send_data(img, disposition: 'inline', type: 'image/png')
       else
-        head :bad_request
+        send_data('', disposition: 'inline', type: 'image/png')
       end
     end
 
@@ -59,13 +72,13 @@ module Admin
 
     # Use callbacks to share common setup or constraints between actions.
     def set_twitter_image
-      @twitter_image = TwitterImage.find(params[:id])
+      @twitter_image = params[:id] ? TwitterImage.find(params[:id]) : TwitterImage.new
     end
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def twitter_image_params
-      params.require(:admin_twitter_image).permit(:symbol, :timeframe, :limit, :levels, :comment,
-                                                  :patterns, indicators: [])
+      params.require(:admin_twitter_image).permit(:symbol, :timeframe, :limit, :comment,
+                                                  patterns: [], indicators: [], levels: [])
     end
   end
 end

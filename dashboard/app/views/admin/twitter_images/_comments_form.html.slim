@@ -1,0 +1,55 @@
+= form_for @twitter_image, html: { class: 'ui form' } do |f|
+  = f.hidden_field :id
+  - if @twitter_image.errors.any?
+    #error_explanation
+      h2 = "#{pluralize(@twitter_image.errors.count, "error")} prohibited this twitter_image from being saved:"
+      ul
+        - @twitter_image.errors.full_messages.each do |message|
+          li = message
+
+  .ui.segment
+    h4.ui.dividing.header Levels
+    table#levels.ui.compact.celled.definition.table
+      thead
+        tr
+          th
+          th Type
+          th Value
+      tbody
+        - @levels.each_slice(2) do |type, level|
+          tr
+            td.collapsing
+              .ui.fitted.slider.checkbox
+                = f.check_box :levels, { multiple: true }, level, nil
+            td= type
+            td= level
+    h4.ui.dividing.header Patterns
+    table#patterns.ui.compact.celled.definition.table
+      thead
+        tr
+          th
+          th Pattern name
+          th Direction
+          th Time
+      tbody
+        - @patterns.each_slice(3) do |name, direction, timestamp|
+          tr
+            td.collapsing
+              .ui.fitted.slider.checkbox
+                = f.check_box :patterns, { multiple: true }, name, nil
+            td= name
+            td= direction
+            td= timestamp
+    h4.ui.dividing.header Chart Description
+    .field
+      = f.label :comment
+      = f.text_field :comment
+    h4.ui.dividing.header Actions
+    a.ui.blue.right.labeled.icon.button#save-image
+      i.download.icon
+      | Download Image
+    = f.button :submit, class: 'ui green right labeled icon button' do
+      i.save.icon
+      | Save changes
+    #reloader.ui.bottom.attached.progress data-percent=100
+      .bar

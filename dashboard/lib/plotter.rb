@@ -106,9 +106,9 @@ class Plotter
   end
 
   def draw_levels
-    return unless levels['support'] || levels['resistance']
+    return unless levels
     out = []
-    [levels['support'], levels['resistance']].flatten.each_with_index do |level, i|
+    levels.each_with_index do |level, i|
       next unless (lows.min..highs.max).cover?(level)
       out << <<~TXT
         set arrow #{i + 1} from #{timestamps.first},#{level} to #{timestamps.last},#{level} nohead lc rgb "#33#{YELLOW}" lw 2

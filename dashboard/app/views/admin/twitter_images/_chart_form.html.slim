@@ -1,0 +1,45 @@
+= form_for @twitter_image, html: { class: 'ui form' } do |f|
+  - if @twitter_image.errors.any?
+    #error_explanation
+      h2 = "#{pluralize(@twitter_image.errors.count, "error")} prohibited this twitter_image from being saved:"
+      ul
+        - @twitter_image.errors.full_messages.each do |message|
+          li = message
+
+  .ui.segment
+    h4.ui.dividing.header Chart Settings
+    .four.fields
+      .field
+        = f.label :symbol
+        = f.select :symbol, options_for_select(Admin::TwitterImage::SYMBOLS, 'BTCUSD'), { prompt: 'Select currency pair' }, { class: 'ui fluid search dropdown' }
+      .field
+        = f.label :timeframe
+        = f.select :timeframe, options_for_select(Admin::TwitterImage::TIMEFRAMES, '1h'), { prompt: 'Select timeframe' }, { class: 'ui fluid search dropdown' }
+      .field
+        = f.label :limit
+        = f.text_field :limit, value: '100'
+      .field
+        = f.label :indicators, 'Main indicator'
+        .ui.selection.dropdown
+          = f.hidden_field :indicators, { multiple: true, value: 'RSI' }
+          i.dropdown.icon
+          .default.text Indicator
+          .menu
+            .item data-value='EWO' EWO
+            .item data-value='MACD' MACD
+            .item data-value='RSI' RSI
+            .item data-value='LINO' LINO
+            .item data-value='CORRO' CORRO
+            .item data-value='STOCH' STOCH
+            .item data-value='HTphasor' HTphasor
+            .item data-value='HTmode' HTmode
+            .item data-value='HTsin' HTsin
+    .field
+      = f.label :indicators
+      = f.select :indicators, options_for_select([['Bollinger Bands', 'BB'],['Channel','channel'], ['Parabolic channel', 'parabola'], ['Linear channel','linear'], ['Keltner Channel', 'KC'], ['Tom DeMark Sequential', 'TDS'], ['Ichimoku Cloud', 'ICM'], ['EMA', 'EMA'], ['SMA', 'SMA'],['Linear', 'LIN'], ['SAR', 'SAR']], ['BB', 'SAR']), { prompt: 'Indicators' }, { multiple: true, class: 'ui fluid search dropdown' }
+    h4.ui.dividing.header Actions
+    = f.button :submit, class: 'ui green right labeled icon button' do
+      i.right.arrow.icon
+      | Continue
+    #reloader.ui.bottom.attached.progress data-percent=100
+      .bar
