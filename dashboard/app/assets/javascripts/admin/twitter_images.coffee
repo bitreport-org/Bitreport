@@ -22,6 +22,18 @@ fetchImage = ->
   if oldUrl != newUrl
     chart = new Image()
     chart.onload = ->
+      unless @firstTimeInit == true
+        $.getJSON '/admin/twitter_image_data?' + $('form#new_admin_twitter_image').serialize(), (data) ->
+          console.log(data['levels'])
+          for pattern, pattern_data of data['patterns']
+            for direction, timestamps of pattern_data
+              for timestamp in timestamps
+                $('table#patterns').append('<tr><td class="collapsing"><div class="ui fitted slider checkbox"><input type="checkbox"> <label></label></div></td><td>'+pattern+'</td><td>'+direction+'</td><td>'+$.format.date(timestamp*1000, "yyyy-MM-dd hh:mm")+'</td></tr>')
+          for type, values of data['levels']
+            for value in values
+              $('table#levels').append('<tr><td class="collapsing"><div class="ui fitted slider checkbox"><input type="checkbox"> <label></label></div></td><td>'+type+'</td><td>'+value+'</td></tr>')
+        $('table .ui.checkbox').checkbox()
+        @firstTimeInit = true
       canvas = document.getElementById('preview')
       ctx = canvas.getContext('2d')
       background = document.getElementById('background')
@@ -44,36 +56,42 @@ fetchImage = ->
       ctx.font = '17px PT Sans'
       ctx.fillText('Provided information is not an investing advice', 1810, 1007)
       ctx.textAlign = 'left'
-      offset = 260
-      if $('#draw_patterns').is(':checked')
+      offset = 220
+      patterns = []
+      for pattern in $('table#patterns input[type=checkbox]:checked').parents('tr')
+        values = []
+        $(pattern).children('td:gt(0)').each ->
+          values.push(@innerText)
+        patterns.push(values)
+      if patterns.length > 0
+        offset += 40
         ctx.font = 'bold 22px PT Sans'
         ctx.fillText('Patterns', 1610, offset)
         offset += 40
         ctx.font = '22px PT Sans'
-        ctx.fillText('Bałwanek', 1610, offset)
-        ctx.fillText('2017-12-13 18:00', 1760, offset)
-        ctx.fillText('↗', 1970, offset)
+        for pattern in patterns
+          ctx.fillText(pattern[0], 1610, offset)
+          ctx.fillText(pattern[2], 1760, offset)
+          ctx.fillText(pattern[1], 1970, offset)
+          offset += 40
+      levels = []
+      for level in $('table#levels input[type=checkbox]:checked').parents('tr')
+        values = []
+        $(level).children('td:gt(0)').each ->
+          values.push(@innerText)
+        levels.push(values)
+      if levels.length > 0
         offset += 40
-        ctx.fillText('Kula śniegu', 1610, offset)
-        ctx.fillText('2017-12-14 01:14', 1760, offset)
-        ctx.fillText('↗', 1970, offset)
-        offset += 40
-        ctx.fillText('Sanki', 1610, offset)
-        ctx.fillText('2017-12-14 01:17', 1760, offset)
-        ctx.fillText('↘', 1970, offset)
-        offset += 80
-      if $('#support').val() != '' && $('#resistance').val() != ''
         ctx.font = 'bold 22px PT Sans'
         ctx.fillText('Levels', 1610, offset)
         offset += 40
         ctx.font = '22px PT Sans'
-        ctx.fillText('Support', 1610, offset)
-        ctx.fillText($('#support').val(), 1760, offset)
-        offset += 40
-        ctx.fillText('Resistance', 1610, offset)
-        ctx.fillText($('#resistance').val(), 1760, offset)
-        offset += 80
+        for level in levels
+          ctx.fillText(level[0], 1610, offset)
+          ctx.fillText(level[1], 1760, offset)
+          offset += 40
       if $('#admin_twitter_image_comment').val() != ''
+        offset += 40
         ctx.font = 'bold 22px PT Sans'
         ctx.fillText('Comment', 1610, offset)
         offset += 40

@@ -8,6 +8,7 @@ subscribe = ->
     options =
       userVisibleOnly: true
       applicationServerKey: new Uint8Array(<%= Base64.urlsafe_decode64(Settings.push.vapid.public_key).bytes %>)
+    console.log(options)
     registration.pushManager.subscribe options
   ).then((subscription) ->
     console.log 'Subscribed', subscription.endpoint

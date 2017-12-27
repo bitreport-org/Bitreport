@@ -3,6 +3,7 @@ Rails.application.routes.draw do
 
   namespace :admin do
     resources :twitter_images
+    get :twitter_image_data, to: 'twitter_images#data'
     get :twitter_image_preview, to: 'twitter_images#preview'
   end
 
