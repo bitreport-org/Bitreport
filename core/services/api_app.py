@@ -1,7 +1,6 @@
 from flask import Flask, request
 from flask_restful import Resource, Api, reqparse
-from influxdb import InfluxDBClient
-import ast, time, datetime
+import ast, time, datetime, logging
 
 # Internal import
 from services import internal, microcaps
@@ -10,6 +9,7 @@ from ta import patterns, indicators, channels, levels
 app = Flask(__name__)
 api = Api(app)
 conf = internal.Config('config.ini', 'services')
+logging.basicConfig(filename='api_app.log', format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
 ##############################################
 

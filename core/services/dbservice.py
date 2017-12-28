@@ -1,13 +1,9 @@
 from influxdb import InfluxDBClient
 from datetime import datetime
-import websocket
-import ast
 from threading import Thread
-import threading
-import time
-import os
+import threading, time, os, datetime, logging, ast, websocket
 from services import internal
-import datetime
+
 
 ################################## WEBSOCKETS ############################################
 
@@ -20,6 +16,8 @@ class bitfinex_pair_dbservice():
         self.pair = pair
         self.client.create_database(db_name)
         self.timeframes = timeframes
+
+        logging.basicConfig(filename='logbook.log',format='%(levelname)s:%(message)s', level=logging.INFO)
 
         # Create retention policy
         # self.client.create_retention_policy('ticker_delete', '1h', '1', default=False)
@@ -45,7 +43,6 @@ class bitfinex_pair_dbservice():
                 print('CQs',tf,'already exists')
                 pass
 
-
     # Writes candlestick from message to InfluxDB
     def write_ticker(self, ticker):
 
@@ -66,21 +63,7 @@ class bitfinex_pair_dbservice():
 
         return status
 
-    # Writes error message
-    def write_error(self, message, pair):
-        json_body = [
-            {
-                "measurement": 'Error',
-                "time": int(time.mktime(datetime.datetime.now().timetuple())) * 1000000000,
-                "tags": {
-                    "Message": message,
-                    "Pair" : pair,
-                }
-            }
-        ]
-        status = self.client.write_points(json_body)
-
-    #Websocket messages handler
+    # Websocket messages handler
     def on_message(self, ws, message):
         try:
             response = ast.literal_eval(message)[1]
@@ -89,33 +72,31 @@ class bitfinex_pair_dbservice():
                 if len(response) > 6:
                     for ticker in response:
                         self.write_ticker(ticker)
-                        #print(self.pair, ' dump record : ', datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), ticker)
-                    print(self.pair, 'dump saved.', len(response), 'records.')
+                    m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")) + ' ' + self.pair + ' dump record saved'
+                    logging.info(m)
 
                 # Single ticker handling
-                elif  response[0]!= self.last1 and response[0] != self.last2:
+                elif response[0] != self.last1 and response[0] != self.last2:
                     try:
                         status = self.write_ticker(response)
-                        #print(self.pair, ' ticker :',datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), response, status)
                         self.last2 = self.last1
                         self.last1 = response[0]
                     except:
-                        print('Ticker write failed', self.pair)
+                        m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")) + ' Ticker write failed ' + str(self.pair)
+                        logging.warning(m)
                         pass
         except:
-            print(self.pair, 'connected!')
             pass
 
     def on_error(self, ws, error):
-        message = self.pair + 'Error. Time : ' + str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
-        self.write_error(message, self.pair)
-        print(message)
+        m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")) + ' ' + self.pair + ' error occured!'
+        logging.warning(m)
+
         self.on_open(ws)
 
     def on_close(self, ws):
-        message = self.pair + 'Connection closed. Time : ' + str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
-        self.write_error(message, self.pair)
-        print(message)
+        m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")) + ' ' + self.pair + ' connection closed.'
+        logging.warning(m)
         self.on_open(ws)
 
     # Subscribe to new channel
@@ -126,8 +107,11 @@ class bitfinex_pair_dbservice():
                         "channel": "candles", \
                         "key": "trade:1m:t' + self.pair +'" \
                     }')
+            m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")) + ' ' + self.pair + ' connection opened.'
+            logging.info(m)
 
         Thread(target=run).start()
+
     # create service
     def create(self):
         # Continuousqueries
@@ -156,6 +140,7 @@ if __name__ == "__main__":
     timeframes = conf['timeframes'].split(',')
 
     ##############################################
+    logging.basicConfig(filename='dbservice.log', format='%(levelname)s:%(message)s', level=logging.INFO)
 
     threads = []
     for pair in pairs:
@@ -168,11 +153,15 @@ if __name__ == "__main__":
     for t in threads:
         t.start()
 
-    clear = lambda: os.system('clear')
+    m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")) + ' dbservice START'
+    print(m)
+    logging.info(m)
+
     while True:
-        print('Active threads:', threading.active_count()-1)
+        m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")) + ' Active threads: ' + str(threading.active_count()-1)
+        print(m)
+        logging.info(m)
         time.sleep(60*5)
-        #clear()
 
 
 
