@@ -4,6 +4,7 @@ from requests import put
 import datetime
 import talib
 import logging
+import traceback
 
 from services import internal
 
@@ -66,8 +67,10 @@ def update_events():
         for tf in timeframes:
             try:
                 data = internal.import_numpy(pair, tf, 21)
-            except:
-                print('Failed import ', pair, tf)
+            except Exception as e:
+                m = 'events FAILED import ' + pair + tf
+                logging.warning(m)
+                logging.error(traceback.format_exc())
                 pass
 
             try:
@@ -84,7 +87,6 @@ def update_events():
                     put('http://localhost:3000/api/events', data={'data': str(event)})
                 response = False
             except:
-                print('Failed bb ', pair, tf)
                 pass
 
             try:
@@ -100,7 +102,6 @@ def update_events():
                     put('http://localhost:5000/events', data={'data': str(event)})
                 response = False
             except:
-                print('Failed sma ', pair, tf)
                 pass
             try:
                 response = check_dildo(data)
@@ -114,7 +115,6 @@ def update_events():
                              }
                     put('http://localhost:5000/events', data={'data': str(event)})
             except:
-                print('Failed dildo ', pair, tf)
                 pass
 
 
