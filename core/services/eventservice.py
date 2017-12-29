@@ -130,7 +130,7 @@ def run_events():
 
             # check events
             update_events()
-            m = str(now) + ' event checked.'
+            m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + ' CHECK events'
             logging.info(m)
 
             # sleep for next 29 minutes
