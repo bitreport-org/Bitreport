@@ -8,7 +8,7 @@ import threading
 import requests
 
 # Internal import
-from services import internal, microcaps, dbfill, dbservice
+from services import internal, microcaps, dbservice, eventservice
 from ta import patterns, indicators, channels, levels
 
 app = Flask(__name__)
@@ -20,8 +20,14 @@ def activate_job():
     def db_service():
         dbservice.run_dbservice()
 
-    thread = threading.Thread(target=db_service)
-    thread.start()
+    def event_service():
+        eventservice.run_events()
+
+    thread1 = threading.Thread(target=db_service)
+    thread2 = threading.Thread(target=event_service)
+
+    thread1.start()
+    thread2.start()
 
 
 @app.route('/dbservice')
@@ -30,8 +36,8 @@ def db_service():
 
 
 @app.route('/dbfill')
-def get():
-    dbfill.run_dbfill()
+def db_fill():
+    dbservice.run_dbfill()
     return 'Database filled'
 
 
@@ -39,8 +45,7 @@ def get():
 def hello():
     return "Wrong place, is it?"
 
-
-# To activate db_service
+# Activates db_service
 def start_runner():
     def start_loop():
         not_started = True
@@ -56,7 +61,7 @@ def start_runner():
                 pass
             time.sleep(2)
 
-    print('Started runner')
+    print(str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")), 'START runner')
     thread = threading.Thread(target=start_loop)
     thread.start()
 
