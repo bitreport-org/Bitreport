@@ -77,4 +77,13 @@ def import_numpy(pair, timeframe, limit):
 
     return candles_dict
 
+def get_function_list(module):
+    l = dir(module)
+    buildin = ['__builtins__', '__cached__', '__doc__', '__file__', '__loader__', '__name__', '__package__', '__spec__', 'talib', 'np']
+    for x in buildin:
+        try:
+            l.pop(l.index(x))
+        except:
+            pass
+    return l
 

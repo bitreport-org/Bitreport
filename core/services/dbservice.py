@@ -5,12 +5,15 @@ import threading
 import time
 import datetime
 import logging
+import traceback
 import ast
 import websocket
+import requests
 from services import internal
 
+
 # Database websocket service
-class bitfinex_pair_dbservice():
+class BitfinexPairDbservice():
     def __init__(self, db_name, host, port, pair, timeframes ):
         self.client = InfluxDBClient(host, port, 'root', 'root', db_name)
         self.db = db_name
@@ -19,11 +22,16 @@ class bitfinex_pair_dbservice():
         self.pair = pair
         self.client.create_database(db_name)
         self.timeframes = timeframes
+        self.i = 0
 
         logging.basicConfig(filename='logbook.log',format='%(levelname)s:%(message)s', level=logging.INFO)
 
-        # Create retention policy
-        # self.client.create_retention_policy('ticker_delete', '1h', '1', default=False)
+        # Alter default retention policy
+        q = 'ALTER RETENTION POLICY "autogen" ON '+ self.db +' DURATION 53w DEFAULT'
+        self.client.query(q)
+
+        # Create retention policy for tickers
+        self.client.create_retention_policy('tickerdelete', '1h', '1', default=False)
 
     # Creates Continuous Query with a given timeframe
     def create_conquery(self):
@@ -33,17 +41,18 @@ class bitfinex_pair_dbservice():
         # Continuous queries
         for tf in self.timeframes:
             try:
-                query = 'CREATE CONTINUOUS QUERY ' + self.pair + tf + ' ON ' + self.db + ' RESAMPLE EVERY 5m BEGIN SELECT  \
-                                   first(open) AS open, \
-                                   max(high) AS high, \
-                                   min(low) AS low, \
-                                   last(close) AS close, \
-                                   sum(volume) AS volume  \
-                                   INTO ' + self.pair + tf + ' FROM ' + self.pair + ' GROUP BY time(' + tf + ') END'
+                query = 'CREATE CONTINUOUS QUERY ' \
+                        '' + self.pair + tf + ' ON ' + self.db + ' RESAMPLE EVERY 5m BEGIN SELECT ' \
+                                                                                         'first(open) AS open,' \
+                                                                                         'max(high) AS high, ' \
+                                                                                         'min(low) AS low, ' \
+                                                                                         'last(close) AS close, ' \
+                                                                                         'sum(volume) AS volume  ' \
+                                                                                         'INTO ' + self.pair + tf + ' FROM ' + self.pair + ' GROUP BY time(' + tf + ') END'
 
                 self.client.query(query)
-            except:
-                print('CQs',tf,'already exists')
+            except Exception as e:
+                logging.error(traceback.format_exc())
                 pass
 
     # Writes candlestick from message to InfluxDB
@@ -62,39 +71,45 @@ class bitfinex_pair_dbservice():
                 }
             }
         ]
-        status = self.client.write_points(json_body) #retention_policy = 'testrp')
+        # TODO: retention policy
+        status = self.client.write_points(json_body) # retention_policy='tickerdelete')
 
         return status
 
     # Websocket messages handler
     def on_message(self, ws, message):
-        try:
-            response = ast.literal_eval(message)[1]
-            if response != 'hb':
-                # Dump handling - normal ticker message has 6 values, dump is a longer message
-                if len(response) > 6:
-                    for ticker in response:
-                        self.write_ticker(ticker)
-                    m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + ' ' + self.pair + ' dump record saved.'
-                    logging.info(m)
+        # self.i allows to ommit two firs messages from websocket
+        if self.i > 1:
+            try:
+                response = ast.literal_eval(message)[1]
+                if response != 'hb':
+                    # Dump handling - normal ticker message has 6 values, dump is a longer message
+                    if len(response) > 6:
+                        for ticker in response:
+                            self.write_ticker(ticker)
+                        m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + ' ' + self.pair + ' dump record saved.'
+                        logging.info(m)
 
-                # Single ticker handling
-                elif response[0] != self.last1 and response[0] != self.last2:
-                    try:
-                        status = self.write_ticker(response)
-                        self.last2 = self.last1
-                        self.last1 = response[0]
-                    except:
-                        m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + ' Ticker write failed ' + str(self.pair)
-                        logging.warning(m)
-                        pass
-        except:
-            pass
+                    # Single ticker handling
+                    elif response[0] != self.last1 and response[0] != self.last2:
+                        try:
+                            status = self.write_ticker(response)
+                            self.last2 = self.last1
+                            self.last1 = response[0]
+                        except Exception as e:
+                            m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + ' Ticker write failed ' + str(self.pair)
+                            logging.warning(m)
+                            logging.error(traceback.format_exc())
+                            pass
+            except Exception as e:
+                logging.error(traceback.format_exc())
+                pass
+        if self.i < 2:
+            self.i += 1
 
     def on_error(self, ws, error):
         m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + ' ' + self.pair + ' error occured!'
         logging.warning(m)
-
         self.on_open(ws)
 
     def on_close(self, ws):
@@ -114,6 +129,9 @@ class bitfinex_pair_dbservice():
             logging.info(m)
 
         Thread(target=run).start()
+
+        # resets the value of self.i
+        self.i = 0
 
     # create service
     def create(self):
@@ -144,7 +162,7 @@ def run_dbservice():
 
     threads = []
     for pair in pairs:
-        service = bitfinex_pair_dbservice(db_name, host, port, pair, timeframes)
+        service = BitfinexPairDbservice(db_name, host, port, pair, timeframes)
         threads.append(threading.Thread(target=service.create))
 
     for t in threads:
@@ -161,11 +179,11 @@ def run_dbservice():
         m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + ' Active threads: ' + str(threading.active_count()-1)
         print(m)
         logging.info(m)
-        time.sleep(60 * 60)
+        time.sleep(60 * 30)
 
 
 # Database Bitfinex fill
-def bitfinex_fill(client, pair, timeframes, limit):
+def bitfinex_fill(client, pair, timeframes, limit, t=3):
     for timeframe in timeframes:
         url = 'https://api.bitfinex.com/v2/candles/trade:' + timeframe + ':t' + pair + '/hist?limit=' + str(
             limit) + '&start=946684800000'
@@ -183,36 +201,54 @@ def bitfinex_fill(client, pair, timeframes, limit):
             if candel_list[0] != 'error':
                 try:
                     for i in range(len(candel_list)):
-                        json_body = [
-                            {
-                                "measurement": pair + timeframe,
-                                "time": int(1000000 * candel_list[i][0]),
-                                "fields": {
-                                    "open": float(candel_list[i][1]),
-                                    "close": float(candel_list[i][2]),
-                                    "high": float(candel_list[i][3]),
-                                    "low": float(candel_list[i][4]),
-                                    "volume": float(candel_list[i][5]),
+                        try:
+                            json_body = [
+                                {
+                                    "measurement": pair + timeframe,
+                                    "time": int(1000000 * candel_list[i][0]),
+                                    "fields": {
+                                        "open": float(candel_list[i][1]),
+                                        "close": float(candel_list[i][2]),
+                                        "high": float(candel_list[i][3]),
+                                        "low": float(candel_list[i][4]),
+                                        "volume": float(candel_list[i][5]),
+                                    }
                                 }
-                            }
-                        ]
-                        client.write_points(json_body)
+                            ]
+                            client.write_points(json_body)
+                        except:
+                            pass
                     m = str(datetime.datetime.now().strftime(
-                        "%Y-%m-%d %H:%M:%S")) + ' ' + pair +' ' + timeframe + ' filled successfully. Records: ' + str(len(candel_list))
+                        "%Y-%m-%d %H:%M:%S")) + ' ' + pair +' ' + timeframe + ' SUCCEED records: ' + str(len(candel_list))
                     logging.info(m)
                     print(m)
-                except:
+                except Exception as e:
                     m = str(datetime.datetime.now().strftime(
-                        "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' failed to fill. Records: ' + str(
+                        "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED records: ' + str(
                         len(candel_list))
-                    logging.info(m)
+                    logging.warning(m)
+                    logging.error(traceback.format_exc())
                     print(m)
                     pass
         # Avoid blocked API
-        time.sleep(3)
+        time.sleep(t)
+
+    # 2h TIMEFRAME DOWNSAMPLING
+    now = "'" + str(datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")) + "'"
+    try:
+        query = 'SELECT first(open) AS open, max(high) AS high, min(low) AS low, last(close) AS close, sum(volume) AS volume ' \
+                'INTO ' + pair + '2h FROM ' + pair + '1h WHERE time <=' + now + ' GROUP BY time(2h)'
+
+        client.query(query)
+    except Exception as e:
+        m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + 'FAILED 2h downsample' + pair
+        logging.WARNING(m)
+        logging.error(traceback.format_exc())
+        print(m)
+        pass
 
 
-def run_dbfill():
+def run_dbfill_full():
     ################### CONFIG ###################
 
     conf = internal.Config('config.ini', 'services')
@@ -232,3 +268,17 @@ def run_dbfill():
         bitfinex_fill(client, pair, timeframes, limit)
 
 
+def run_dbfill_selected(pair, timeframe):
+    ################### CONFIG ###################
+
+    conf = internal.Config('config.ini', 'services')
+    db_name = conf['db_name']
+    host = conf['host']
+    port = int(conf['port'])
+    limit = int(conf['fill_limit2'])
+
+    timeframes = [timeframe]
+
+    ##############################################
+    client = InfluxDBClient(host, port, 'root', 'root', db_name)
+    bitfinex_fill(client, pair, timeframes, limit, 0)

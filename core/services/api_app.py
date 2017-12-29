@@ -6,6 +6,7 @@ import datetime
 import logging
 import threading
 import requests
+import traceback
 
 # Internal import
 from services import internal, microcaps, dbservice, eventservice
@@ -25,6 +26,8 @@ def activate_job():
 
     thread1 = threading.Thread(target=db_service)
     thread2 = threading.Thread(target=event_service)
+    thread1.setDaemon(True)
+    thread2.setDaemon(True)
 
     thread1.start()
     thread2.start()
@@ -32,18 +35,29 @@ def activate_job():
 
 @app.route('/dbservice')
 def db_service():
-    dbservice.run_dbservice()
+    def service1():
+        dbservice.run_dbservice()
+
+    thread = threading.Thread(target=service1)
+    thread.setDaemon(True)
+    thread.start()
 
 
 @app.route('/dbfill')
-def db_fill():
-    dbservice.run_dbfill()
+def db_fill_full():
+    def service2():
+        dbservice.run_dbfill_full()
+
+    thread = threading.Thread(target=service2)
+    thread.setDaemon(True)
+    thread.start()
     return 'Database filled'
 
 
 @app.route("/")
 def hello():
     return "Wrong place, is it?"
+
 
 # Activates db_service
 def start_runner():
@@ -72,7 +86,7 @@ def start_runner():
 magic_limit = int(conf['magic_limit'])
 
 
-class get_all(Resource):
+class All(Resource):
     def get(self, pair, timeframe):
 
         ################################## PARSER #######################################
@@ -81,8 +95,6 @@ class get_all(Resource):
         parser.add_argument('limit', type=int, help='Limit must be int')
         args = parser.parse_args()
         limit = args.get('limit')
-
-        indicators_list = dir(indicators)
 
         ############################### DATA REQUEST #####################################
 
@@ -122,12 +134,14 @@ class get_all(Resource):
 
         ################################ INDICATORS ######################################
 
+        indicators_list = internal.get_function_list(indicators)
         indidict = {}
         for indic in indicators_list:
             try:
-                indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+                indidict[indic] = getattr(indicators, indic)(data, start=magic_limit)
             except Exception as e:
-                #print(indic, e)
+                logging.error(indic)
+                logging.error(traceback.format_exc())
                 pass
         dict['indicators'] = indidict
 
@@ -138,7 +152,8 @@ class get_all(Resource):
 
         try:
             dict['patterns'] = patterns.CheckAllPatterns(pat_data)
-        except:
+        except Exception as e:
+            logging.error(traceback.format_exc())
             pass
 
         ################################ LEVELS ##########################################
@@ -165,7 +180,7 @@ class get_all(Resource):
         return dict
 
 
-class get_microcaps(Resource):
+class Microcaps(Resource):
     def get(self):
         return microcaps.microcaps()
 
@@ -173,7 +188,7 @@ class get_microcaps(Resource):
 events_list = []
 
 
-class events(Resource):
+class Events(Resource):
     def get(self):
         return events_list
 
@@ -184,12 +199,26 @@ class events(Resource):
             if now - event['time'] > 60*int(conf['event_limit']):
                 events_list.pop(events_list.index(event))
 
+class Fill(Resource):
+    def service3(self, pair, timeframe):
+        dbservice.run_dbfill_selected(pair, timeframe)
+
+    def post(self, pair, timeframe):
+        try:
+            thread = threading.Thread(target=self.service3, args=(pair, timeframe))
+            thread.setDaemon(True)
+            thread.start()
+        except:
+            logging.error(traceback.format_exc())
+            return 'Request failed', 500
+
 
 ##################### ENDPOINTS ############################
 # Table with name 'pair'
-api.add_resource(get_all, '/data/<string:pair>/<string:timeframe>/')
-api.add_resource(get_microcaps, '/microcaps')
-api.add_resource(events, '/events')
+api.add_resource(All, '/data/<string:pair>/<string:timeframe>/')
+api.add_resource(Microcaps, '/microcaps')
+api.add_resource(Events, '/events')
+api.add_resource(Fill, '/fill/<string:pair>/<string:timeframe>')
 
 
 if __name__ == '__main__':
