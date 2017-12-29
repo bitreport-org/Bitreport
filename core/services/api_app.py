@@ -1,45 +1,70 @@
 from flask import Flask, request
 from flask_restful import Resource, Api, reqparse
-import ast, time, datetime, logging
+import ast
+import time
+import datetime
+import logging
+import threading
+import requests
 
 # Internal import
-from services import internal, microcaps
+from services import internal, microcaps, dbfill, dbservice
 from ta import patterns, indicators, channels, levels
 
 app = Flask(__name__)
 api = Api(app)
 conf = internal.Config('config.ini', 'services')
-logging.basicConfig(filename='api_app.log', format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
-##############################################
+@app.before_first_request
+def activate_job():
+    def db_service():
+        dbservice.run_dbservice()
+
+    thread = threading.Thread(target=db_service)
+    thread.start()
+
+
+@app.route('/dbservice')
+def db_service():
+    dbservice.run_dbservice()
+
+
+@app.route('/dbfill')
+def get():
+    dbfill.run_dbfill()
+    return 'Database filled'
+
+
+@app.route("/")
+def hello():
+    return "Wrong place, is it?"
+
+
+# To activate db_service
+def start_runner():
+    def start_loop():
+        not_started = True
+        while not_started:
+            #print('In start loop')
+            try:
+                r = requests.get('http://0.0.0.0:5000/')
+                if r.status_code == 200:
+                    #print('Server started, quiting start_loop')
+                    not_started = False
+                #print(r.status_code)
+            except:
+                pass
+            time.sleep(2)
+
+    print('Started runner')
+    thread = threading.Thread(target=start_loop)
+    thread.start()
+
+#### API ####
 
 # to post data without NaN values indicators are calculated on period of length: limit + magic_limit
 # next posted data has length = limit
 magic_limit = int(conf['magic_limit'])
-
-#########################################################################################
-
-class get_ohlc(Resource):
-    def get(self, pair, timeframe):
-        parser = reqparse.RequestParser()
-
-        parser.add_argument('limit', type=int)
-        args = parser.parse_args()
-        limit = args.get('limit')
-
-        # Perform query and return JSON data
-        dic = {}
-        data = internal.import_numpy(pair, timeframe, limit)
-        print(data)
-
-
-        dic['dates'] = data['date'],
-        dic['candles'] = {'open': data['open'].tolist(),
-                           'high': data['high'].tolist(),
-                           'close': data['close'].tolist(),
-                           'low': data['low'].tolist(),
-                           }
-        return dic
 
 
 class get_all(Resource):
@@ -134,12 +159,15 @@ class get_all(Resource):
 
         return dict
 
+
 class get_microcaps(Resource):
     def get(self):
         return microcaps.microcaps()
 
 
 events_list = []
+
+
 class events(Resource):
     def get(self):
         return events_list
@@ -152,15 +180,16 @@ class events(Resource):
                 events_list.pop(events_list.index(event))
 
 
-
 ##################### ENDPOINTS ############################
 # Table with name 'pair'
-# api.add_resource(get_pair, '/')
 api.add_resource(get_all, '/data/<string:pair>/<string:timeframe>/')
-api.add_resource(get_ohlc, '/test/<string:pair>/<string:timeframe>/')
 api.add_resource(get_microcaps, '/microcaps')
 api.add_resource(events, '/events')
 
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)
+    logging.basicConfig(filename='api_app.log', format='%(levelname)s:%(message)s', level=logging.INFO)
+
+    start_runner()
+    app.run(host='0.0.0.0', debug=False)
 
