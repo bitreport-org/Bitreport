@@ -1,7 +1,12 @@
 from influxdb import InfluxDBClient
 from datetime import datetime
 from threading import Thread
-import threading, time, os, datetime, logging, ast, websocket
+import threading
+import time
+import datetime
+import logging
+import ast
+import websocket
 from services import internal
 
 
@@ -116,7 +121,6 @@ class bitfinex_pair_dbservice():
     def create(self):
         # Continuousqueries
         self.create_conquery()
-
         # Websocket channel
         ws = websocket.WebSocketApp("wss://api.bitfinex.com/ws/2",
                                     on_message=self.on_message,
@@ -127,8 +131,8 @@ class bitfinex_pair_dbservice():
             ws.run_forever()
 
 #################################### MAIN ################################################
-if __name__ == "__main__":
 
+def run_dbservice():
     ################### CONFIG ###################
 
     conf = internal.Config('config.ini', 'services')
@@ -144,7 +148,7 @@ if __name__ == "__main__":
 
     threads = []
     for pair in pairs:
-        service= bitfinex_pair_dbservice(db_name, host, port, pair, timeframes)
+        service = bitfinex_pair_dbservice(db_name, host, port, pair, timeframes)
         threads.append(threading.Thread(target=service.create))
 
     for t in threads:
@@ -161,7 +165,9 @@ if __name__ == "__main__":
         m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")) + ' Active threads: ' + str(threading.active_count()-1)
         print(m)
         logging.info(m)
-        time.sleep(60*5)
+        time.sleep(60 * 60)
 
+if __name__ == "__main__":
+    run_dbservice()
 
 

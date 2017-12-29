@@ -1,6 +1,4 @@
 import numpy as np
-import talib
-import statistics
 
 
 def followingMax(close, strength):

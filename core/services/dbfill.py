@@ -40,9 +40,9 @@ def bitfinex_fill(client, pair, timeframes, limit):
                     print(pair, timeframe, 'failed to fill.Records:', len(candel_list))
                     pass
         # Avoid blocked API
-        time.sleep(4)
+        time.sleep(3)
 
-if __name__ == "__main__":
+def run_dbfill():
     ################### CONFIG ###################
 
     conf = internal.Config('config.ini', 'services')
@@ -60,3 +60,6 @@ if __name__ == "__main__":
 
     for pair in pairs:
         bitfinex_fill(client, pair, timeframes, limit)
+
+if __name__ == "__main__":
+    run_dbfill()

@@ -1,7 +1,5 @@
-import datetime
 import requests
-from time import gmtime, strftime
-from datetime import timedelta
+
 
 def microcaps():
     url = 'https://api.coinmarketcap.com/v1/ticker/?limit=0'
