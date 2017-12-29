@@ -9,12 +9,12 @@ import requests
 import traceback
 
 # Internal import
-from services import internal, microcaps, dbservice, eventservice
-from ta import patterns, indicators, channels, levels
+from core.services import internal, microcaps, eventservice, dbservice
+from core.ta import indicators, levels, patterns
 
 app = Flask(__name__)
 api = Api(app)
-conf = internal.Config('config.ini', 'services')
+conf = internal.Config('core/config.ini', 'services')
 
 @app.before_first_request
 def activate_job():
@@ -99,7 +99,7 @@ class All(Resource):
         ############################### DATA REQUEST #####################################
 
         dict = {}
-        data = internal.import_numpy(pair, timeframe, limit+magic_limit)
+        data = internal.import_numpy(pair, timeframe, limit + magic_limit)
 
         dict['dates'] = data['date'][magic_limit:]
 

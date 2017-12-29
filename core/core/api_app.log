@@ -1,0 +1,517 @@
+INFO: * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+INFO:2017-12-29 15:48:39 START event service
+INFO:127.0.0.1 - - [29/Dec/2017 15:48:39] "GET / HTTP/1.1" 200 -
+INFO:2017-12-29 15:48:39 START database service
+INFO:2017-12-29 15:48:39 Active threads: 6
+INFO:2017-12-29 15:48:40 BTCUSD connection opened.
+INFO:2017-12-29 15:48:40 ETHUSD connection opened.
+INFO:2017-12-29 15:48:40 LTCUSD connection opened.
+INFO:2017-12-29 15:48:42 ETHUSD dump record saved.
+INFO:2017-12-29 15:48:43 BTCUSD dump record saved.
+INFO:2017-12-29 15:48:43 LTCUSD dump record saved.
+INFO: * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+INFO:127.0.0.1 - - [29/Dec/2017 15:49:51] "GET / HTTP/1.1" 200 -
+INFO:2017-12-29 15:49:51 START event service
+INFO:2017-12-29 15:49:51 START database service
+INFO:2017-12-29 15:49:51 Active threads: 6
+INFO:2017-12-29 15:49:52 ETHUSD connection opened.
+INFO:2017-12-29 15:49:52 BTCUSD connection opened.
+INFO:2017-12-29 15:49:52 LTCUSD connection opened.
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/dbservice.py", line 84, in on_message
+    response = ast.literal_eval(message)[1]
+KeyError: 1
+
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/dbservice.py", line 84, in on_message
+    response = ast.literal_eval(message)[1]
+KeyError: 1
+
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/dbservice.py", line 84, in on_message
+    response = ast.literal_eval(message)[1]
+KeyError: 1
+
+INFO:2017-12-29 15:49:54 BTCUSD dump record saved.
+INFO:2017-12-29 15:49:54 LTCUSD dump record saved.
+INFO:2017-12-29 15:49:54 ETHUSD dump record saved.
+INFO: * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+INFO:2017-12-29 15:50:23 START event service
+INFO:127.0.0.1 - - [29/Dec/2017 15:50:23] "GET / HTTP/1.1" 200 -
+INFO:2017-12-29 15:50:23 START database service
+INFO:2017-12-29 15:50:23 Active threads: 6
+INFO:2017-12-29 15:50:24 BTCUSD connection opened.
+INFO:2017-12-29 15:50:24 ETHUSD connection opened.
+INFO:2017-12-29 15:50:24 LTCUSD connection opened.
+INFO:2017-12-29 15:50:27 ETHUSD dump record saved.
+INFO:2017-12-29 15:50:27 BTCUSD dump record saved.
+INFO:2017-12-29 15:50:27 LTCUSD dump record saved.
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/dbservice.py", line 84, in on_message
+    response = ast.literal_eval(message)[1]
+KeyError: 1
+
+WARNING:2017-12-29 15:50:40 BTCUSD error occured!
+WARNING:2017-12-29 15:50:40 BTCUSD connection closed.
+INFO:2017-12-29 15:50:40 BTCUSD connection opened.
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/dbservice.py", line 84, in on_message
+    response = ast.literal_eval(message)[1]
+KeyError: 1
+
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/dbservice.py", line 84, in on_message
+    response = ast.literal_eval(message)[1]
+KeyError: 1
+
+INFO:2017-12-29 15:50:43 BTCUSD dump record saved.
+INFO: * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+INFO:2017-12-29 15:52:47 START event service
+INFO:127.0.0.1 - - [29/Dec/2017 15:52:47] "GET / HTTP/1.1" 200 -
+INFO:2017-12-29 15:52:47 START database service
+INFO:2017-12-29 15:52:47 Active threads: 6
+INFO:2017-12-29 15:52:47 ETHUSD connection opened.
+INFO:2017-12-29 15:52:48 LTCUSD connection opened.
+INFO:2017-12-29 15:52:48 BTCUSD connection opened.
+INFO:2017-12-29 15:52:50 ETHUSD dump record saved.
+INFO:2017-12-29 15:52:51 LTCUSD dump record saved.
+INFO:2017-12-29 15:52:51 BTCUSD dump record saved.
+INFO:127.0.0.1 - - [29/Dec/2017 15:53:33] "GET /dbfill HTTP/1.1" 200 -
+INFO:2017-12-29 15:53:36 BTCUSD 30m SUCCEED records: 500
+INFO:2017-12-29 15:53:42 BTCUSD 1h SUCCEED records: 500
+INFO:2017-12-29 15:53:48 BTCUSD 3h SUCCEED records: 500
+INFO:2017-12-29 15:53:54 BTCUSD 6h SUCCEED records: 500
+INFO:127.0.0.1 - - [29/Dec/2017 15:53:57] "GET /dbfill HTTP/1.1" 200 -
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'dict' object is not callable
+
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'str' object is not callable
+
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'NoneType' object is not callable
+
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'str' object is not callable
+
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'SourceFileLoader' object is not callable
+
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'str' object is not callable
+
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'str' object is not callable
+
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'ModuleSpec' object is not callable
+
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'module' object is not callable
+
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'module' object is not callable
+
+INFO:127.0.0.1 - - [29/Dec/2017 15:53:58] "GET /data/BTCUSD/1h/?limit=50 HTTP/1.1" 200 -
+INFO:2017-12-29 15:54:03 BTCUSD 30m SUCCEED records: 500
+INFO:2017-12-29 15:54:03 BTCUSD 12h SUCCEED records: 500
+INFO:2017-12-29 15:54:10 BTCUSD 24h SUCCEED records: 500
+INFO:2017-12-29 15:54:10 BTCUSD 1h SUCCEED records: 500
+INFO:2017-12-29 15:54:15 BTCUSD 168h SUCCEED records: 126
+INFO:2017-12-29 15:54:17 BTCUSD 3h SUCCEED records: 500
+INFO:2017-12-29 15:54:21 ETHUSD 30m SUCCEED records: 500
+INFO:2017-12-29 15:54:23 BTCUSD 6h SUCCEED records: 500
+INFO:2017-12-29 15:54:27 ETHUSD 1h SUCCEED records: 500
+INFO:2017-12-29 15:54:29 BTCUSD 12h SUCCEED records: 500
+INFO:2017-12-29 15:54:35 ETHUSD 3h SUCCEED records: 500
+INFO:2017-12-29 15:54:35 BTCUSD 24h SUCCEED records: 500
+INFO:2017-12-29 15:54:39 BTCUSD 168h SUCCEED records: 126
+INFO:2017-12-29 15:54:41 ETHUSD 6h SUCCEED records: 500
+INFO:2017-12-29 15:54:47 ETHUSD 30m SUCCEED records: 500
+INFO:2017-12-29 15:54:49 ETHUSD 12h SUCCEED records: 500
+INFO:2017-12-29 15:54:54 ETHUSD 1h SUCCEED records: 500
+INFO:2017-12-29 15:54:55 ETHUSD 24h SUCCEED records: 500
+INFO:2017-12-29 15:54:59 ETHUSD 168h SUCCEED records: 49
+INFO:2017-12-29 15:55:00 ETHUSD 3h SUCCEED records: 500
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'dict' object is not callable
+
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'str' object is not callable
+
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'NoneType' object is not callable
+
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'str' object is not callable
+
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'SourceFileLoader' object is not callable
+
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'str' object is not callable
+
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'str' object is not callable
+
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'ModuleSpec' object is not callable
+
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'module' object is not callable
+
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'module' object is not callable
+
+INFO:127.0.0.1 - - [29/Dec/2017 15:55:00] "GET /data/BTCUSD/1h/?limit=50 HTTP/1.1" 200 -
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'dict' object is not callable
+
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'str' object is not callable
+
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'NoneType' object is not callable
+
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'str' object is not callable
+
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'SourceFileLoader' object is not callable
+
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'str' object is not callable
+
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'str' object is not callable
+
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'ModuleSpec' object is not callable
+
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'module' object is not callable
+
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'module' object is not callable
+
+INFO:127.0.0.1 - - [29/Dec/2017 15:55:01] "GET /data/BTCUSD/1h/?limit=50 HTTP/1.1" 200 -
+INFO:2017-12-29 15:55:07 LTCUSD 30m SUCCEED records: 500
+INFO:2017-12-29 15:55:08 ETHUSD 6h SUCCEED records: 500
+INFO:2017-12-29 15:55:15 LTCUSD 1h SUCCEED records: 500
+INFO:2017-12-29 15:55:15 ETHUSD 12h SUCCEED records: 500
+INFO:2017-12-29 15:55:21 ETHUSD 24h SUCCEED records: 500
+INFO:2017-12-29 15:55:21 LTCUSD 3h SUCCEED records: 500
+INFO:2017-12-29 15:55:25 ETHUSD 168h SUCCEED records: 49
+INFO:2017-12-29 15:55:27 LTCUSD 6h SUCCEED records: 500
+INFO:2017-12-29 15:55:32 LTCUSD 30m SUCCEED records: 500
+INFO:2017-12-29 15:55:34 LTCUSD 12h SUCCEED records: 500
+INFO:2017-12-29 15:55:40 LTCUSD 1h SUCCEED records: 500
+INFO:2017-12-29 15:55:42 LTCUSD 24h SUCCEED records: 500
+INFO:2017-12-29 15:55:47 LTCUSD 168h SUCCEED records: 122
+INFO:2017-12-29 15:55:49 LTCUSD 3h SUCCEED records: 500
+INFO:2017-12-29 15:55:56 LTCUSD 6h SUCCEED records: 500
+INFO:2017-12-29 15:56:01 LTCUSD 12h SUCCEED records: 500
+INFO:2017-12-29 15:56:07 LTCUSD 24h SUCCEED records: 500
+INFO:2017-12-29 15:56:11 LTCUSD 168h SUCCEED records: 122
+INFO: * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+INFO:2017-12-29 15:58:14 START event service
+INFO:127.0.0.1 - - [29/Dec/2017 15:58:14] "GET / HTTP/1.1" 200 -
+INFO:2017-12-29 15:58:14 START database service
+INFO:2017-12-29 15:58:14 Active threads: 6
+INFO:2017-12-29 15:58:15 ETHUSD connection opened.
+INFO:2017-12-29 15:58:15 BTCUSD connection opened.
+INFO:2017-12-29 15:58:15 LTCUSD connection opened.
+INFO:2017-12-29 15:58:17 LTCUSD dump record saved.
+INFO:2017-12-29 15:58:17 BTCUSD dump record saved.
+ERROR:__builtins__
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 141, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'dict' object is not callable
+
+ERROR:__cached__
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 141, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'str' object is not callable
+
+ERROR:__doc__
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 141, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'NoneType' object is not callable
+
+ERROR:__file__
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 141, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'str' object is not callable
+
+ERROR:__loader__
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 141, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'SourceFileLoader' object is not callable
+
+ERROR:__name__
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 141, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'str' object is not callable
+
+ERROR:__package__
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 141, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'str' object is not callable
+
+ERROR:__spec__
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 141, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'ModuleSpec' object is not callable
+
+ERROR:np
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 141, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'module' object is not callable
+
+ERROR:talib
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 141, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'module' object is not callable
+
+INFO:127.0.0.1 - - [29/Dec/2017 15:58:17] "GET /data/BTCUSD/1h/?limit=50 HTTP/1.1" 200 -
+INFO:2017-12-29 15:58:18 ETHUSD dump record saved.
+INFO: * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+INFO:2017-12-29 15:59:03 START event service
+INFO:127.0.0.1 - - [29/Dec/2017 15:59:03] "GET / HTTP/1.1" 200 -
+INFO:2017-12-29 15:59:03 START database service
+INFO:2017-12-29 15:59:03 Active threads: 6
+INFO:2017-12-29 15:59:03 LTCUSD connection opened.
+INFO:2017-12-29 15:59:03 ETHUSD connection opened.
+INFO:2017-12-29 15:59:03 BTCUSD connection opened.
+INFO:2017-12-29 15:59:05 LTCUSD dump record saved.
+ERROR:__builtins__
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'dict' object is not callable
+
+ERROR:__cached__
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'str' object is not callable
+
+ERROR:__doc__
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'NoneType' object is not callable
+
+ERROR:__file__
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'str' object is not callable
+
+ERROR:__loader__
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'SourceFileLoader' object is not callable
+
+ERROR:__name__
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'str' object is not callable
+
+ERROR:__package__
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'str' object is not callable
+
+ERROR:__spec__
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'ModuleSpec' object is not callable
+
+ERROR:np
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'module' object is not callable
+
+ERROR:talib
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'module' object is not callable
+
+INFO:127.0.0.1 - - [29/Dec/2017 15:59:06] "GET /data/BTCUSD/1h/?limit=50 HTTP/1.1" 200 -
+INFO:2017-12-29 15:59:08 ETHUSD dump record saved.
+INFO:2017-12-29 15:59:08 BTCUSD dump record saved.
+INFO:127.0.0.1 - - [29/Dec/2017 16:00:02] "PUT /events HTTP/1.1" 200 -
+INFO:127.0.0.1 - - [29/Dec/2017 16:00:02] "PUT /events HTTP/1.1" 200 -
+INFO:127.0.0.1 - - [29/Dec/2017 16:00:02] "PUT /events HTTP/1.1" 200 -
+INFO:127.0.0.1 - - [29/Dec/2017 16:00:02] "PUT /events HTTP/1.1" 200 -
+INFO:2017-12-29 16:00:02 CHECK events
+INFO: * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+INFO:2017-12-29 16:07:11 START event service
+INFO:127.0.0.1 - - [29/Dec/2017 16:07:11] "GET / HTTP/1.1" 200 -
+INFO:2017-12-29 16:07:11 START database service
+INFO:2017-12-29 16:07:11 Active threads: 6
+INFO:2017-12-29 16:07:11 ETHUSD connection opened.
+INFO:2017-12-29 16:07:11 LTCUSD connection opened.
+INFO:2017-12-29 16:07:13 BTCUSD connection opened.
+INFO:2017-12-29 16:07:14 ETHUSD dump record saved.
+INFO:2017-12-29 16:07:14 LTCUSD dump record saved.
+INFO:2017-12-29 16:07:18 BTCUSD dump record saved.
+INFO:127.0.0.1 - - [29/Dec/2017 16:08:06] "GET /data/BTCUSD/1h/?limit=50 HTTP/1.1" 500 -
+INFO: * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+INFO:127.0.0.1 - - [29/Dec/2017 16:08:49] "GET / HTTP/1.1" 200 -
+INFO:2017-12-29 16:08:49 START event service
+INFO:2017-12-29 16:08:49 START database service
+INFO:2017-12-29 16:08:49 Active threads: 6
+INFO:2017-12-29 16:08:50 LTCUSD connection opened.
+INFO:2017-12-29 16:08:50 BTCUSD connection opened.
+INFO:2017-12-29 16:08:50 ETHUSD connection opened.
+ERROR:np
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'module' object is not callable
+
+ERROR:talib
+ERROR:Traceback (most recent call last):
+  File "/Users/Macintosh/Desktop/Bitreport/core/services/api_app.py", line 142, in get
+    indidict[indic] = getattr(indicators, indic)(data, start = magic_limit)
+TypeError: 'module' object is not callable
+
+INFO:127.0.0.1 - - [29/Dec/2017 16:08:53] "GET /data/BTCUSD/1h/?limit=50 HTTP/1.1" 200 -
+INFO:2017-12-29 16:08:53 ETHUSD dump record saved.
+INFO:2017-12-29 16:08:53 BTCUSD dump record saved.
+INFO:2017-12-29 16:08:53 LTCUSD dump record saved.
+INFO: * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+INFO:2017-12-29 16:09:50 START event service
+INFO:127.0.0.1 - - [29/Dec/2017 16:09:50] "GET / HTTP/1.1" 200 -
+INFO:2017-12-29 16:09:50 START database service
+INFO:2017-12-29 16:09:50 Active threads: 6
+INFO:2017-12-29 16:09:51 BTCUSD connection opened.
+INFO:2017-12-29 16:09:51 ETHUSD connection opened.
+INFO:2017-12-29 16:09:51 LTCUSD connection opened.
+INFO:2017-12-29 16:09:53 LTCUSD dump record saved.
+INFO:2017-12-29 16:09:53 ETHUSD dump record saved.
+INFO:2017-12-29 16:09:53 BTCUSD dump record saved.
+INFO:127.0.0.1 - - [29/Dec/2017 16:09:54] "GET /data/BTCUSD/1h/?limit=50 HTTP/1.1" 200 -
+INFO: * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+INFO:2017-12-29 16:16:28 START event service
+INFO:127.0.0.1 - - [29/Dec/2017 16:16:28] "GET / HTTP/1.1" 200 -
+INFO:2017-12-29 16:16:28 START database service
+INFO:2017-12-29 16:16:28 Active threads: 6
+INFO:2017-12-29 16:16:28 LTCUSD connection opened.
+INFO:2017-12-29 16:16:29 ETHUSD connection opened.
+INFO:2017-12-29 16:16:29 BTCUSD connection opened.
+INFO:2017-12-29 16:16:32 LTCUSD dump record saved.
+INFO:2017-12-29 16:16:32 BTCUSD dump record saved.
+INFO:2017-12-29 16:16:33 ETHUSD dump record saved.
+INFO:127.0.0.1 - - [29/Dec/2017 16:30:02] "PUT /events HTTP/1.1" 200 -
+INFO:127.0.0.1 - - [29/Dec/2017 16:30:02] "PUT /events HTTP/1.1" 200 -
+INFO:127.0.0.1 - - [29/Dec/2017 16:30:02] "PUT /events HTTP/1.1" 200 -
+INFO:127.0.0.1 - - [29/Dec/2017 16:30:02] "PUT /events HTTP/1.1" 200 -
+INFO:127.0.0.1 - - [29/Dec/2017 16:30:02] "PUT /events HTTP/1.1" 200 -
+INFO:2017-12-29 16:30:02 CHECK events
+INFO:2017-12-29 16:46:28 Active threads: 5
+INFO:127.0.0.1 - - [29/Dec/2017 17:00:02] "PUT /events HTTP/1.1" 200 -
+INFO:127.0.0.1 - - [29/Dec/2017 17:00:02] "PUT /events HTTP/1.1" 200 -
+INFO:127.0.0.1 - - [29/Dec/2017 17:00:02] "PUT /events HTTP/1.1" 200 -
+INFO:127.0.0.1 - - [29/Dec/2017 17:00:02] "PUT /events HTTP/1.1" 200 -
+INFO:127.0.0.1 - - [29/Dec/2017 17:00:02] "PUT /events HTTP/1.1" 200 -
+INFO:127.0.0.1 - - [29/Dec/2017 17:00:02] "PUT /events HTTP/1.1" 200 -
+INFO:127.0.0.1 - - [29/Dec/2017 17:00:02] "PUT /events HTTP/1.1" 200 -
+INFO:127.0.0.1 - - [29/Dec/2017 17:00:02] "PUT /events HTTP/1.1" 200 -
+INFO:127.0.0.1 - - [29/Dec/2017 17:00:02] "PUT /events HTTP/1.1" 200 -
+INFO:127.0.0.1 - - [29/Dec/2017 17:00:02] "PUT /events HTTP/1.1" 200 -
+INFO:127.0.0.1 - - [29/Dec/2017 17:00:02] "PUT /events HTTP/1.1" 200 -
+INFO:2017-12-29 17:00:02 CHECK events
+INFO:2017-12-29 17:16:28 Active threads: 5
+INFO:127.0.0.1 - - [29/Dec/2017 17:30:02] "PUT /events HTTP/1.1" 200 -
+INFO:127.0.0.1 - - [29/Dec/2017 17:30:02] "PUT /events HTTP/1.1" 200 -
+INFO:127.0.0.1 - - [29/Dec/2017 17:30:02] "PUT /events HTTP/1.1" 200 -
+INFO:127.0.0.1 - - [29/Dec/2017 17:30:02] "PUT /events HTTP/1.1" 200 -
+INFO:127.0.0.1 - - [29/Dec/2017 17:30:02] "PUT /events HTTP/1.1" 200 -
+INFO:127.0.0.1 - - [29/Dec/2017 17:30:02] "PUT /events HTTP/1.1" 200 -
+INFO:127.0.0.1 - - [29/Dec/2017 17:30:02] "PUT /events HTTP/1.1" 200 -
+INFO:127.0.0.1 - - [29/Dec/2017 17:30:02] "PUT /events HTTP/1.1" 200 -
+INFO:127.0.0.1 - - [29/Dec/2017 17:30:02] "PUT /events HTTP/1.1" 200 -
+INFO:127.0.0.1 - - [29/Dec/2017 17:30:02] "PUT /events HTTP/1.1" 200 -
+INFO:127.0.0.1 - - [29/Dec/2017 17:30:02] "PUT /events HTTP/1.1" 200 -
+INFO:127.0.0.1 - - [29/Dec/2017 17:30:02] "PUT /events HTTP/1.1" 200 -
+INFO:127.0.0.1 - - [29/Dec/2017 17:30:02] "PUT /events HTTP/1.1" 200 -
+INFO:2017-12-29 17:30:02 CHECK events

@@ -26,7 +26,7 @@ def Config(file, section):
     return dict1
 
 def import_numpy(pair, timeframe, limit):
-    conf = Config('config.ini', 'services')
+    conf = Config('core/config.ini', 'services')
     db = conf['db_name']
     host = conf['host']
     port = int(conf['port'])

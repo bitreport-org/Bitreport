@@ -1,5 +1,4 @@
 import talib
-from services import internal
 
 
 #FindPattern

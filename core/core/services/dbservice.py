@@ -9,7 +9,7 @@ import traceback
 import ast
 import websocket
 import requests
-from services import internal
+from core.services import internal
 
 
 # Database websocket service
@@ -150,7 +150,7 @@ class BitfinexPairDbservice():
 def run_dbservice():
     ################### CONFIG ###################
 
-    conf = internal.Config('config.ini', 'services')
+    conf = internal.Config('core/config.ini', 'services')
     db_name = conf['db_name']
     host = conf['host']
     port = int(conf['port'])
@@ -251,7 +251,7 @@ def bitfinex_fill(client, pair, timeframes, limit, t=3):
 def run_dbfill_full():
     ################### CONFIG ###################
 
-    conf = internal.Config('config.ini', 'services')
+    conf = internal.Config('core/config.ini', 'services')
     db_name = conf['db_name']
     host = conf['host']
     port = int(conf['port'])
@@ -271,7 +271,7 @@ def run_dbfill_full():
 def run_dbfill_selected(pair, timeframe):
     ################### CONFIG ###################
 
-    conf = internal.Config('config.ini', 'services')
+    conf = internal.Config('core/config.ini', 'services')
     db_name = conf['db_name']
     host = conf['host']
     port = int(conf['port'])

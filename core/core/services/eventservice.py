@@ -6,7 +6,7 @@ import talib
 import logging
 import traceback
 
-from services import internal
+from core.services import internal
 
 
 def check_bb(data):
@@ -56,7 +56,7 @@ def check_dildo(data):
 
 
 def update_events():
-    conf = internal.Config('config.ini', 'services')
+    conf = internal.Config('core/config.ini', 'services')
     pairs = conf['pairs'].split(',')
     timeframes = conf['timeframes'].split(',')
 

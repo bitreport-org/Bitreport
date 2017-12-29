@@ -1,0 +1,3 @@
+recursive-include core/services *
+recursive-include core/ta *
+recursive-include core/docs *

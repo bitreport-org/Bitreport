@@ -7,3 +7,6 @@ internal.cpython-36.pyc
 pip-selfcheck.json
 pyvenv.cfg
 tests.py
+dbservice.cpython-36.pyc
+eventservice.cpython-36.pyc
+microcaps.cpython-36.pyc
