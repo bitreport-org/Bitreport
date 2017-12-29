@@ -9,9 +9,7 @@ import ast
 import websocket
 from services import internal
 
-
-################################## WEBSOCKETS ############################################
-
+# Database websocket service
 class bitfinex_pair_dbservice():
     def __init__(self, db_name, host, port, pair, timeframes ):
         self.client = InfluxDBClient(host, port, 'root', 'root', db_name)
@@ -77,7 +75,7 @@ class bitfinex_pair_dbservice():
                 if len(response) > 6:
                     for ticker in response:
                         self.write_ticker(ticker)
-                    m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")) + ' ' + self.pair + ' dump record saved'
+                    m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + ' ' + self.pair + ' dump record saved.'
                     logging.info(m)
 
                 # Single ticker handling
@@ -87,20 +85,20 @@ class bitfinex_pair_dbservice():
                         self.last2 = self.last1
                         self.last1 = response[0]
                     except:
-                        m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")) + ' Ticker write failed ' + str(self.pair)
+                        m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + ' Ticker write failed ' + str(self.pair)
                         logging.warning(m)
                         pass
         except:
             pass
 
     def on_error(self, ws, error):
-        m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")) + ' ' + self.pair + ' error occured!'
+        m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + ' ' + self.pair + ' error occured!'
         logging.warning(m)
 
         self.on_open(ws)
 
     def on_close(self, ws):
-        m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")) + ' ' + self.pair + ' connection closed.'
+        m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + ' ' + self.pair + ' connection closed.'
         logging.warning(m)
         self.on_open(ws)
 
@@ -112,7 +110,7 @@ class bitfinex_pair_dbservice():
                         "channel": "candles", \
                         "key": "trade:1m:t' + self.pair +'" \
                     }')
-            m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")) + ' ' + self.pair + ' connection opened.'
+            m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + ' ' + self.pair + ' connection opened.'
             logging.info(m)
 
         Thread(target=run).start()
@@ -130,7 +128,6 @@ class bitfinex_pair_dbservice():
         while True:
             ws.run_forever()
 
-#################################### MAIN ################################################
 
 def run_dbservice():
     ################### CONFIG ###################
@@ -144,7 +141,6 @@ def run_dbservice():
     timeframes = conf['timeframes'].split(',')
 
     ##############################################
-    logging.basicConfig(filename='dbservice.log', format='%(levelname)s:%(message)s', level=logging.INFO)
 
     threads = []
     for pair in pairs:
@@ -157,17 +153,82 @@ def run_dbservice():
     for t in threads:
         t.start()
 
-    m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")) + ' dbservice START'
+    m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + ' START database service'
     print(m)
     logging.info(m)
 
     while True:
-        m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")) + ' Active threads: ' + str(threading.active_count()-1)
+        m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + ' Active threads: ' + str(threading.active_count()-1)
         print(m)
         logging.info(m)
         time.sleep(60 * 60)
 
-if __name__ == "__main__":
-    run_dbservice()
+
+# Database Bitfinex fill
+def bitfinex_fill(client, pair, timeframes, limit):
+    for timeframe in timeframes:
+        url = 'https://api.bitfinex.com/v2/candles/trade:' + timeframe + ':t' + pair + '/hist?limit=' + str(
+            limit) + '&start=946684800000'
+        request = requests.get(url)
+        candel_list = request.json()
+
+        # Map timeframes for influx
+        if timeframe == '1D':
+            timeframe = '24h'
+        elif timeframe == '14D':
+            timeframe = '168h'
+
+        # check if any response and if not error then write candles to influx
+        if len(candel_list)>0:
+            if candel_list[0] != 'error':
+                try:
+                    for i in range(len(candel_list)):
+                        json_body = [
+                            {
+                                "measurement": pair + timeframe,
+                                "time": int(1000000 * candel_list[i][0]),
+                                "fields": {
+                                    "open": float(candel_list[i][1]),
+                                    "close": float(candel_list[i][2]),
+                                    "high": float(candel_list[i][3]),
+                                    "low": float(candel_list[i][4]),
+                                    "volume": float(candel_list[i][5]),
+                                }
+                            }
+                        ]
+                        client.write_points(json_body)
+                    m = str(datetime.datetime.now().strftime(
+                        "%Y-%m-%d %H:%M:%S")) + ' ' + pair +' ' + timeframe + ' filled successfully. Records: ' + str(len(candel_list))
+                    logging.info(m)
+                    print(m)
+                except:
+                    m = str(datetime.datetime.now().strftime(
+                        "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' failed to fill. Records: ' + str(
+                        len(candel_list))
+                    logging.info(m)
+                    print(m)
+                    pass
+        # Avoid blocked API
+        time.sleep(3)
+
+
+def run_dbfill():
+    ################### CONFIG ###################
+
+    conf = internal.Config('config.ini', 'services')
+    db_name = conf['db_name']
+    host = conf['host']
+    port = int(conf['port'])
+    limit = int(conf['fill_limit'])
+
+    pairs = conf['pairs'].split(',')
+    timeframes = conf['fill_timeframes'].split(',')
+
+    ##############################################
+
+    client = InfluxDBClient(host, port, 'root', 'root', db_name)
+
+    for pair in pairs:
+        bitfinex_fill(client, pair, timeframes, limit)
 
 
