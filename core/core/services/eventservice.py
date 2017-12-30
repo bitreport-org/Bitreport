@@ -56,7 +56,7 @@ def check_dildo(data):
 
 
 def update_events():
-    conf = internal.Config('core/config.ini', 'services')
+    conf = internal.Config('config.ini', 'services')
     pairs = conf['pairs'].split(',')
     timeframes = conf['timeframes'].split(',')
 
