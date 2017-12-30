@@ -14,7 +14,7 @@ from core.ta import indicators, levels, patterns
 
 app = Flask(__name__)
 api = Api(app)
-conf = internal.Config('core/config.ini', 'services')
+conf = internal.Config('config.ini', 'services')
 
 @app.before_first_request
 def activate_job():
@@ -96,41 +96,43 @@ class All(Resource):
         args = parser.parse_args()
         limit = args.get('limit')
 
+        parser.add_argument('untill', type=int, help='Limit must be int')
+        args = parser.parse_args()
+        untill = args.get('untill')
+
         ############################### DATA REQUEST #####################################
 
         dict = {}
-        data = internal.import_numpy(pair, timeframe, limit + magic_limit)
 
-        dict['dates'] = data['date'][magic_limit:]
+        if untill != None:
+            data = internal.import_numpy_untill(pair, timeframe, limit + magic_limit, untill)
+            # SET margin
+            margin = 26 #timestamps
 
-        # SET margin
-        margin = 26 #timestamps
+            # Generate timestamps for future
+            dict['dates'] = internal.generate_dates(data, timeframe, margin)[magic_limit:]
 
-        # Generate timestamps for future
-        date = data['date']
-        period = timeframe[-1]
-        timef = timeframe[:-1]
-        t = int(timef)
+            dict['candles'] = { 'open': data['open'].tolist()[magic_limit:],
+                                'high': data['high'].tolist()[magic_limit:],
+                                'close': data['close'].tolist()[magic_limit:],
+                                'low': data['low'].tolist()[magic_limit:],
+                                'volume': data['volume'].tolist()[magic_limit:]
+                            }
+        else:
+            data = internal.import_numpy(pair, timeframe, limit + magic_limit)
+            # SET margin
+            margin = 26  # timestamps
 
-        d = 0
-        if period == 'm':
-            d = 60 * t
-        elif period == 'h':
-            d = 60 * 60 * t
-        elif period == 'W':
-            d = 60 * 60 * 168 * t
+            # Generate timestamps for future
+            dict['dates'] = internal.generate_dates(data, timeframe, margin)[magic_limit:]
 
-        for i in range(0, margin):
-            date.append(int(date[-1]) + d)
+            dict['candles'] = {'open': data['open'].tolist()[magic_limit:],
+                               'high': data['high'].tolist()[magic_limit:],
+                               'close': data['close'].tolist()[magic_limit:],
+                               'low': data['low'].tolist()[magic_limit:],
+                               'volume': data['volume'].tolist()[magic_limit:]
+                               }
 
-        dict['dates'] = date[magic_limit:]
-
-        dict['candles'] = { 'open': data['open'].tolist()[magic_limit:],
-                            'high': data['high'].tolist()[magic_limit:],
-                            'close': data['close'].tolist()[magic_limit:],
-                            'low': data['low'].tolist()[magic_limit:],
-                            'volume': data['volume'].tolist()[magic_limit:]
-                        }
 
         ################################ INDICATORS ######################################
 
@@ -198,6 +200,7 @@ class Events(Resource):
         for event in events_list:
             if now - event['time'] > 60*int(conf['event_limit']):
                 events_list.pop(events_list.index(event))
+
 
 class Fill(Resource):
     def service3(self, pair, timeframe):
