@@ -1,6 +1,6 @@
 import numpy as np
 import time
-from requests import put
+from requests import put, post
 import datetime
 import talib
 import logging
@@ -59,6 +59,8 @@ def update_events():
     conf = internal.Config('config.ini', 'services')
     pairs = conf['pairs'].split(',')
     timeframes = conf['timeframes'].split(',')
+    url_out = 'http://localhost:3000/api/events'
+    url_in = 'http://localhost:5000/events'
 
     # UTC time
     now = int(time.mktime(datetime.datetime.now().timetuple()))
@@ -83,8 +85,8 @@ def update_events():
                               'type': name,
                               'direction': response
                             }
-                    put('http://localhost:5000/events', data={'data': str(event)})
-                    put('http://localhost:3000/api/events', data={'data': str(event)})
+                    put(url_in, data={'data': str(event)})
+                    post(url_out, data={'data': str(event)})
                 response = False
             except:
                 pass
@@ -99,7 +101,8 @@ def update_events():
                              'type': name,
                              'direction': response
                              }
-                    put('http://localhost:5000/events', data={'data': str(event)})
+                    put(url_in, data={'data': str(event)})
+                    post(url_out, data={'data': str(event)})
                 response = False
             except:
                 pass
@@ -113,7 +116,8 @@ def update_events():
                              'type': name,
                              'direction': response
                              }
-                    put('http://localhost:5000/events', data={'data': str(event)})
+                    put(url_in, data={'data': str(event)})
+                    post(url_out, data={'data': str(event)})
             except:
                 pass
 
