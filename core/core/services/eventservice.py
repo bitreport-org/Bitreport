@@ -55,10 +55,9 @@ def check_dildo(data):
     return False
 
 
-def update_events():
+def update_events(tf):
     conf = internal.Config('config.ini', 'services')
     pairs = conf['pairs'].split(',')
-    timeframes = conf['timeframes'].split(',')
     url_out = 'http://localhost:3000/api/events'
     url_in = 'http://localhost:5000/events'
 
@@ -66,60 +65,59 @@ def update_events():
     now = int(time.mktime(datetime.datetime.now().timetuple()))
 
     for pair in pairs:
-        for tf in timeframes:
-            try:
-                data = internal.import_numpy(pair, tf, 21)
-            except Exception as e:
-                m = 'events FAILED import ' + pair + tf
-                logging.warning(m)
-                logging.error(traceback.format_exc())
-                pass
+        try:
+            data = internal.import_numpy(pair, tf, 21)
+        except Exception as e:
+            m = 'events FAILED import ' + pair + tf
+            logging.warning(m)
+            logging.error(traceback.format_exc())
+            pass
 
-            try:
-                response = check_bb(data)
-                name = 'BBBREAK'
-                if response != False:
-                    event = { 'time' : now,
-                              'symbol': pair,
-                              'timeframe': tf,
-                              'type': name,
-                              'direction': response
-                            }
-                    put(url_in, data={'data': str(event)})
-                    post(url_out, data={'data': str(event)})
-                response = False
-            except:
-                pass
+        try:
+            response = check_bb(data)
+            name = 'BBBREAK'
+            if response != False:
+                event = { 'time' : now,
+                          'symbol': pair,
+                          'timeframe': tf,
+                          'type': name,
+                          'direction': response
+                        }
+                put(url_in, data={'data': str(event)})
+                post(url_out, data={'data': str(event)})
+            response = False
+        except:
+            pass
 
-            try:
-                response = check_sma(data)
-                name = 'SMACROSS'
-                if response != False:
-                    event = {'time': now,
-                             'symbol': pair,
-                             'timeframe': tf,
-                             'type': name,
-                             'direction': response
-                             }
-                    put(url_in, data={'data': str(event)})
-                    post(url_out, data={'data': str(event)})
-                response = False
-            except:
-                pass
-            try:
-                response = check_dildo(data)
-                name = 'DILDO'
-                if response != False:
-                    event = {'time': now,
-                             'symbol': pair,
-                             'timeframe': tf,
-                             'type': name,
-                             'direction': response
-                             }
-                    put(url_in, data={'data': str(event)})
-                    post(url_out, data={'data': str(event)})
-            except:
-                pass
+        try:
+            response = check_sma(data)
+            name = 'SMACROSS'
+            if response != False:
+                event = {'time': now,
+                         'symbol': pair,
+                         'timeframe': tf,
+                         'type': name,
+                         'direction': response
+                         }
+                put(url_in, data={'data': str(event)})
+                post(url_out, data={'data': str(event)})
+            response = False
+        except:
+            pass
+        try:
+            response = check_dildo(data)
+            name = 'DILDO'
+            if response != False:
+                event = {'time': now,
+                         'symbol': pair,
+                         'timeframe': tf,
+                         'type': name,
+                         'direction': response
+                         }
+                put(url_in, data={'data': str(event)})
+                post(url_out, data={'data': str(event)})
+        except:
+            pass
 
 
 def run_events():
@@ -128,16 +126,74 @@ def run_events():
     logging.info(m)
     while True:
         now = int(time.mktime(datetime.datetime.now().timetuple()))
+
+        # 30m
         if now % (60*30) == 0:
             # Wait to perform queries
             time.sleep(2)
-
             # check events
-            update_events()
-            m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + ' CHECK events'
+            update_events('30m')
+            m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + ' CHECK events 30m'
             logging.info(m)
 
-            # sleep for next 29 minutes
-            time.sleep(60*29)
+            #1h
+            if now % (60 * 60) == 0:
+                # Wait to perform queries
+                # check events
+                update_events('1h')
+                m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + ' CHECK events 1h'
+                logging.info(m)
+
+                # 2h
+                if now % (60 * 120) == 0:
+                    # Wait to perform queries
+                    # check events
+                    update_events('2h')
+                    m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + ' CHECK events 2h'
+                    logging.info(m)
+
+                    # 3h
+                    if now % (60 * 180) == 0:
+                        # Wait to perform queries
+                        # check events
+                        update_events('3h')
+                        m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + ' CHECK events 3h'
+                        logging.info(m)
+
+                        # 6h
+                        if now % (60*6*60) == 0:
+                            # Wait to perform queries
+                            # check events
+                            update_events('6h')
+                            m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + ' CHECK events 6h'
+                            logging.info(m)
+
+                            # 12h
+                            if now % (60*12*60) == 0:
+                                # Wait to perform queries
+                                # check events
+                                update_events('12h')
+                                m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + ' CHECK events 12h'
+                                logging.info(m)
+
+                                # 24h
+                                if now % (60*24*60) == 0:
+                                    # Wait to perform queries
+                                    # check events
+                                    update_events('12h')
+                                    m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + ' CHECK events 12h'
+                                    logging.info(m)
+
+                                    # 168h
+                                    if now % (60 * 168 * 60) == 0:
+                                        # Wait to perform queries
+                                        # check events
+                                        update_events('168h')
+                                        m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + ' CHECK events 168h'
+                                        logging.info(m)
+
+            # sleep for next 28 minutes
+            dt = int(time.mktime(datetime.datetime.now().timetuple())) - now
+            time.sleep(60*30-dt-60)
 
         time.sleep(1)
