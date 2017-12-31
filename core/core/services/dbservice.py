@@ -76,6 +76,20 @@ class BitfinexPairDbservice():
 
         return status
 
+    def downsample(self, tf, pair):
+        now = "'" + str(datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")) + "'"
+        try:
+            query = 'SELECT first(open) AS open, max(high) AS high, min(low) AS low, last(close) AS close, sum(volume) AS volume ' \
+                    'INTO ' + pair + tf + ' FROM ' + pair + ' WHERE time <=' + now + ' GROUP BY time(' + tf + ')'
+
+            self.client.query(query)
+        except Exception as e:
+            m = str(datetime.datetime.now().strftime(
+                "%Y-%m-%d %H:%M:%S")) + 'FAILED downsample' + pair + tf
+            logging.WARNING(m)
+            logging.error(traceback.format_exc())
+            pass
+
     # Websocket messages handler
     def on_message(self, ws, message):
         # self.i allows to ommit two firs messages from websocket
@@ -87,6 +101,10 @@ class BitfinexPairDbservice():
                     if len(response) > 6:
                         for ticker in response:
                             self.write_ticker(ticker)
+                        # Down sample data
+                        for tf in self.timeframes:
+                            self.downsample(tf, self.pair)
+
                         m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + ' ' + self.pair + ' dump record saved.'
                         logging.info(m)
 
