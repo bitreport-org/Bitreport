@@ -37,7 +37,7 @@ fetchNewImage = ->
       ctx.textAlign = 'center'
       symbol = $('#admin_twitter_image_symbol').val()
       timeframe = $('#admin_twitter_image_timeframe').val()
-      ctx.fillText("#{window.symbol} #{window.timeframe}", 820, 80)
+      ctx.fillText("#{symbol} #{timeframe}", 820, 80)
       ctx.font = 'bold 32px PT Sans'
       ctx.fillStyle = '#363631'
       ctx.textAlign = 'center'

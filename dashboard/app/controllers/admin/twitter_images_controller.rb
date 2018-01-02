@@ -42,13 +42,13 @@ module Admin
           [type.capitalize, level]
         end
       end.flatten
-      @patterns = @twitter_image.raw_data['patterns'].map do |name, directions|
-        directions.map do |direction, timestamps|
+      @patterns = @twitter_image.raw_data['patterns'].flat_map do |name, directions|
+        directions.flat_map do |direction, timestamps|
           timestamps.map do |timestamp|
             [name, direction == 'up' ? '➚' : '➘', Time.at(timestamp).utc.strftime('%F %H:%M')]
           end
         end
-      end.flatten
+      end.sort { |x, y| x[2] <=> y[2] }.flatten
     end
 
     def preview
