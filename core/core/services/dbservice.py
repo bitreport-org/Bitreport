@@ -141,7 +141,7 @@ class BitfinexPairDbservice():
             ws.send('{ \
                         "event": "subscribe",\
                         "channel": "candles", \
-                        "key": "trade:1m:t' + self.pair +'" \
+                        "key": "trade:1m:t' + self.pair + '" \
                     }')
             m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + ' ' + self.pair + ' connection opened.'
             logging.info(m)
@@ -201,7 +201,7 @@ def run_dbservice():
 
 
 # Database Bitfinex fill
-def bitfinex_fill(client, pair, timeframes, limit, t=3):
+def bitfinex_fill(client, pair, timeframes, limit, t=2):
     for timeframe in timeframes:
         url = 'https://api.bitfinex.com/v2/candles/trade:' + timeframe + ':t' + pair + '/hist?limit=' + str(
             limit) + '&start=946684800000'
@@ -215,7 +215,7 @@ def bitfinex_fill(client, pair, timeframes, limit, t=3):
             timeframe = '168h'
 
         # check if any response and if not error then write candles to influx
-        if len(candel_list)>0:
+        if len(candel_list) > 0:
             if candel_list[0] != 'error':
                 try:
                     for i in range(len(candel_list)):
@@ -242,12 +242,17 @@ def bitfinex_fill(client, pair, timeframes, limit, t=3):
                     print(m)
                 except Exception as e:
                     m = str(datetime.datetime.now().strftime(
-                        "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED records: ' + str(
+                        "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED : ' + str(
                         len(candel_list))
                     logging.warning(m)
                     logging.error(traceback.format_exc())
                     print(m)
                     pass
+            else:
+                m = str(datetime.datetime.now().strftime(
+                    "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED Bitfinex api request'
+                logging.warning(m)
+
         # Avoid blocked API
         time.sleep(t)
 

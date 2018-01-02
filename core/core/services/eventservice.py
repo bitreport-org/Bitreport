@@ -83,8 +83,8 @@ def update_events(tf):
                           'type': name,
                           'direction': response
                         }
-                put(url_in, data={'data': str(event)})
-                post(url_out, data={'data': str(event)})
+                #put(url_in, data={str(event)})
+                post(url_out, data={str(event)})
             response = False
         except:
             pass
@@ -99,8 +99,8 @@ def update_events(tf):
                          'type': name,
                          'direction': response
                          }
-                put(url_in, data={'data': str(event)})
-                post(url_out, data={'data': str(event)})
+                #put(url_in, data={str(event)})
+                post(url_out, data={str(event)})
             response = False
         except:
             pass
@@ -114,8 +114,8 @@ def update_events(tf):
                          'type': name,
                          'direction': response
                          }
-                put(url_in, data={'data': str(event)})
-                post(url_out, data={'data': str(event)})
+                #put(url_in, data={str(event)})
+                post(url_out, data={str(event)})
         except:
             pass
 
