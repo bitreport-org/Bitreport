@@ -62,8 +62,9 @@ function onFetch(event) {
 // The serviceworker context can respond to 'push' events and trigger
 // notifications on the registration property
 function onPush(event) {
-    event.waitUntil(self.registration.showNotification('bitReport', {
-        body: 'Dzieje się!'
+    var text = (event.data && event.data.text()) || "See it on bitReport.org!"
+    event.waitUntil(self.registration.showNotification('New bitReport event', {
+        body: text
     }));
 }
 

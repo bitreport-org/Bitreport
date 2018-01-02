@@ -6,7 +6,7 @@ module Api
     def create
       PushDevice.find_each do |push|
         Webpush.payload_send(
-          message: 'Notification',
+          message: "#{params[:symbol]} just made #{params[:direction]} #{params[:type]} on #{params[:timeframe]}",
           endpoint: push.endpoint,
           p256dh: push.p256dh,
           auth: push.auth,
