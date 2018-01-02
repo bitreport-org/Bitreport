@@ -45,7 +45,7 @@ module Admin
       @patterns = @twitter_image.raw_data['patterns'].flat_map do |name, directions|
         directions.flat_map do |direction, timestamps|
           timestamps.map do |timestamp|
-            [name, direction == 'up' ? '➚' : '➘', Time.at(timestamp).utc.strftime('%F %H:%M')]
+            [TwitterImage::PATTERNS[name], direction == 'up' ? '➚' : '➘', Time.at(timestamp).utc.strftime('%F %H:%M')]
           end
         end
       end.sort { |x, y| x[2] <=> y[2] }.flatten
