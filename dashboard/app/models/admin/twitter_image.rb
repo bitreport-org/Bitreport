@@ -1,7 +1,7 @@
 module Admin
   class TwitterImage < ApplicationRecord
-    SYMBOLS = %w[BTCUSD ETHUSD LTCUSD].freeze
-    TIMEFRAMES = %w[30m 1h 3h 6h 12h 24h 168h].freeze
+    SYMBOLS = %w[BTCUSD ETHUSD LTCUSD IOTBTC IOTUSD EDOUSD DATUSD].freeze
+    TIMEFRAMES = %w[30m 1h 2h 3h 6h 12h 24h 168h].freeze
     attr_reader :price, :change
 
     include TwitterImageUploader[:image]

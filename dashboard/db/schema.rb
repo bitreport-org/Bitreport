@@ -28,9 +28,9 @@ ActiveRecord::Schema.define(version: 20171223195020) do
     t.string "symbol", null: false
     t.string "timeframe", null: false
     t.integer "limit"
-    t.string "indicators", array: true
-    t.string "levels", array: true
     t.string "patterns", array: true
+    t.string "indicators", array: true
+    t.string "levels"
     t.text "comment"
     t.text "image_data"
     t.datetime "created_at", null: false
