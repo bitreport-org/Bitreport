@@ -41,7 +41,7 @@ fetchNewImage = ->
       ctx.font = 'bold 32px PT Sans'
       ctx.fillStyle = '#363631'
       ctx.textAlign = 'center'
-      date = $.format.date($.now(), 'yyyy-MM-dd HH:mm UTC')
+      date = $.format.date(new Date().toUTCString(), 'yyyy-MM-dd HH:mm UTC')
       ctx.fillText(date, 1810, 200)
       ctx.font = '17px PT Sans'
       ctx.fillText('Provided information is not an investing advice', 1810, 1007)
@@ -81,7 +81,7 @@ fetchExistingImage = ->
       ctx.font = 'bold 32px PT Sans'
       ctx.fillStyle = '#363631'
       ctx.textAlign = 'center'
-      date = $.format.date($.now(), 'yyyy-MM-dd HH:mm UTC')
+      date = $.format.date(new Date().toUTCString(), 'yyyy-MM-dd HH:mm UTC')
       ctx.fillText(date, 1810, 200)
       ctx.font = '17px PT Sans'
       ctx.fillText('Provided information is not an investing advice', 1810, 1007)
