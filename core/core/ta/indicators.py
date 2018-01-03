@@ -1,5 +1,6 @@
 import talib
 import numpy as np
+from core.services import internal
 
 ###################     TAlib indicators    ###################
 
@@ -295,6 +296,19 @@ def CORRO(data, start, oscillator='RSI', period=20):
         corr_list.append(np.corrcoef(close[i-period:i], oscillator_values[i-period:i])[0][1])
 
     return {'corro': corr_list[start:]}
+
+
+def MOON(data, start):
+    dates = data['date']
+    phase_list = []
+    position_list = []
+
+    for moment in dates:
+        p =internal.what_phase(moment)
+        phase_list.append(p[0])
+        position_list.append(p[1])
+
+    return {'phase': phase_list[start:], 'position':position_list[start:]}
 
 ################################################################
 

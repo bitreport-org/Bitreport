@@ -2,10 +2,9 @@ import numpy as np
 import time
 import iso8601
 import configparser
-from requests import put, get
-import datetime
-import talib
 from influxdb import InfluxDBClient
+import math, decimal, datetime
+dec = decimal.Decimal
 
 def Config(file, section):
 
@@ -162,4 +161,40 @@ def get_function_list(module):
         except:
             pass
     return l
+
+
+# FUNNY MOON STUFF
+def position(now=None):
+   if now is None:
+      now = datetime.datetime.now()
+
+   diff = now - datetime.datetime(2001, 1, 1)
+   days = dec(diff.days) + (dec(diff.seconds) / dec(86400))
+   lunations = dec("0.20439731") + (days * dec("0.03386319269"))
+
+   return lunations % dec(1)
+
+
+def phase(pos):
+   index = (pos * dec(8)) + dec("0.5")
+   index = math.floor(index)
+   return {
+      0: "New Moon",
+      1: "Waxing Crescent",
+      2: "First Quarter",
+      3: "Waxing Gibbous",
+      4: "Full Moon",
+      5: "Waning Gibbous",
+      6: "Last Quarter",
+      7: "Waning Crescent"
+   }[int(index) & 7]
+
+
+def what_phase(timestamp):
+   t = datetime.datetime.fromtimestamp(int(timestamp))
+   pos = position(t)
+   phasename = phase(pos)
+
+   roundedpos = round(float(pos), 3)
+   return (phasename, roundedpos)
 

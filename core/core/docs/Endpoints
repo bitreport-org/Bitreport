@@ -1,24 +1,28 @@
 REST endpoints
 
 Microcaps endpoint:
-/micropcaps
-
-DB test ednpoint
-Last n records of pair at given timeframe:
-/test/<string:pair>/<string:timeframe>/?limit=n
+GET /micropcaps
 
 Main endpoint
-/data/<string:pair>/<string:timeframe>/?limit=n
-                                               &indicators=name1,name2
-                                               &patterns=name1,name2
-                                               &levels=ALL
-                                               &channels=name1,name2
+GET /data/<string:pair>/<string:timeframe>/?limit=n
+
+Returns last n OHLC candles with all available indicators, patterns and channels.
+
+Database update endpoints:
+GET /dbfill  -  fills database with pairs and time frames from cnfig file
+POST /fill/pair/timeframe  -  fills database with a given pair and time frame
+
+Database service:
+GET /dbservice  -  starts db service
+
 
 Available timeframes:
 ['5m', '30m', '1h', '2h', '3h', '6h', '12h', '24h', '168h']
 
 Available indicators:
-ADX, AROON, BB, EMA, EWO, KC, MACD, MOM, RSI, SAR, SMA, STOCH, STOCHRS, TDS
+'ADX', 'AROON', 'BB', 'CORRO', 'EMA', 'EWO', 'HT', 'HTmode', 'HTperiod', 'HTphase',
+'HTphasor', 'HTsin', 'ICM', 'KC', 'LIN', 'LINO', 'MACD', 'MOM', 'RSI', 'SAR', 'SMA',
+'STOCH', 'STOCHRSI', 'TDS'
 
 Avaiable Patterns:
 ALL - returns all following patterns
@@ -83,14 +87,3 @@ CDLTRISTAR
 CDLUNIQUE3RIVER
 CDLXSIDEGAP3METHODS
 CDLXSIDEGAP3METHODS
-
-For a given pair, timeframe and limit returns:
-{pattern_name1 : {'up': up, 'down': down}, pattern_name2: {'up': up, 'down': down}, ...}
-
-
-Available levels:
-ALL - for a given pair, timeframe and limit returns {'support': sup, 'resistance': res}
-
-Available channels - each channel is returnen as {'upperband', 'middleband', 'lowerband'}:
-parabola
-channel
