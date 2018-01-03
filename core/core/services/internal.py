@@ -154,7 +154,7 @@ def generate_dates(data, timeframe, margin):
 
 def get_function_list(module):
     l = dir(module)
-    buildin = ['__builtins__', '__cached__', '__doc__', '__file__', '__loader__', '__name__', '__package__', '__spec__', 'talib', 'np']
+    buildin = ['__builtins__', '__cached__', '__doc__', '__file__', '__loader__', '__name__', '__package__', '__spec__', 'talib', 'np', 'internal']
     for x in buildin:
         try:
             l.pop(l.index(x))
@@ -179,14 +179,14 @@ def phase(pos):
    index = (pos * dec(8)) + dec("0.5")
    index = math.floor(index)
    return {
-      0: "New Moon",
-      1: "Waxing Crescent",
-      2: "First Quarter",
-      3: "Waxing Gibbous",
-      4: "Full Moon",
-      5: "Waning Gibbous",
-      6: "Last Quarter",
-      7: "Waning Crescent"
+      0: "🌑",
+      1: "🌒",
+      2: "🌓",
+      3: "🌔",
+      4: "🌕",
+      5: "🌖",
+      6: "🌗",
+      7: "🌘"
    }[int(index) & 7]
 
 

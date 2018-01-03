@@ -301,14 +301,12 @@ def CORRO(data, start, oscillator='RSI', period=20):
 def MOON(data, start):
     dates = data['date']
     phase_list = []
-    position_list = []
 
     for moment in dates:
-        p =internal.what_phase(moment)
+        p = internal.what_phase(moment)
         phase_list.append(p[0])
-        position_list.append(p[1])
 
-    return {'phase': phase_list[start:], 'position':position_list[start:]}
+    return {'labels': phase_list[start:], 'timestamps': dates[start:]}
 
 ################################################################
 
