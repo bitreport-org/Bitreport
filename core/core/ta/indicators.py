@@ -5,11 +5,18 @@ from core.services import internal
 ###################     TAlib indicators    ###################
 
 def BB(data, start, timeperiod=20, nbdevup=2, nbdevdn=2, matype=0):
-    upperband, middleband, lowerband = talib.BBANDS(data['close'], timeperiod, nbdevup, nbdevdn, matype)
+    m =10000
+    close = m * data['close']
+    upperband, middleband, lowerband = talib.BBANDS(close, timeperiod, nbdevup, nbdevdn, matype)
+
+    upperband = upperband/m
+    middleband = middleband/m
+    lowerband = lowerband/m
 
     return {'upperband' : upperband.tolist()[start:],
             'middleband':middleband.tolist()[start:],
             'lowerband':lowerband.tolist()[start:]}
+
 
 
 def MACD(data, start, fastperiod=12, slowperiod=26, signalperiod=9 ):
@@ -389,3 +396,4 @@ def linear(data, start, period = 30, stdl=10, offset=0):
     return {'upperband': up_channel[magic_limit:], 'middleband':indicator_values[magic_limit:], 'lowerband': bottom_channel[magic_limit:]}
 
 #############################################################################################################
+
