@@ -43,10 +43,6 @@ fetchNewImage = ->
       ctx.textAlign = 'center'
       date = $.format.date(new Date().toISOString(), 'yyyy-MM-dd HH:mm UTC')
       ctx.fillText(date, 1810, 200)
-      ctx.font = '17px PT Sans'
-      ctx.fillText('Provided information is not an investing advice', 1810, 1007)
-      ctx.textAlign = 'left'
-      offset = 220
     chart.src = newUrl
 
 fetchExistingImage = ->
@@ -83,9 +79,6 @@ fetchExistingImage = ->
       ctx.textAlign = 'center'
       date = $.format.date(new Date().toISOString(), 'yyyy-MM-dd HH:mm UTC')
       ctx.fillText(date, 1810, 200)
-      ctx.font = '17px PT Sans'
-      ctx.fillText('Provided information is not an investing advice', 1810, 1007)
-      ctx.textAlign = 'left'
       offset = 220
       if patterns.length > 0
         offset += 40
