@@ -199,7 +199,7 @@ def run_dbservice():
 
 
 # Database Bitfinex fill
-def bitfinex_fill(client, pair, timeframes, limit, t=2):
+def bitfinex_fill(client, pair, timeframes, limit, t=6):
     for timeframe in timeframes:
         try:
             # Map timeframes for Bitfinex
@@ -239,8 +239,13 @@ def bitfinex_fill(client, pair, timeframes, limit, t=2):
                                     }
                                 ]
                                 client.write_points(json_body)
-                            except:
+                            except Exception as e:
+                                m = str(datetime.datetime.now().strftime(
+                                        "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED ticker write'
+                                logging.warning(m)
+                                logging.error(traceback.format_exc())
                                 pass
+
                         m = str(datetime.datetime.now().strftime(
                             "%Y-%m-%d %H:%M:%S")) + ' ' + pair +' ' + timeframe + ' SUCCEED records: ' + str(len(candel_list))
                         logging.info(m)
@@ -250,7 +255,6 @@ def bitfinex_fill(client, pair, timeframes, limit, t=2):
                             "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED : ' + str(
                             len(candel_list))
                         logging.warning(m)
-                        logging.error(traceback.format_exc())
                         print(m)
                         pass
             else:
@@ -313,4 +317,4 @@ def run_dbfill_selected(pair, timeframe, limit):
 
     ##############################################
     client = InfluxDBClient(host, port, 'root', 'root', db_name)
-    bitfinex_fill(client, pair, timeframes, limit, 0)
+    bitfinex_fill(client, pair, timeframes, limit)
