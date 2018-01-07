@@ -24,10 +24,8 @@ class BitfinexPairDbservice():
         self.timeframes = timeframes
         self.i = 0
 
-        logging.basicConfig(filename='logbook.log',format='%(levelname)s:%(message)s', level=logging.INFO)
-
         # Alter default retention policy
-        q = 'ALTER RETENTION POLICY "autogen" ON '+ self.db +' DURATION 53w DEFAULT'
+        q = 'ALTER RETENTION POLICY "autogen" ON '+self.db+' DURATION 53w DEFAULT'
         self.client.query(q)
 
         # Create retention policy for tickers
@@ -128,12 +126,12 @@ class BitfinexPairDbservice():
     def on_error(self, ws, error):
         m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + ' ' + self.pair + ' error occured!'
         logging.warning(m)
-        self.on_open(ws)
+        #self.on_open(ws)
 
     def on_close(self, ws):
         m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + ' ' + self.pair + ' connection closed.'
         logging.warning(m)
-        self.on_open(ws)
+        #self.on_open(ws)
 
     # Subscribe to new channel
     def on_open(self, ws):
@@ -203,6 +201,12 @@ def run_dbservice():
 # Database Bitfinex fill
 def bitfinex_fill(client, pair, timeframes, limit, t=2):
     for timeframe in timeframes:
+        # Map timeframes for Bitfinex
+        if timeframe == '24h':
+            timeframe = '1D'
+        elif timeframe == '168h':
+            timeframe = '7D'
+
         url = 'https://api.bitfinex.com/v2/candles/trade:' + timeframe + ':t' + pair + '/hist?limit=' + str(
             limit) + '&start=946684800000'
         request = requests.get(url)
@@ -211,7 +215,7 @@ def bitfinex_fill(client, pair, timeframes, limit, t=2):
         # Map timeframes for influx
         if timeframe == '1D':
             timeframe = '24h'
-        elif timeframe == '14D':
+        elif timeframe == '7D':
             timeframe = '168h'
 
         # check if any response and if not error then write candles to influx
@@ -291,14 +295,13 @@ def run_dbfill_full():
         bitfinex_fill(client, pair, timeframes, limit)
 
 
-def run_dbfill_selected(pair, timeframe):
+def run_dbfill_selected(pair, timeframe, limit):
     ################### CONFIG ###################
 
     conf = internal.Config('config.ini', 'services')
     db_name = conf['db_name']
     host = conf['host']
     port = int(conf['port'])
-    limit = int(conf['fill_limit2'])
 
     timeframes = [timeframe]
 

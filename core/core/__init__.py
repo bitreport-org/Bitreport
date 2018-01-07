@@ -203,12 +203,12 @@ class Events(Resource):
 
 
 class Fill(Resource):
-    def service3(self, pair, timeframe):
-        dbservice.run_dbfill_selected(pair, timeframe)
+    def service3(self, pair, timeframe, limit):
+        dbservice.run_dbfill_selected(pair, timeframe, limit)
 
-    def post(self, pair, timeframe):
+    def post(self, pair, timeframe, limit):
         try:
-            thread = threading.Thread(target=self.service3, args=(pair, timeframe))
+            thread = threading.Thread(target=self.service3, args=(pair, timeframe, limit))
             thread.setDaemon(True)
             thread.start()
         except:
@@ -221,11 +221,11 @@ class Fill(Resource):
 api.add_resource(All, '/data/<string:pair>/<string:timeframe>/')
 api.add_resource(Microcaps, '/microcaps')
 api.add_resource(Events, '/events')
-api.add_resource(Fill, '/fill/<string:pair>/<string:timeframe>')
+api.add_resource(Fill, '/fill/<string:pair>/<string:timeframe>/<int:limit>')
 
 
 if __name__ == '__main__':
-    logging.basicConfig(filename='api_app.log', format='%(levelname)s:%(message)s', level=logging.INFO)
+    logging.basicConfig(filename='api_app.log', format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
     start_runner()
     app.run(host='0.0.0.0', debug=False)
