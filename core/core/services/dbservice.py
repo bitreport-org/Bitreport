@@ -201,64 +201,70 @@ def run_dbservice():
 # Database Bitfinex fill
 def bitfinex_fill(client, pair, timeframes, limit, t=2):
     for timeframe in timeframes:
-        # Map timeframes for Bitfinex
-        if timeframe == '24h':
-            timeframe = '1D'
-        elif timeframe == '168h':
-            timeframe = '7D'
+        try:
+            # Map timeframes for Bitfinex
+            if timeframe == '24h':
+                timeframe = '1D'
+            elif timeframe == '168h':
+                timeframe = '7D'
 
-        url = 'https://api.bitfinex.com/v2/candles/trade:' + timeframe + ':t' + pair + '/hist?limit=' + str(
-            limit) + '&start=946684800000'
-        request = requests.get(url)
-        candel_list = request.json()
+            url = 'https://api.bitfinex.com/v2/candles/trade:' + timeframe + ':t' + pair + '/hist?limit=' + str(
+                limit) + '&start=946684800000'
+            request = requests.get(url)
+            candel_list = request.json()
 
-        # Map timeframes for influx
-        if timeframe == '1D':
-            timeframe = '24h'
-        elif timeframe == '7D':
-            timeframe = '168h'
+            # Map timeframes for influx
+            if timeframe == '1D':
+                timeframe = '24h'
+            elif timeframe == '7D':
+                timeframe = '168h'
 
-        # check if any response and if not error then write candles to influx
-        if len(candel_list) > 0:
-            if candel_list[0] != 'error':
-                try:
-                    for i in range(len(candel_list)):
-                        try:
-                            json_body = [
-                                {
-                                    "measurement": pair + timeframe,
-                                    "time": int(1000000 * candel_list[i][0]),
-                                    "fields": {
-                                        "open": float(candel_list[i][1]),
-                                        "close": float(candel_list[i][2]),
-                                        "high": float(candel_list[i][3]),
-                                        "low": float(candel_list[i][4]),
-                                        "volume": float(candel_list[i][5]),
+            # check if any response and if not error then write candles to influx
+            if len(candel_list) > 0:
+                if candel_list[0] != 'error':
+                    try:
+                        for i in range(len(candel_list)):
+                            try:
+                                json_body = [
+                                    {
+                                        "measurement": pair + timeframe,
+                                        "time": int(1000000 * candel_list[i][0]),
+                                        "fields": {
+                                            "open": float(candel_list[i][1]),
+                                            "close": float(candel_list[i][2]),
+                                            "high": float(candel_list[i][3]),
+                                            "low": float(candel_list[i][4]),
+                                            "volume": float(candel_list[i][5]),
+                                        }
                                     }
-                                }
-                            ]
-                            client.write_points(json_body)
-                        except:
-                            pass
-                    m = str(datetime.datetime.now().strftime(
-                        "%Y-%m-%d %H:%M:%S")) + ' ' + pair +' ' + timeframe + ' SUCCEED records: ' + str(len(candel_list))
-                    logging.info(m)
-                    print(m)
-                except Exception as e:
-                    m = str(datetime.datetime.now().strftime(
-                        "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED : ' + str(
-                        len(candel_list))
-                    logging.warning(m)
-                    logging.error(traceback.format_exc())
-                    print(m)
-                    pass
+                                ]
+                                client.write_points(json_body)
+                            except:
+                                pass
+                        m = str(datetime.datetime.now().strftime(
+                            "%Y-%m-%d %H:%M:%S")) + ' ' + pair +' ' + timeframe + ' SUCCEED records: ' + str(len(candel_list))
+                        logging.info(m)
+                        print(m)
+                    except Exception as e:
+                        m = str(datetime.datetime.now().strftime(
+                            "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED : ' + str(
+                            len(candel_list))
+                        logging.warning(m)
+                        logging.error(traceback.format_exc())
+                        print(m)
+                        pass
             else:
                 m = str(datetime.datetime.now().strftime(
-                    "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED Bitfinex api request'
+                    "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED Bitfinex response'
                 logging.warning(m)
 
-        # Avoid blocked API
-        time.sleep(t)
+            # Avoid blocked API
+            time.sleep(t)
+        except Exception as e:
+            m = str(datetime.datetime.now().strftime(
+                "%Y-%m-%d %H:%M:%S")) + ' ' + pair + timeframe + ' FAILED Bitfinex api request'
+            logging.warning(m)
+            logging.error(traceback.format_exc())
 
     # 2h TIMEFRAME DOWNSAMPLING
     now = "'" + str(datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")) + "'"
