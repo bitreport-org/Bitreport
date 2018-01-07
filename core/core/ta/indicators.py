@@ -1,6 +1,7 @@
 import talib
 import numpy as np
 from core.services import internal
+from operator import itemgetter
 
 ###################     TAlib indicators    ###################
 
@@ -229,6 +230,7 @@ def ICM(data, start):
 
     # Tenkan-sen (Conversion Line): (9-period high + 9-period low)/2))
     n1=9
+    #TODO: czy tu ma być [0] czy [None] ?
     conversion_line = [0]*n1
     for i in range(n1, len):
         conversion_line.append((np.max(high[i-n1:i]) + np.min(low[i-n1:i]))/2)
@@ -318,8 +320,6 @@ def MOON(data, start):
 ################################################################
 
 
-
-
 ##################### TEMPORARY - must be deleted after channel implementation #############################
 def channel(data, start, percent=80, margin=26):
     magic_limit = start
@@ -343,6 +343,7 @@ def channel(data, start, percent=80, margin=26):
 
     return {'upperband': up_channel[magic_limit:], 'middleband': channel[magic_limit:],'lowerband':bottom_channel[magic_limit:]}
 
+
 def parabola(data, start, percent=70, margin=26):
     magic_limit = start
     open = data['open']
@@ -365,7 +366,7 @@ def parabola(data, start, percent=70, margin=26):
     poly = np.poly1d(np.polyfit(x, y, 2))
 
     vector = 0 # poly(start) - open[start]
-    std = talib.STDDEV(y, timeperiod=y.size, nbdev=1)[-1]
+    std = talib.STDDEV(y, timeperiod=y.size, nbdev=2)[-1]
 
     z, zp, zm = [], [], []
     for point in longer_x:
@@ -374,6 +375,7 @@ def parabola(data, start, percent=70, margin=26):
         zp.append(poly(point) - vector+std)
 
     return {'middleband': z[magic_limit:], 'upperband': zp[magic_limit:], 'lowerband':zm[magic_limit:]}
+
 
 def linear(data, start, period = 30, stdl=10, offset=0):
     close = data['close']
@@ -395,5 +397,69 @@ def linear(data, start, period = 30, stdl=10, offset=0):
 
     return {'upperband': up_channel[magic_limit:], 'middleband':indicator_values[magic_limit:], 'lowerband': bottom_channel[magic_limit:]}
 
-#############################################################################################################
 
+def wedge(data, start, margin=26):
+    full_size = data['close'].size
+    close = data['close'][start:]
+    close_size = close.size
+
+    point1 = talib.MAXINDEX(close, timeperiod=close_size)[-1]
+    #min_index = talib.MININDEX(close, timeperiod=close_size)[-1]
+
+    # From max_index calculate alpha for points (max_index, close(max_index)), (i, close(i))
+    a_list =[]
+    for i in range(point1+1, close_size-3):
+        a = (close[i] - close[point1]) / (i - point1)
+        b = close[i] - a * i
+
+        a1 = (close[i] - close[point1]) / (i - point1)
+        a2 = (close[i+2] - close[point1]) / (i+2 - point1)
+        a3 = (close[i] - close[point1]) / (i - point1)
+        if a2 < 0.6*a:
+            a_list.append((i,a,b))
+
+    break_tuple1 = max(a_list, key=itemgetter(1))
+    upper_a = break_tuple1[1]
+    upper_b = break_tuple1[2]
+    point2 = break_tuple1[0]
+
+    point3 = point1 + talib.MININDEX(close[point1:point2], timeperiod=point2-point1)[-1]
+
+    a_list = []
+    for i in range(point2 + 1, close_size):
+        a = (close[i] - close[point3]) / (i - point3)
+        b = close[i] - a * i
+        a_list.append((i, a, b))
+
+    break_tuple2 = min(a_list, key=itemgetter(1))
+    lower_a = break_tuple2[1]
+    lower_b = break_tuple2[2]
+    point4 = break_tuple2[0]
+
+    # check if the wedge make sense:
+    up_start_value = upper_a * close[point1] + upper_b
+    down_start_value = lower_a * close[point1] + lower_b
+
+    up_end_value = upper_a * close[point4] + upper_b
+    down_end_value = lower_a * close[point4] +lower_b
+
+
+    if up_start_value-down_start_value < up_end_value - down_end_value:
+        upper_band = [None]*(start + point1-1)
+        middle_band = [None]*(full_size+margin)
+        lower_band = [None]*(start + point1-1)
+
+        for i in range(point1,close_size+margin+1):
+            upper_band.append(upper_a*i + upper_b)
+            lower_band.append(lower_a*i + lower_b)
+    else:
+        upper_band = [None] * (full_size + margin)
+        middle_band = [None] * (full_size + margin)
+        lower_band = [None] * (full_size + margin)
+
+    return {'upperband': upper_band[start:],
+            'middleband': middle_band[start:],
+            'lowerband': lower_band[start:]}
+
+
+#############################################################################################################
