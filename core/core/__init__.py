@@ -188,8 +188,6 @@ class Microcaps(Resource):
 
 
 events_list = []
-
-
 class Events(Resource):
     def get(self):
         return events_list
@@ -215,6 +213,11 @@ class Fill(Resource):
             logging.error(traceback.format_exc())
             return 'Request failed', 500
 
+class Pairs(Resource):
+    def get(self):
+        return conf['pairs2'].split(',')
+
+
 
 ##################### ENDPOINTS ############################
 # Table with name 'pair'
@@ -222,10 +225,11 @@ api.add_resource(All, '/data/<string:pair>/<string:timeframe>/')
 api.add_resource(Microcaps, '/microcaps')
 api.add_resource(Events, '/events')
 api.add_resource(Fill, '/fill/<string:pair>/<string:timeframe>/<int:limit>')
+api.add_resource(Pairs, '/pairs')
 
 
 if __name__ == '__main__':
-    logging.basicConfig(filename='api_app.log', format='%(levelname)s:%(message)s', level=logging.DEBUG)
+    logging.basicConfig(filename='api_app.log', format='%(levelname)s:%(message)s', level=logging.INFO)
 
     start_runner()
     app.run(host='0.0.0.0', debug=False)
