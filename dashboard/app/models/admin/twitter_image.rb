@@ -1,6 +1,6 @@
 module Admin
   class TwitterImage < ApplicationRecord
-    SYMBOLS = %w[BTCUSD ETHUSD LTCUSD IOTBTC IOTUSD EDOUSD DATUSD ZECBTC].freeze
+    SYMBOLS = %w[BTCUSD SANBTC ETHUSD LTCUSD IOTBTC IOTUSD EDOUSD DATUSD ZECBTC ETCBTC GNTBTC].freeze
     TIMEFRAMES = %w[30m 1h 2h 3h 6h 12h 24h 168h].freeze
     attr_reader :price, :change
 
@@ -44,6 +44,7 @@ module Admin
 
     def fetch_data
       Rails.cache.fetch(data_url, expires_in: 10.minutes) do
+        Rails.logger.debug("Fetching: #{data_url}")
         response = HTTParty.get(data_url)
         JSON.parse(response.body)
       end

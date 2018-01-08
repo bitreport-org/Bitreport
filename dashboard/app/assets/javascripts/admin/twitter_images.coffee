@@ -79,6 +79,7 @@ fetchExistingImage = ->
       ctx.textAlign = 'center'
       date = $.format.date(new Date().toISOString(), 'yyyy-MM-dd HH:mm UTC')
       ctx.fillText(date, 1810, 200)
+      ctx.textAlign = 'left'
       offset = 220
       if patterns.length > 0
         offset += 40
