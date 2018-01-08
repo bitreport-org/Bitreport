@@ -19,7 +19,6 @@ def BB(data, start, timeperiod=20, nbdevup=2, nbdevdn=2, matype=0):
             'lowerband':lowerband.tolist()[start:]}
 
 
-
 def MACD(data, start, fastperiod=12, slowperiod=26, signalperiod=9 ):
     macd, signal, hist = talib.MACD(data['close'], fastperiod, slowperiod, signalperiod)
     #
@@ -168,7 +167,7 @@ def EWO(data, start, fast = 5, slow = 35):
 
 
 # Keltner channels:
-def KC(data,start):
+def KC2(data,start):
     # Keltner Channels
     # Middle Line: 20-day exponential moving average
     # Upper Channel Line: 20-day EMA + (2 x ATR(10))
@@ -318,148 +317,3 @@ def MOON(data, start):
     return {'labels': phase_list[start:], 'timestamps': dates[start:]}
 
 ################################################################
-
-
-##################### TEMPORARY - must be deleted after channel implementation #############################
-def channel(data, start, percent=80, margin=26):
-    magic_limit = start
-    close, open, high, low = data['close'], data['open'], data['high'], data['low']
-    avg = (close+open)/2
-
-    length = int(percent/100 * close.size)
-
-    probe_data = avg[:length]
-    a = talib.LINEARREG_SLOPE(probe_data, length)[-1]
-    b = talib.LINEARREG_INTERCEPT(probe_data, length)[-1]
-
-    std = talib.STDDEV(avg, timeperiod=close.size, nbdev=1)[-1]
-
-    up_channel, bottom_channel , channel= [], [], []
-    for i in range(close.size+margin):
-        up_channel.append(i*a+b+std)
-        bottom_channel.append(i * a + b - std)
-        channel.append(i * a + b)
-
-
-    return {'upperband': up_channel[magic_limit:], 'middleband': channel[magic_limit:],'lowerband':bottom_channel[magic_limit:]}
-
-
-def parabola(data, start, percent=70, margin=26):
-    magic_limit = start
-    open = data['open']
-    close = data['close']
-
-    avg = (open+close)/2
-
-    # mini = talib.MININDEX(close, open.size)[-1]
-    # maxi = talib.MAXINDEX(close, open.size)[-1]
-
-    start = 0 # min(mini,maxi)
-    end = int(percent/100*close.size) # max(mini,maxi)+1
-
-    x = np.array(range(start, end))
-    longer_x = np.array(range(close.size+margin))
-
-    y = avg[start : end]
-
-    # creates parabola polynomial
-    poly = np.poly1d(np.polyfit(x, y, 2))
-
-    vector = 0 # poly(start) - open[start]
-    std = talib.STDDEV(y, timeperiod=y.size, nbdev=2)[-1]
-
-    z, zp, zm = [], [], []
-    for point in longer_x:
-        z.append(poly(point)-vector)
-        zm.append(poly(point) - vector-std)
-        zp.append(poly(point) - vector+std)
-
-    return {'middleband': z[magic_limit:], 'upperband': zp[magic_limit:], 'lowerband':zm[magic_limit:]}
-
-
-def linear(data, start, period = 30, stdl=10, offset=0):
-    close = data['close']
-    magic_limit = start
-
-    indicator_values = [0] * (period+offset)
-    up_channel, bottom_channel = [0] * (period+offset), [0] * (period+offset)
-
-    for i in range(period,close.size):
-        probe_data = close[i-period : i]
-        a = talib.LINEARREG_SLOPE(probe_data, period)[-1]
-        b = talib.LINEARREG_INTERCEPT(probe_data, period)[-1]
-        y = a*(period+offset)+ b
-        std = talib.STDDEV(probe_data, timeperiod=stdl, nbdev=2)[-1]
-
-        indicator_values.append(y)
-        up_channel.append(y + std)
-        bottom_channel.append(y - std)
-
-    return {'upperband': up_channel[magic_limit:], 'middleband':indicator_values[magic_limit:], 'lowerband': bottom_channel[magic_limit:]}
-
-
-def wedge(data, start, margin=26):
-    full_size = data['close'].size
-    close = data['close'][start:]
-    close_size = close.size
-
-    point1 = talib.MAXINDEX(close, timeperiod=close_size)[-1]
-    #min_index = talib.MININDEX(close, timeperiod=close_size)[-1]
-
-    # From max_index calculate alpha for points (max_index, close(max_index)), (i, close(i))
-    a_list =[]
-    for i in range(point1+1, close_size-3):
-        a = (close[i] - close[point1]) / (i - point1)
-        b = close[i] - a * i
-
-        a1 = (close[i] - close[point1]) / (i - point1)
-        a2 = (close[i+2] - close[point1]) / (i+2 - point1)
-        a3 = (close[i] - close[point1]) / (i - point1)
-        if a2 < 0.6*a:
-            a_list.append((i,a,b))
-
-    break_tuple1 = max(a_list, key=itemgetter(1))
-    upper_a = break_tuple1[1]
-    upper_b = break_tuple1[2]
-    point2 = break_tuple1[0]
-
-    point3 = point1 + talib.MININDEX(close[point1:point2], timeperiod=point2-point1)[-1]
-
-    a_list = []
-    for i in range(point2 + 1, close_size):
-        a = (close[i] - close[point3]) / (i - point3)
-        b = close[i] - a * i
-        a_list.append((i, a, b))
-
-    break_tuple2 = min(a_list, key=itemgetter(1))
-    lower_a = break_tuple2[1]
-    lower_b = break_tuple2[2]
-    point4 = break_tuple2[0]
-
-    # check if the wedge make sense:
-    up_start_value = upper_a * close[point1] + upper_b
-    down_start_value = lower_a * close[point1] + lower_b
-
-    up_end_value = upper_a * close[point4] + upper_b
-    down_end_value = lower_a * close[point4] +lower_b
-
-
-    if up_start_value-down_start_value < up_end_value - down_end_value:
-        upper_band = [None]*(start + point1-1)
-        middle_band = [None]*(full_size+margin)
-        lower_band = [None]*(start + point1-1)
-
-        for i in range(point1,close_size+margin+1):
-            upper_band.append(upper_a*i + upper_b)
-            lower_band.append(lower_a*i + lower_b)
-    else:
-        upper_band = [None] * (full_size + margin)
-        middle_band = [None] * (full_size + margin)
-        lower_band = [None] * (full_size + margin)
-
-    return {'upperband': upper_band[start:],
-            'middleband': middle_band[start:],
-            'lowerband': lower_band[start:]}
-
-
-#############################################################################################################

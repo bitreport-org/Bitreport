@@ -10,11 +10,13 @@ import traceback
 
 # Internal import
 from core.services import internal, microcaps, eventservice, dbservice
-from core.ta import indicators, levels, patterns
+from core.ta import indicators, levels, patterns, channels
 
 app = Flask(__name__)
 api = Api(app)
 conf = internal.Config('config.ini', 'services')
+
+# TODO: delete dbservices before production deployment
 
 @app.before_first_request
 def activate_job():
@@ -93,26 +95,28 @@ class All(Resource):
         parser = reqparse.RequestParser()
 
         parser.add_argument('limit', type=int, help='Limit must be int')
-        args = parser.parse_args()
-        limit = args.get('limit')
-
         parser.add_argument('untill', type=int, help='Limit must be int')
         args = parser.parse_args()
-        untill = args.get('untill')
 
+        limit = args.get('limit')
+        untill = args.get('untill')
         ############################### DATA REQUEST #####################################
 
-        dict = {}
+        output = {}
 
         if untill != None:
             data = internal.import_numpy_untill(pair, timeframe, limit + magic_limit, untill)
+            if data == False:
+                return 'Error', 500
+
             # SET margin
             margin = 26 #timestamps
 
             # Generate timestamps for future
-            dict['dates'] = internal.generate_dates(data, timeframe, margin)[magic_limit:]
+            dates = internal.generate_dates(data, timeframe, margin)
+            output['dates'] = dates[magic_limit:]
 
-            dict['candles'] = { 'open': data['open'].tolist()[magic_limit:],
+            output['candles'] = { 'open': data['open'].tolist()[magic_limit:],
                                 'high': data['high'].tolist()[magic_limit:],
                                 'close': data['close'].tolist()[magic_limit:],
                                 'low': data['low'].tolist()[magic_limit:],
@@ -120,13 +124,17 @@ class All(Resource):
                             }
         else:
             data = internal.import_numpy(pair, timeframe, limit + magic_limit)
+            if data == False:
+                return 'Error', 500
+
             # SET margin
             margin = 26  # timestamps
 
             # Generate timestamps for future
-            dict['dates'] = internal.generate_dates(data, timeframe, margin)[magic_limit:]
+            dates = internal.generate_dates(data, timeframe, margin)
+            output['dates'] = dates[magic_limit:]
 
-            dict['candles'] = {'open': data['open'].tolist()[magic_limit:],
+            output['candles'] = {'open': data['open'].tolist()[magic_limit:],
                                'high': data['high'].tolist()[magic_limit:],
                                'close': data['close'].tolist()[magic_limit:],
                                'low': data['low'].tolist()[magic_limit:],
@@ -145,7 +153,21 @@ class All(Resource):
                 logging.error(indic)
                 logging.error(traceback.format_exc())
                 pass
-        dict['indicators'] = indidict
+
+        ################################ CHANNELS #########################################
+        #TODO after channels implementation in Dashboard it must be adjusted
+        # Basic channels
+        indidict['channel'] = channels.channel(data, start=magic_limit)
+        indidict['parabola'] = channels.parabola(data, start=magic_limit)
+        indidict['fallingwedge'] = channels.fallingwedge(data, start=magic_limit)
+
+        # LAST CHANNELS
+        lasts = channels.create_channels(dates, pair, timeframe, magic_limit)
+        indidict['last_channel'] = lasts['last_channel']
+        indidict['last_parabola'] = lasts['last_parabola']
+        indidict['last_fallingwedge'] = lasts['last_fallingwedge']
+
+        output['indicators'] = indidict
 
         ################################ PATTERNS ########################################
         # Short data for patterns:
@@ -153,33 +175,21 @@ class All(Resource):
         pat_data = internal.import_numpy(pair, timeframe, limit)
 
         try:
-            dict['patterns'] = patterns.CheckAllPatterns(pat_data)
+            output['patterns'] = patterns.CheckAllPatterns(pat_data)
         except Exception as e:
             logging.error(traceback.format_exc())
+            output['patterns']=[]
             pass
 
         ################################ LEVELS ##########################################
+        try:
+            output['levels'] = levels.srlevels(data)
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            output['levels']=[]
+            pass
 
-        dict['levels'] = levels.srlevels(data)
-
-        ################################ CHANNELS #########################################
-        # TODO after channels implementation it must be adjusted
-        # try:
-        #     channel_list = channel_list[0].split(',')
-        # except:
-        #     pass
-        #
-        # chdict = {}
-        # if channel_list != None:
-        #     for ch in channel_list:
-        #         try:
-        #             chdict[ch] = getattr(channels, ch)(data, magic_limit = magic_limit)
-        #         except Exception as e:
-        #             #print(ch, e)
-        #             pass
-        #     dict['channels'] = chdict
-
-        return dict
+        return output, 200
 
 
 class Microcaps(Resource):
@@ -217,6 +227,29 @@ class Pairs(Resource):
     def get(self):
         return conf['pairs2'].split(',')
 
+class Channels(Resource):
+    def post(self, pair, timeframe):
+        parser = reqparse.RequestParser()
+
+        parser.add_argument('limit', type=int, help='Limit must be int')
+        parser.add_argument('channel_type')
+        args = parser.parse_args()
+
+        limit = args.get('limit')
+        channel_type = args.get('channel_type')
+
+        return channels.save_channel(pair, timeframe, limit, channel_type)
+
+    def get(self, pair, timeframe):
+        parser = reqparse.RequestParser()
+        parser.add_argument('channel_type')
+        args = parser.parse_args()
+        channel_type = args.get('channel_type')
+
+        l=channels.last_channel(pair, timeframe, channel_type)
+
+        return l
+
 
 
 ##################### ENDPOINTS ############################
@@ -226,11 +259,12 @@ api.add_resource(Microcaps, '/microcaps')
 api.add_resource(Events, '/events')
 api.add_resource(Fill, '/fill/<string:pair>/<string:timeframe>/<int:limit>')
 api.add_resource(Pairs, '/pairs')
+api.add_resource(Channels, '/channel/<string:pair>/<string:timeframe>')
 
 
 if __name__ == '__main__':
-    logging.basicConfig(filename='api_app.log', format='%(levelname)s:%(message)s', level=logging.INFO)
-
+    logging.basicConfig(filename='api_app.log', format='%(levelname)s:%(message)s', level=logging.DEBUG)
+    
     start_runner()
     app.run(host='0.0.0.0', debug=False)
 
