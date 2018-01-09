@@ -120,61 +120,168 @@ def fallingwedge(data, start, margin=26):
 
     # From max_index calculate alpha for points (max_index, close(max_index)), (i, close(i))
     a_list = []
-    for i in range(point1 + 1, close_size - 3):
-        a = (close[i] - close[point1]) / (i - point1)
-        b = close[i] - a * i
 
-        a1 = (close[i] - close[point1]) / (i - point1)
-        a2 = (close[i + 2] - close[point1]) / (i + 2 - point1)
-        a3 = (close[i] - close[point1]) / (i - point1)
-        if a2 < 0.6 * a:
+    if point1 < close_size-4:
+        for i in range(point1 + 1, close_size - 2):
+            a = (close[i] - close[point1]) / (i - point1)
+            b = close[i] - a * i
+
+            a2 = (close[i + 2] - close[point1]) / (i + 2 - point1)
+            if a2 < 0.8 * a:
+                a_list.append((i, a, b))
+
+        break_tuple1 = max(a_list, key=itemgetter(1))
+        upper_a = break_tuple1[1]
+        upper_b = break_tuple1[2]
+        point2 = break_tuple1[0]
+
+        point3 = point1 + talib.MININDEX(close[point1:point2], timeperiod=point2 - point1)[-1]
+
+        a_list = []
+        for i in range(point2 + 1, close_size):
+            a = (close[i] - close[point3]) / (i - point3)
+            b = close[i] - a * i
             a_list.append((i, a, b))
 
-    break_tuple1 = max(a_list, key=itemgetter(1))
-    upper_a = break_tuple1[1]
-    upper_b = break_tuple1[2]
-    point2 = break_tuple1[0]
+        break_tuple2 = min(a_list, key=itemgetter(1))
+        lower_a = break_tuple2[1]
+        lower_b = break_tuple2[2]
+        point4 = break_tuple2[0]
 
-    point3 = point1 + talib.MININDEX(close[point1:point2], timeperiod=point2 - point1)[-1]
+        # Check if the wedge make sense:
+        # Check if the wedge is expanding
 
-    a_list = []
-    for i in range(point2 + 1, close_size):
-        a = (close[i] - close[point3]) / (i - point3)
-        b = close[i] - a * i
-        a_list.append((i, a, b))
+        up_start_value = upper_a * close[point1] + upper_b
+        down_start_value = lower_a * close[point1] + lower_b
 
-    break_tuple2 = min(a_list, key=itemgetter(1))
-    lower_a = break_tuple2[1]
-    lower_b = break_tuple2[2]
-    point4 = break_tuple2[0]
+        up_end_value = upper_a * close[point4] + upper_b
+        down_end_value = lower_a * close[point4] + lower_b
 
-    # check if the wedge make sense:
-    up_start_value = upper_a * close[point1] + upper_b
-    down_start_value = lower_a * close[point1] + lower_b
+        if up_start_value - down_start_value < up_end_value - down_end_value:
+            upper_band = [None] * (start + point1 - 1)
+            middle_band = [None] * (full_size + margin)
+            lower_band = [None] * (start + point1 - 1)
 
-    up_end_value = upper_a * close[point4] + upper_b
-    down_end_value = lower_a * close[point4] + lower_b
+            for i in range(point1, close_size + margin + 1):
+                up = upper_a * i + upper_b
+                down = lower_a * i + lower_b
+                # Check if wedge arms are crossing
+                if up >= down:
+                    upper_band.append(up)
+                    lower_band.append(down)
+                else:
+                    upper_band.append(None)
+                    lower_band.append(None)
 
-    if up_start_value - down_start_value < up_end_value - down_end_value:
-        upper_band = [None] * (start + point1 - 1)
-        middle_band = [None] * (full_size + margin)
-        lower_band = [None] * (start + point1 - 1)
-
-        for i in range(point1, close_size + margin + 1):
-            upper_band.append(upper_a * i + upper_b)
-            lower_band.append(lower_a * i + lower_b)
-
-        # parameters for channel extrapolation
-        x0 = data['date'][start + point1]
+            # parameters for channel extrapolation
+            x0 = data['date'][start + point1]
+        else:
+            upper_band = []
+            middle_band = []
+            lower_band = []
+            # parameters for channel extrapolation
+            x0 = 0
     else:
         upper_band = [None] * (full_size + margin)
         middle_band = [None] * (full_size + margin)
         lower_band = [None] * (full_size + margin)
-        # parameters for channel extrapolation
         x0 = 0
+        lower_b, lower_a, upper_a, upper_b = 0,0,0,0
 
     # parameters for channel extrapolation
     dx = int(data['date'][1]-data['date'][0])
+
+    return {'upperband': upper_band[start:],
+            'middleband': middle_band[start:],
+            'lowerband': lower_band[start:],
+            'params': {'x0': x0,
+                       'dx': dx,
+                       'upper': (upper_a, upper_b),
+                       'lower': (lower_a, lower_b)
+                       }}
+
+
+def fallingwedge2(data, start, margin=26):
+    full_size = data['close'].size
+    close = data['close'][start:]
+    close_size = close.size
+
+    point1 = talib.MAXINDEX(close, timeperiod=close_size)[-1]
+    # min_index = talib.MININDEX(close, timeperiod=close_size)[-1]
+
+    # From max_index calculate alpha for points (max_index, close(max_index)), (i, close(i))
+    a_list = []
+
+    if point1 < close_size - 4:
+        for i in range(point1 + 1, close_size - 2):
+            a = (close[i] - close[point1]) / (i - point1)
+            b = close[i] - a * i
+
+            a2 = (close[i + 2] - close[point1]) / (i + 2 - point1)
+            if a2 < 0.8 * a:
+                a_list.append((i, a, b))
+
+        break_tuple1 = max(a_list, key=itemgetter(1))
+        upper_a = break_tuple1[1]
+        upper_b = break_tuple1[2]
+        point2 = break_tuple1[0]
+
+        point3 = point1 + talib.MININDEX(close[point1:point2], timeperiod=point2 - point1)[-1]
+
+        a_list = []
+        for i in range(0, point1):
+            a = (close[i] - close[point3]) / (i - point3)
+            if a >= 0:
+                b = close[i] - a * i
+                a_list.append((i, a, b))
+
+        break_tuple2 = max(a_list, key=itemgetter(1))
+        lower_a = break_tuple2[1]
+        lower_b = break_tuple2[2]
+        point4 = break_tuple2[0]
+
+        # Check if the wedge make sense:
+        # Check if the wedge is expanding
+
+        up_start_value = upper_a * close[point4] + upper_b
+        down_start_value = lower_a * close[point4] + lower_b
+
+        up_end_value = upper_a * close[point3] + upper_b
+        down_end_value = lower_a * close[point3] + lower_b
+
+        if up_start_value - down_start_value < up_end_value - down_end_value or True:
+            upper_band = [None] * (start + point4 - 1)
+            middle_band = [None] * (full_size + margin)
+            lower_band = [None] * (start + point4 - 1)
+
+            for i in range(point4, close_size + margin + 1):
+                up = upper_a * i + upper_b
+                down = lower_a * i + lower_b
+                # Check if wedge arms are crossing
+                if up >= down:
+                    upper_band.append(up)
+                    lower_band.append(down)
+                else:
+                    upper_band.append(None)
+                    lower_band.append(None)
+
+            # parameters for channel extrapolation
+            x0 = data['date'][start + point1]
+        else:
+            upper_band = []
+            middle_band = []
+            lower_band = []
+            # parameters for channel extrapolation
+            x0 = 0
+    else:
+        upper_band = [None] * (full_size + margin)
+        middle_band = [None] * (full_size + margin)
+        lower_band = [None] * (full_size + margin)
+        x0 = 0
+        lower_b, lower_a, upper_a, upper_b = 0, 0, 0, 0
+
+    # parameters for channel extrapolation
+    dx = int(data['date'][1] - data['date'][0])
 
     return {'upperband': upper_band[start:],
             'middleband': middle_band[start:],
@@ -325,5 +432,32 @@ def create_channels(dates, pair, timeframe, start):
             channel_dict['last_fallingwedge'] = {'middleband': [], 'upperband': [], 'lowerband': []}
     else:
         channel_dict['last_fallingwedge'] = {'middleband': [], 'upperband': [], 'lowerband': []}
+
+    # fallingwedge2
+    lastfallingwedge2 = last_channel(pair, timeframe, 'fallingwedge2')
+    if lastfallingwedge != False:
+        middleband = []
+        upperband = []
+        lowerband = []
+
+        params = lastfallingwedge['params']
+        x0 = params['x0']
+        # Check if falling wedge exists
+        if x0 != 0:
+            dx = params['dx']
+            upper = params['upper']
+            lower = params['lower']
+
+            for timestamp in dates:
+                x = int((timestamp - x0) / dx)
+                upperband.append(upper[0] * x + upper[1])
+                lowerband.append(lower[0] * x + lower[1])
+
+            channel_dict['last_fallingwedge2'] = {'middleband': middleband[start:], 'upperband': upperband[start:],
+                                                 'lowerband': lowerband[start:]}
+        else:
+            channel_dict['last_fallingwedge2'] = {'middleband': [], 'upperband': [], 'lowerband': []}
+    else:
+        channel_dict['last_fallingwedge2'] = {'middleband': [], 'upperband': [], 'lowerband': []}
 
     return channel_dict

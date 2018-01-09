@@ -168,7 +168,12 @@ class All(Resource):
             pass
 
         try:
-            indidict['fallingwedge'] = channels.fallingwedge(data, start=magic_limit)
+            indidict['wedge'] = channels.fallingwedge(data, start=magic_limit)
+        except:
+            pass
+
+        try:
+            indidict['wedge2'] = channels.fallingwedge2(data, start=magic_limit)
         except:
             pass
 
@@ -183,7 +188,12 @@ class All(Resource):
         except:
             pass
         try:
-            indidict['last_fallingwedge'] = lasts['last_fallingwedge']
+            indidict['last_wedge'] = lasts['last_fallingwedge']
+        except:
+            pass
+
+        try:
+            indidict['last_wedge2'] = lasts['last_fallingwedge2']
         except:
             pass
 
@@ -312,5 +322,5 @@ if __name__ == '__main__':
     logging.basicConfig(filename='api_app.log', format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
     start_runner()
-    app.run(host='0.0.0.0', debug=False)
+    app.run(host='0.0.0.0', debug=True)
 
