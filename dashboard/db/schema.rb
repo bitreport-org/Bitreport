@@ -15,6 +15,11 @@ ActiveRecord::Schema.define(version: 20171223195020) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
+  create_table "available_pairs", id: false, force: :cascade do |t|
+    t.string "pair", limit: 20, null: false
+    t.string "exchange", limit: 50, null: false
+  end
+
   create_table "push_devices", force: :cascade do |t|
     t.string "endpoint", null: false
     t.string "p256dh"
@@ -28,9 +33,9 @@ ActiveRecord::Schema.define(version: 20171223195020) do
     t.string "symbol", null: false
     t.string "timeframe", null: false
     t.integer "limit"
-    t.string "patterns", array: true
     t.string "indicators", array: true
     t.string "levels"
+    t.string "patterns"
     t.text "comment"
     t.text "image_data"
     t.datetime "created_at", null: false

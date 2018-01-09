@@ -4,6 +4,8 @@ import iso8601
 import configparser
 from influxdb import InfluxDBClient
 import math, decimal, datetime
+import psycopg2
+
 dec = decimal.Decimal
 
 def Config(file, section):
@@ -203,4 +205,54 @@ def what_phase(timestamp):
 
    roundedpos = round(float(pos), 3)
    return (phasename, roundedpos)
+
+#PostgreSQL stuff
+def show_pairs():
+    conf = Config('config.ini', 'services')
+    db = conf['postgre_db']
+    user = conf['postgre_user']
+
+    q = "dbname='" + db + "' host='localhost' "
+    conn = psycopg2.connect(q)
+    cur = conn.cursor()
+
+    SQL = "SELECT * FROM available_pairs;"
+    cur.execute(SQL)
+    rows = cur.fetchall()
+
+    pairs_list = []
+    for row in rows:
+        pairs_list.append(row)
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return  pairs_list
+
+def add_pair(pair, exchange):
+    conf = Config('config.ini', 'services')
+    db = conf['postgre_db']
+    user = conf['postgre_user']
+
+    q = "dbname='"+db+"' host='localhost' "
+    conn = psycopg2.connect(q)
+    cur = conn.cursor()
+
+    data = (pair, exchange)
+    SQL = "SELECT * FROM available_pairs WHERE pair=%s and exchange=%s"
+    cur.execute(SQL, data,)
+    rows=cur.fetchall()
+    if len(rows) == 0:
+        SQL = "INSERT INTO available_pairs VALUES (%s, %s);"
+        cur.execute(SQL, data,)
+        message = 'Pair added'
+    else:
+        message = 'Pair already exist'
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return message
 

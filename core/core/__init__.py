@@ -157,15 +157,35 @@ class All(Resource):
         ################################ CHANNELS #########################################
         #TODO after channels implementation in Dashboard it must be adjusted
         # Basic channels
-        indidict['channel'] = channels.channel(data, start=magic_limit)
-        indidict['parabola'] = channels.parabola(data, start=magic_limit)
-        indidict['fallingwedge'] = channels.fallingwedge(data, start=magic_limit)
+        try:
+            indidict['channel'] = channels.channel(data, start=magic_limit)
+        except:
+            pass
+
+        try:
+            indidict['parabola'] = channels.parabola(data, start=magic_limit)
+        except:
+            pass
+
+        try:
+            indidict['KC'] = channels.fallingwedge(data, start=magic_limit)
+        except:
+            pass
 
         # LAST CHANNELS
         lasts = channels.create_channels(dates, pair, timeframe, magic_limit)
-        indidict['last_channel'] = lasts['last_channel']
-        indidict['last_parabola'] = lasts['last_parabola']
-        indidict['last_fallingwedge'] = lasts['last_fallingwedge']
+        try:
+            indidict['last_channel'] = lasts['last_channel']
+        except:
+            pass
+        try:
+            indidict['last_parabola'] = lasts['last_parabola']
+        except:
+            pass
+        try:
+            indidict['last_fallingwedge'] = lasts['last_fallingwedge']
+        except:
+            pass
 
         output['indicators'] = indidict
 
@@ -225,7 +245,33 @@ class Fill(Resource):
 
 class Pairs(Resource):
     def get(self):
-        return conf['pairs2'].split(',')
+        try:
+            pairs_list = internal.show_pairs()
+            output = []
+            for p in pairs_list:
+                output.append(p[0])
+
+            return output
+        except:
+            return 'Shit!', 500
+
+    def post(self):
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('pair')
+            parser.add_argument('exchange')
+            args = parser.parse_args()
+            exchange = args.get('exchange')
+            pair = args.get('pair')
+            if exchange == None:
+                exchange='bitfinex'
+
+            response = internal.add_pair(pair, exchange)
+            return response
+
+        except:
+            return 'Shit!', 500
+
 
 class Channels(Resource):
     def post(self, pair, timeframe):
@@ -264,7 +310,7 @@ api.add_resource(Channels, '/channel/<string:pair>/<string:timeframe>')
 
 if __name__ == '__main__':
     logging.basicConfig(filename='api_app.log', format='%(levelname)s:%(message)s', level=logging.DEBUG)
-    
+
     start_runner()
     app.run(host='0.0.0.0', debug=False)
 
