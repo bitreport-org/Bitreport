@@ -168,7 +168,7 @@ class All(Resource):
             pass
 
         try:
-            indidict['KC'] = channels.fallingwedge(data, start=magic_limit)
+            indidict['fallingwedge'] = channels.fallingwedge(data, start=magic_limit)
         except:
             pass
 
