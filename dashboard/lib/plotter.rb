@@ -32,9 +32,11 @@ class Plotter
     prepare_volume
     prepare_bands_bg
     prepare_ichimoku_bg
+    prepare_wedge_bg
     prepare_candles
     prepare_bands_fg
     prepare_ichimoku_fg
+    prepare_wedge_fg
     prepare_sar
     prepare_sma
     prepare_ema
@@ -167,6 +169,15 @@ class Plotter
     @data << timestamps.zip(indicators['ICM']['leading span A'], indicators['ICM']['leading span B']).map { |candle| candle.join(' ') }.push('e') * 4
   end
 
+  def prepare_wedge_bg
+    if indicators['wedge']
+      @plots << "using 1:2:4 notitle with filledcurves linecolor '#f4#{YELLOW}'" <<
+        "using 1:2 notitle with lines linecolor '#40#{YELLOW}' lw 1.5" <<
+        "using 1:4 notitle with lines linecolor '#40#{YELLOW}' lw 1.5"
+      @data << timestamps.zip(indicators['wedge']['upperband'], indicators['wedge']['middleband'], indicators['wedge']['lowerband']).map { |candle| candle.join(' ') }.push('e') * 3
+    end
+  end
+
   def prepare_candles
     @plots << 'using 1:2:3:4:5:($5 < $2 ? -1 : 1) notitle with candlesticks palette lw 1.5'
     @data << timestamps.zip(opens, lows, highs, closes).map { |candle| candle.join(' ') }.push('e')
@@ -204,6 +215,13 @@ class Plotter
               "using 1:3 title 'Kijun-sen' with lines linecolor '##{YELLOW}' lw 1.5" <<
               "using 1:4 title 'Chikou' with lines linecolor '#40#{GREEN}' lw 1.5"
     @data << timestamps.zip(indicators['ICM']['conversion line'], indicators['ICM']['base line'], indicators['ICM']['lagging span']).map { |candle| candle.join(' ') }.push('e') * 3
+  end
+
+  def prepare_wedge_fg
+    if indicators['wedge']
+      @plots << "using 1:3 title 'Wedge' with lines linecolor '#40#{YELLOW}' lw 1.5"
+      @data << timestamps.zip(indicators['wedge']['upperband'], indicators['wedge']['middleband'], indicators['wedge']['lowerband']).map { |candle| candle.join(' ') }.push('e')
+    end
   end
 
   def prepare_sar

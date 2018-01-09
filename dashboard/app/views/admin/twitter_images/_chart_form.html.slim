@@ -36,7 +36,7 @@
             .item data-value='HTsin' HTsin
     .field
       = f.label :indicators
-      = f.select :indicators, options_for_select([['Bollinger Bands', 'BB'],['Channel','channel'], ['Parabolic channel', 'parabola'], ['Linear channel','linear'], ['Keltner Channel', 'KC'], ['Tom DeMark Sequential', 'TDS'], ['Ichimoku Cloud', 'ICM'], ['EMA', 'EMA'], ['SMA', 'SMA'],['Linear', 'LIN'], ['SAR', 'SAR']], ['BB', 'SAR']), { prompt: 'Indicators' }, { multiple: true, class: 'ui fluid search dropdown' }
+      = f.select :indicators, options_for_select([['Bollinger Bands', 'BB'], ['Wedge', 'wedge'], ['Channel','channel'], ['Parabolic channel', 'parabola'], ['Linear channel', 'linear'], ['Keltner Channel', 'KC'], ['Tom DeMark Sequential', 'TDS'], ['Ichimoku Cloud', 'ICM'], ['EMA', 'EMA'], ['SMA', 'SMA'],['Linear', 'LIN'], ['SAR', 'SAR']], ['BB', 'SAR']), { prompt: 'Indicators' }, { multiple: true, class: 'ui fluid search dropdown' }
     h4.ui.dividing.header Actions
     = f.button :submit, class: 'ui green right labeled icon button' do
       i.right.arrow.icon
