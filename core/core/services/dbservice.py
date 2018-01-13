@@ -656,8 +656,8 @@ def run_dbfill_selected(pair, timeframe, limit):
     client = InfluxDBClient(host, port, 'root', 'root', db_name)
     status = bitfinex_fill(client, pair, timeframes, limit)
     if status == False:
-        status = bitrex_fill(client, pair, t=0)
+        status = binance_fill(client, pair, timeframes)
         if status == False:
-            status = binance_fill(client, pair, timeframes)
+            status = bitrex_fill(client, pair, t=0)
 
 
