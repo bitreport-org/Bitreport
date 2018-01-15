@@ -739,7 +739,6 @@ def poloniex_fill(client, pair, timeframes,limit, t=4):
                                         }
                                     }
                                 ]
-                                print(json_body)
                                 client.write_points(json_body)
                             except Exception as e:
                                 m = str(datetime.datetime.now().strftime(
