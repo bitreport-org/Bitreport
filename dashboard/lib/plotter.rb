@@ -44,7 +44,7 @@ class Plotter
     prepare_tds
     prepare_patterns
     out << commands
-    out << send((indicators.keys & %w[EWO MACD RSI STOCH LINO HTphasor HTmode HTsin CORRO]).first.downcase.to_sym)
+    out << send((indicators.keys & %w[EWO MACD RSI STOCH LINO OBV MOM STOCHRSI HTphasor HTmode HTsin CORRO]).first.downcase.to_sym)
     io = IO.popen('gnuplot -persist', 'w+')
     io << out.join("\n")
     io.close_write
@@ -211,9 +211,9 @@ class Plotter
 
   def prepare_ichimoku_fg
     return unless indicators['ICM']
-    @plots << "using 1:2 title 'Tenkan-sen' with lines linecolor '##{BLUE}' lw 1.5" <<
-              "using 1:3 title 'Kijun-sen' with lines linecolor '##{YELLOW}' lw 1.5" <<
-              "using 1:4 title 'Chikou' with lines linecolor '#40#{GREEN}' lw 1.5"
+    # @plots << "using 1:2 title 'Tenkan-sen' with lines linecolor '##{BLUE}' lw 1.5" <<
+    #           "using 1:3 title 'Kijun-sen' with lines linecolor '##{YELLOW}' lw 1.5" <<
+    #           "using 1:4 title 'Chikou' with lines linecolor '#40#{GREEN}' lw 1.5"
     @data << timestamps.zip(indicators['ICM']['conversion line'], indicators['ICM']['base line'], indicators['ICM']['lagging span']).map { |candle| candle.join(' ') }.push('e') * 3
   end
 
@@ -430,13 +430,65 @@ class Plotter
       set xrange [#{timestamps.first}:#{timestamps.last}]
       set yrange [0:100]
 
-      set object 1 rect from #{timestamps.first},20 to #{timestamps.last},80 fc rgb '#ee#{PURPLE}' fs solid noborder
-      set arrow 1 from #{timestamps.first},20 to #{timestamps.last},20 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
-      set arrow 2 from #{timestamps.first},80 to #{timestamps.last},80 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
+      set object 1 rect from #{timestamps.first},30 to #{timestamps.last},70 fc rgb '#ee#{PURPLE}' fs solid noborder
+      set arrow 1 from #{timestamps.first},30 to #{timestamps.last},30 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
+      set arrow 2 from #{timestamps.first},70 to #{timestamps.last},70 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
 
       plot '-' using 1:2 notitle with lines lc '##{PURPLE}' lw 1.5
     GNU
     out << timestamps.zip(indicators['RSI']['rsi']).map { |candle| candle.join(' ') }.push('e')
+    out
+  end
+
+  def mom
+    bname = 'MOM'
+    sname = bname.downcase
+    margin = 10 * (indicators[bname][sname].max - indicators[bname][sname].min) / 100
+    out = []
+    out << <<~GNU
+      set size 1.0,0.25
+      set origin 0.0,0.05
+
+      set format x "%Y-%m-%d\\n%H:%M"
+
+      set bmargin 1
+      set tmargin 0
+
+      set label 'MOM' at graph 0.5, graph 0.55 center font ',60' front textcolor '#e6#{WHITE}'
+
+      set offsets 0,0,#{margin},#{margin}
+      set xrange [#{timestamps.first}:#{timestamps.last}]
+      set yrange [*:*]
+
+      plot '-' using 1:2 notitle with lines lc '##{GREEN}' lw 1.5
+    GNU
+    out << timestamps.zip(indicators[bname][sname]).map { |candle| candle.join(' ') }.push('e')
+    out
+  end
+
+  def obv
+    bname = 'OBV'
+    sname = bname.downcase
+    margin = 10 * (indicators[bname][sname].max - indicators[bname][sname].min) / 100
+    out = []
+    out << <<~GNU
+      set size 1.0,0.25
+      set origin 0.0,0.05
+
+      set format x "%Y-%m-%d\\n%H:%M"
+
+      set bmargin 1
+      set tmargin 0
+
+      set label 'OBV' at graph 0.5, graph 0.55 center font ',60' front textcolor '#e6#{WHITE}'
+
+      set offsets 0,0,#{margin},#{margin}
+      set xrange [#{timestamps.first}:#{timestamps.last}]
+      set yrange [*:*]
+
+      plot '-' using 1:2 notitle with lines lc '##{BLUE}' lw 1.5
+    GNU
+    out << timestamps.zip(indicators[bname][sname]).map { |candle| candle.join(' ') }.push('e')
     out
   end
 
@@ -526,6 +578,38 @@ class Plotter
            '-' using 1:3 notitle with lines linecolor '##{YELLOW}' lw 1.5
     GNU
     out << timestamps.zip(indicators['STOCH']['slowk'], indicators['STOCH']['slowd']).map { |candle| candle.join(' ') }.push('e') * 2
+    out
+  end
+
+  def stochrsi
+    bname = 'STOCHRSI'
+    sname = bname.downcase
+    data = [indicators[bname]['fastk'], indicators[bname]['fastd']].flatten
+    margin = 10 * (data.max - data.min) / 100
+    out = []
+    out << <<~GNU
+      set size 1.0,0.25
+      set origin 0.0,0.05
+
+      set format x "%Y-%m-%d\\n%H:%M"
+
+      set bmargin 1
+      set tmargin 0
+
+      set label 'STOCHRSI' at graph 0.5, graph 0.55 center font ',60' front textcolor '#e6#{WHITE}'
+
+      set offsets 0,0,#{margin},#{margin}
+      set xrange [#{timestamps.first}:#{timestamps.last}]
+      set yrange [0:100]
+
+      set object 1 rect from #{timestamps.first},20 to #{timestamps.last},80 fc rgb '#ee#{PURPLE}' fs solid noborder
+      set arrow 1 from #{timestamps.first},20 to #{timestamps.last},20 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
+      set arrow 2 from #{timestamps.first},80 to #{timestamps.last},80 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
+
+      plot '-' using 1:2 notitle with lines linecolor '##{BLUE}' lw 1.5, \\
+           '-' using 1:3 notitle with lines linecolor '##{YELLOW}' lw 1.5
+    GNU
+    out << timestamps.zip(indicators[bname]['fastk'], indicators[bname]['fastd']).map { |candle| candle.join(' ') }.push('e') * 2
     out
   end
 

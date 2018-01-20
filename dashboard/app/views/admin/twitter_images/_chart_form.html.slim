@@ -21,7 +21,7 @@
       .field
         = f.label :indicators, 'Main indicator'
         .ui.selection.dropdown
-          = f.hidden_field :indicators, { multiple: true, value: 'RSI' }
+          = f.hidden_field :indicators, { multiple: true, value: 'MOM' }
           i.dropdown.icon
           .default.text Indicator
           .menu
@@ -31,9 +31,12 @@
             .item data-value='LINO' LINO
             .item data-value='CORRO' CORRO
             .item data-value='STOCH' STOCH
+            .item data-value='STOCHRSI' STOCHRSI
             .item data-value='HTphasor' HTphasor
             .item data-value='HTmode' HTmode
             .item data-value='HTsin' HTsin
+            .item data-value='OBV' OBV
+            .item data-value='MOM' MOM
     .field
       = f.label :indicators
       = f.select :indicators, options_for_select([['Bollinger Bands', 'BB'], ['Wedge', 'wedge'], ['Channel','channel'], ['Parabolic channel', 'parabola'], ['Linear channel', 'linear'], ['Keltner Channel', 'KC'], ['Tom DeMark Sequential', 'TDS'], ['Ichimoku Cloud', 'ICM'], ['EMA', 'EMA'], ['SMA', 'SMA'],['Linear', 'LIN'], ['SAR', 'SAR']], ['BB', 'SAR']), { prompt: 'Indicators' }, { multiple: true, class: 'ui fluid search dropdown' }

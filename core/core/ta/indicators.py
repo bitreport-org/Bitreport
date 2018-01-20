@@ -78,6 +78,9 @@ def SMA(data, start):
 
     return dict
 
+def OBV(data, start):
+    real = talib.OBV(data['close'], data['volume'])
+    return {'obv': real.tolist()[start:]}
 
 def EMA(data, start):
     periods = [10, 20, 50]
@@ -340,7 +343,7 @@ def LINO(data, start, period=20):
 
 
 # Correlation Oscillator
-def CORRO(data, start, oscillator='RSI', period=20):
+def CORRO(data, start, oscillator='RSI', period=50):
     close = data['close']
 
     oscillator_values = getattr(talib, oscillator)(close)
