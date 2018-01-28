@@ -16,33 +16,33 @@ app = Flask(__name__)
 api = Api(app)
 conf = internal.Config('config.ini', 'services')
 
-# TODO: delete dbservices before production deployment
-
-@app.before_first_request
-def activate_job():
-    def db_service():
-        dbservice.run_dbservice()
-
-    def event_service():
-        eventservice.run_events()
-
-    thread1 = threading.Thread(target=db_service)
-    thread2 = threading.Thread(target=event_service)
-    thread1.setDaemon(True)
-    thread2.setDaemon(True)
-
-    thread1.start()
-    thread2.start()
-
-
-@app.route('/dbservice')
-def db_service():
-    def service1():
-        dbservice.run_dbservice()
-
-    thread = threading.Thread(target=service1)
-    thread.setDaemon(True)
-    thread.start()
+# # TODO: delete dbservices before production deployment
+#
+# @app.before_first_request
+# def activate_job():
+#     def db_service():
+#         dbservice.run_dbservice()
+#
+#     def event_service():
+#         eventservice.run_events()
+#
+#     thread1 = threading.Thread(target=db_service)
+#     thread2 = threading.Thread(target=event_service)
+#     thread1.setDaemon(True)
+#     thread2.setDaemon(True)
+#
+#     thread1.start()
+#     thread2.start()
+#
+#
+# @app.route('/dbservice')
+# def db_service():
+#     def service1():
+#         dbservice.run_dbservice()
+#
+#     thread = threading.Thread(target=service1)
+#     thread.setDaemon(True)
+#     thread.start()
 
 
 @app.route('/dbfill')
@@ -241,14 +241,16 @@ class Events(Resource):
 
 
 class Fill(Resource):
-    def service3(self, pair, timeframe, limit):
-        dbservice.run_dbfill_selected(pair, timeframe, limit)
+    def service3(self, pair, exchange, last):
+        dbservice.pair_fill(pair, exchange, last)
 
-    def post(self, pair, timeframe, limit):
+    def post(self, pair, last):
+        exchange = internal.check_exchange(pair)
         try:
-            thread = threading.Thread(target=self.service3, args=(pair, timeframe, limit))
+            thread = threading.Thread(target=self.service3, args=(pair, exchange, last))
             thread.setDaemon(True)
             thread.start()
+            return 'Success', 200
         except:
             logging.error(traceback.format_exc())
             return 'Request failed', 500
@@ -313,7 +315,7 @@ class Channels(Resource):
 api.add_resource(All, '/data/<string:pair>/<string:timeframe>/')
 api.add_resource(Microcaps, '/microcaps')
 api.add_resource(Events, '/events')
-api.add_resource(Fill, '/fill/<string:pair>/<string:timeframe>/<int:limit>')
+api.add_resource(Fill, '/fill/<string:pair>/<int:last>')
 api.add_resource(Pairs, '/pairs')
 api.add_resource(Channels, '/channel/<string:pair>/<string:timeframe>')
 
@@ -322,5 +324,5 @@ if __name__ == '__main__':
     logging.basicConfig(filename='api_app.log', format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
     start_runner()
-    app.run(host='0.0.0.0', debug=True)
+    app.run(host='0.0.0.0', debug=False)
 

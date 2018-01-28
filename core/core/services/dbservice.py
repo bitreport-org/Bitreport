@@ -200,104 +200,98 @@ def run_dbservice():
 
 
 # Database Bitfinex fill
-def bitfinex_fill(client, pair, timeframes, limit, t=6):
-    url = 'https://api.bitfinex.com/v2/candles/trade:1h:t'+pair+'/hist?limit=10&start=946684800000'
-    request = requests.get(url)
-    response = request.json()
+def bitfinex_fill(client, pair, timeframe, limit, t=6):
 
-    if response!=[]:
-        status = True
-        for timeframe in timeframes:
-            try:
-                # Map timeframes for Bitfinex
-                if timeframe == '24h':
-                    timeframe = '1D'
-                elif timeframe == '168h':
-                    timeframe = '7D'
+    try:
+        # Map timeframes for Bitfinex
+        if timeframe == '24h':
+            timeframe = '1D'
+        elif timeframe == '168h':
+            timeframe = '7D'
 
-                url = 'https://api.bitfinex.com/v2/candles/trade:' + timeframe + ':t' + pair + '/hist?limit=' + str(
-                    limit) + '&start=946684800000'
-                request = requests.get(url)
-                candel_list = request.json()
+        url = 'https://api.bitfinex.com/v2/candles/trade:' + timeframe + ':t' + pair + '/hist?limit=' + str(
+            limit) + '&start=946684800000'
+        request = requests.get(url)
+        candel_list = request.json()
 
-                # Map timeframes for influx
-                if timeframe == '1D':
-                    timeframe = '24h'
-                elif timeframe == '7D':
-                    timeframe = '168h'
+        # Map timeframes for influx
+        if timeframe == '1D':
+            timeframe = '24h'
+        elif timeframe == '7D':
+            timeframe = '168h'
 
-                # check if any response and if not error then write candles to influx
-                if len(candel_list) > 0:
-                    if candel_list[0] != 'error':
+        # check if any response and if not error then write candles to influx
+        if len(candel_list) > 0:
+            if candel_list[0] != 'error':
+                try:
+                    for i in range(len(candel_list)):
                         try:
-                            for i in range(len(candel_list)):
-                                try:
-                                    json_body = [
-                                        {
-                                            "measurement": pair + timeframe,
-                                            "time": int(1000000 * candel_list[i][0]),
-                                            "fields": {
-                                                "open": float(candel_list[i][1]),
-                                                "close": float(candel_list[i][2]),
-                                                "high": float(candel_list[i][3]),
-                                                "low": float(candel_list[i][4]),
-                                                "volume": float(candel_list[i][5]),
-                                            }
-                                        }
-                                    ]
-                                    client.write_points(json_body)
-                                except Exception as e:
-                                    m = str(datetime.datetime.now().strftime(
-                                            "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED ticker write'
-                                    logging.warning(m)
-                                    logging.error(traceback.format_exc())
-                                    pass
-
-                            m = str(datetime.datetime.now().strftime(
-                                "%Y-%m-%d %H:%M:%S")) + ' ' + pair +' ' + timeframe + ' SUCCEED records: ' + str(len(candel_list))
-                            logging.info(m)
-                            print(m)
+                            json_body = [
+                                {
+                                    "measurement": pair + timeframe,
+                                    "time": int(1000000 * candel_list[i][0]),
+                                    "fields": {
+                                        "open": float(candel_list[i][1]),
+                                        "close": float(candel_list[i][2]),
+                                        "high": float(candel_list[i][3]),
+                                        "low": float(candel_list[i][4]),
+                                        "volume": float(candel_list[i][5]),
+                                    }
+                                }
+                            ]
+                            client.write_points(json_body)
                         except Exception as e:
                             m = str(datetime.datetime.now().strftime(
-                                "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED : ' + str(
-                                len(candel_list))
+                                    "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED ticker write'
                             logging.warning(m)
-                            print(m)
+                            logging.error(traceback.format_exc())
                             pass
-                else:
+
                     m = str(datetime.datetime.now().strftime(
-                        "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED Bitfinex response'
+                        "%Y-%m-%d %H:%M:%S")) + ' ' + pair +' ' + timeframe + ' SUCCEED records: ' + str(len(candel_list))
+                    logging.info(m)
+                    print(m)
+                except Exception as e:
+                    m = str(datetime.datetime.now().strftime(
+                        "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED : ' + str(
+                        len(candel_list))
                     logging.warning(m)
+                    print(m)
+                    pass
+        else:
+            m = str(datetime.datetime.now().strftime(
+                "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED Bitfinex response'
+            logging.warning(m)
 
-                # Avoid blocked API
-                time.sleep(t)
-            except Exception as e:
-                m = str(datetime.datetime.now().strftime(
-                    "%Y-%m-%d %H:%M:%S")) + ' ' + pair + timeframe + ' FAILED Bitfinex api request'
-                logging.warning(m)
-                logging.error(traceback.format_exc())
+        if timeframe == '1h':
+            for tf in ['2h', '3h', '6h', '12h', '24h', '168h']:
+                #IMEFRAME DOWNSAMPLING
+                now = "'" + str(datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")) + "'"
+                try:
+                    query = 'SELECT first(open) AS open, max(high) AS high, min(low) AS low, last(close) AS close, sum(volume) AS volume ' \
+                            'INTO ' + pair + tf+' FROM ' + pair + '1h WHERE time <=' + now + ' GROUP BY time('+tf+')'
 
-        # 2h TIMEFRAME DOWNSAMPLING
-        now = "'" + str(datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")) + "'"
-        try:
-            query = 'SELECT first(open) AS open, max(high) AS high, min(low) AS low, last(close) AS close, sum(volume) AS volume ' \
-                    'INTO ' + pair + '2h FROM ' + pair + '1h WHERE time <=' + now + ' GROUP BY time(2h)'
+                    client.query(query)
+                except Exception as e:
+                    m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + 'FAILED '+tf+' downsample' + pair
+                    logging.WARNING(m)
+                    logging.error(traceback.format_exc())
+                    print(m)
+                    pass
 
-            client.query(query)
-        except Exception as e:
-            m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + 'FAILED 2h downsample' + pair
-            logging.WARNING(m)
-            logging.error(traceback.format_exc())
-            print(m)
-            pass
+        status = True
 
-    else:
+    except Exception as e:
+        m = str(datetime.datetime.now().strftime(
+            "%Y-%m-%d %H:%M:%S")) + ' ' + pair + timeframe + ' FAILED Bitfinex api request'
+        logging.warning(m)
+        logging.error(traceback.format_exc())
         status=False
 
     return status
 
 
-def bitrex_fill(client, pair, t=2):
+def bittrex_fill(client, pair, timeframe, limit, t=2):
     name_map = {'30m': 'thirtyMin',
                 '1h': 'hour',
                 '2h': 'hour',
@@ -315,210 +309,154 @@ def bitrex_fill(client, pair, t=2):
     req_pair = end_pair + '-' + start_pair
 
     status = False
-    # Minutes
-    try:
-        url = 'https://bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=' + req_pair + '&tickInterval=thirtyMin'
-        request = requests.get(url)
-        response = request.json()
 
-        # check if any response and if not error then write candles to influx
-        if response['success'] == True:
-            candel_list = response['result']
-            try:
-                for row in candel_list:
-                    try:
-                        json_body = [
-                            {
-                                "measurement": pair + '30m',
-                                "time": row['T'],
-                                "fields": {
-                                    "open": float(row['O']),
-                                    "close": float(row['C']),
-                                    "high": float(row['H']),
-                                    "low": float(row['L']),
-                                    "volume": float(row['BV']),
+    if timeframe == '1h':
+        # HOURS
+        try:
+            url = 'https://bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=' + req_pair + '&tickInterval=hour'
+            request = requests.get(url)
+            response = request.json()
+
+            # check if any response and if not error then write candles to influx
+            if response['success'] == True:
+                candel_list= response['result']
+                try:
+                    for row in candel_list:
+                        try:
+                            json_body = [
+                                {
+                                    "measurement": pair + '1h',
+                                    "time": row['T'],
+                                    "fields": {
+                                        "open": float(row['O']),
+                                        "close": float(row['C']),
+                                        "high": float(row['H']),
+                                        "low": float(row['L']),
+                                        "volume": float(row['BV']),
+                                    }
                                 }
-                            }
-                        ]
-                        client.write_points(json_body)
-                    except Exception as e:
-                        m = str(datetime.datetime.now().strftime(
-                            "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' 30m FAILED ticker write'
-                        logging.warning(m)
-                        logging.error(traceback.format_exc())
-                        pass
+                            ]
+                            client.write_points(json_body)
+                        except Exception as e:
+                            m = str(datetime.datetime.now().strftime(
+                                    "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' hour FAILED ticker write'
+                            logging.warning(m)
+                            logging.error(traceback.format_exc())
+                            pass
 
+                    m = str(datetime.datetime.now().strftime(
+                        "%Y-%m-%d %H:%M:%S")) + ' ' + pair +' hour SUCCEED '
+                    logging.info(m)
+                    print(m)
+                except Exception as e:
+                    m = str(datetime.datetime.now().strftime(
+                        "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' hour FAILED ticker write'
+                    logging.warning(m)
+                    print(m)
+                    pass
+            else:
                 m = str(datetime.datetime.now().strftime(
-                    "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' 30m SUCCEED '
-                logging.info(m)
-                print(m)
-                status = True
-
-            except Exception as e:
-                m = str(datetime.datetime.now().strftime(
-                    "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' 30m FAILED ticker write'
+                    "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' hour FAILED Bitrex response ' + response['message']
                 logging.warning(m)
+
+            # Avoid blocked API
+            time.sleep(t)
+        except Exception as e:
+            m = str(datetime.datetime.now().strftime(
+                "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' hour FAILED Bitrex api request'
+            logging.warning(m)
+            logging.error(traceback.format_exc())
+
+    elif timeframe == '24h':
+        # DAYS
+        try:
+            url = 'https://bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=' + req_pair + '&tickInterval=day'
+            request = requests.get(url)
+            response = request.json()
+
+            # check if any response and if not error then write candles to influx
+            if response['success'] == True:
+                candel_list= response['result']
+                try:
+                    for row in candel_list:
+                        try:
+                            json_body = [
+                                {
+                                    "measurement": pair + '24h',
+                                    "time": row['T'],
+                                    "fields": {
+                                        "open": float(row['O']),
+                                        "close": float(row['C']),
+                                        "high": float(row['H']),
+                                        "low": float(row['L']),
+                                        "volume": float(row['BV']),
+                                    }
+                                }
+                            ]
+                            client.write_points(json_body)
+                        except Exception as e:
+                            m = str(datetime.datetime.now().strftime(
+                                "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' day FAILED ticker write'
+                            logging.warning(m)
+                            logging.error(traceback.format_exc())
+                            pass
+
+                    m = str(datetime.datetime.now().strftime(
+                        "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' day SUCCEED'
+                    logging.info(m)
+                    print(m)
+                except Exception as e:
+                    m = str(datetime.datetime.now().strftime(
+                        "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' day FAILED ticker write'
+                    logging.warning(m)
+                    print(m)
+                    pass
+            else:
+                m = str(datetime.datetime.now().strftime(
+                    "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' day FAILED Bitrex response ' + response['message']
+                logging.warning(m)
+
+            # Avoid blocked API
+            time.sleep(t)
+        except Exception as e:
+            m = str(datetime.datetime.now().strftime(
+                "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' day FAILED Bitrex api request'
+            logging.warning(m)
+            logging.error(traceback.format_exc())
+
+        # TIMEFRAME DOWNSAMPLING
+        timeframes2 = ['2h', '3h', '6h', '12h', '24h', '168h']
+        now = "'" + str(datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")) + "'"
+        for tf in timeframes2:
+            try:
+                query = 'SELECT first(open) AS open, max(high) AS high, min(low) AS low, last(close) AS close, sum(volume) AS volume ' \
+                        'INTO ' + pair + tf + ' FROM ' + pair + '1h WHERE time <=' + now + ' GROUP BY time(' + tf + ')'
+
+                client.query(query)
+            except Exception as e:
+                m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + 'FAILED ' + tf + ' downsample' + pair
+                logging.WARNING(m)
+                logging.error(traceback.format_exc())
                 print(m)
                 pass
-        else:
-            m = str(datetime.datetime.now().strftime(
-                "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' 30m FAILED Bitrex response ' + response['message']
-            logging.warning(m)
 
-
-        # Avoid blocked API
-        time.sleep(t)
-    except Exception as e:
-        m = str(datetime.datetime.now().strftime(
-            "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' 30m FAILED Bitrex api request'
-        logging.warning(m)
-        logging.error(traceback.format_exc())
-
-    # HOURS
-    try:
-        url = 'https://bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=' + req_pair + '&tickInterval=hour'
-        request = requests.get(url)
-        response = request.json()
-
-        # check if any response and if not error then write candles to influx
-        if response['success'] == True:
-            candel_list= response['result']
-            try:
-                for row in candel_list:
-                    try:
-                        json_body = [
-                            {
-                                "measurement": pair + '1h',
-                                "time": row['T'],
-                                "fields": {
-                                    "open": float(row['O']),
-                                    "close": float(row['C']),
-                                    "high": float(row['H']),
-                                    "low": float(row['L']),
-                                    "volume": float(row['BV']),
-                                }
-                            }
-                        ]
-                        client.write_points(json_body)
-                    except Exception as e:
-                        m = str(datetime.datetime.now().strftime(
-                                "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' hour FAILED ticker write'
-                        logging.warning(m)
-                        logging.error(traceback.format_exc())
-                        pass
-
-                m = str(datetime.datetime.now().strftime(
-                    "%Y-%m-%d %H:%M:%S")) + ' ' + pair +' hour SUCCEED '
-                logging.info(m)
-                print(m)
-            except Exception as e:
-                m = str(datetime.datetime.now().strftime(
-                    "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' hour FAILED ticker write'
-                logging.warning(m)
-                print(m)
-                pass
-        else:
-            m = str(datetime.datetime.now().strftime(
-                "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' hour FAILED Bitrex response ' + response['message']
-            logging.warning(m)
-
-        # Avoid blocked API
-        time.sleep(t)
-    except Exception as e:
-        m = str(datetime.datetime.now().strftime(
-            "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' hour FAILED Bitrex api request'
-        logging.warning(m)
-        logging.error(traceback.format_exc())
-
-    # DAYS
-    try:
-        url = 'https://bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=' + req_pair + '&tickInterval=day'
-        request = requests.get(url)
-        response = request.json()
-
-        # check if any response and if not error then write candles to influx
-        if response['success'] == True:
-            candel_list= response['result']
-            try:
-                for row in candel_list:
-                    try:
-                        json_body = [
-                            {
-                                "measurement": pair + '24h',
-                                "time": row['T'],
-                                "fields": {
-                                    "open": float(row['O']),
-                                    "close": float(row['C']),
-                                    "high": float(row['H']),
-                                    "low": float(row['L']),
-                                    "volume": float(row['BV']),
-                                }
-                            }
-                        ]
-                        client.write_points(json_body)
-                    except Exception as e:
-                        m = str(datetime.datetime.now().strftime(
-                            "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' day FAILED ticker write'
-                        logging.warning(m)
-                        logging.error(traceback.format_exc())
-                        pass
-
-                m = str(datetime.datetime.now().strftime(
-                    "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' day SUCCEED'
-                logging.info(m)
-                print(m)
-            except Exception as e:
-                m = str(datetime.datetime.now().strftime(
-                    "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' day FAILED ticker write'
-                logging.warning(m)
-                print(m)
-                pass
-        else:
-            m = str(datetime.datetime.now().strftime(
-                "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' day FAILED Bitrex response ' + response['message']
-            logging.warning(m)
-
-        # Avoid blocked API
-        time.sleep(t)
-    except Exception as e:
-        m = str(datetime.datetime.now().strftime(
-            "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' day FAILED Bitrex api request'
-        logging.warning(m)
-        logging.error(traceback.format_exc())
-
-    # TIMEFRAME DOWNSAMPLING
-    timeframes = ['2h', '3h', '6h', '12h']
-    now = "'" + str(datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")) + "'"
-    for tf in timeframes:
+        #DOWNSAMPLE 1WEEK
         try:
             query = 'SELECT first(open) AS open, max(high) AS high, min(low) AS low, last(close) AS close, sum(volume) AS volume ' \
-                    'INTO ' + pair + tf + ' FROM ' + pair + '1h WHERE time <=' + now + ' GROUP BY time(' + tf + ')'
+                    'INTO ' + pair + '168h FROM ' + pair + '24h WHERE time <=' + now + ' GROUP BY time(168h)'
 
             client.query(query)
         except Exception as e:
-            m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + 'FAILED ' + tf + ' downsample' + pair
+            m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + 'FAILED 168h downsample' + pair
             logging.WARNING(m)
             logging.error(traceback.format_exc())
             print(m)
-            pass
-
-    #DOWNSAMPLE 1WEEK
-    try:
-        query = 'SELECT first(open) AS open, max(high) AS high, min(low) AS low, last(close) AS close, sum(volume) AS volume ' \
-                'INTO ' + pair + '168h FROM ' + pair + '24h WHERE time <=' + now + ' GROUP BY time(168h)'
-
-        client.query(query)
-    except Exception as e:
-        m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + 'FAILED 168h downsample' + pair
-        logging.WARNING(m)
-        logging.error(traceback.format_exc())
-        print(m)
         pass
 
     return status
 
 
-def binance_fill(client, pair, timeframes=['1h', '2h', '6h', '12h', '24h', '168h'], t=4):
+def binance_fill(client, pair, timeframe, limit, t=4):
     end_pair = pair[-3:]
     start_pair = pair[:-3]
     if end_pair == 'USD':
@@ -526,29 +464,113 @@ def binance_fill(client, pair, timeframes=['1h', '2h', '6h', '12h', '24h', '168h
     req_pair = start_pair + end_pair
     exchange = 'Binance'
 
-    # Binance doesn't have 3 timeframe
-    if timeframes == ['3h']:
-        timeframes = ['1h']
+    try:
+        # Map timeframes for Binance
+        if timeframe == '24h':
+            timeframe = '1d'
+        elif timeframe == '168h':
+            timeframe = '1w'
+        elif timeframe =='3h':
+            timeframe='1h'
 
-    for timeframe in timeframes:
-        try:
-            # Map timeframes for Binance
-            if timeframe == '24h':
-                timeframe = '1d'
-            elif timeframe == '168h':
-                timeframe = '1w'
+        # defualt last 500 candles
+        url = 'https://api.binance.com/api/v1/klines?symbol=' + req_pair + '&interval='+ timeframe
+        request = requests.get(url)
+        candel_list = request.json()
 
-            # defualt last 500 candles
-            url = 'https://api.binance.com/api/v1/klines?symbol=' + req_pair + '&interval='+ timeframe
+        # Map timeframes for influx
+        if timeframe == '1d':
+            timeframe = '24h'
+        elif timeframe == '1w':
+            timeframe = '168h'
+
+        # check if any response and if not error then write candles to influx
+        if isinstance(candel_list,list) == True:
+            try:
+                for i in range(len(candel_list)):
+                    try:
+                        json_body = [
+                            {
+                                "measurement": pair + timeframe,
+                                "time": int(1000000 * candel_list[i][0]),
+                                "fields": {
+                                    "open": float(candel_list[i][1]),
+                                    "close": float(candel_list[i][4]),
+                                    "high": float(candel_list[i][2]),
+                                    "low": float(candel_list[i][3]),
+                                    "volume": float(candel_list[i][5]),
+                                }
+                            }
+                        ]
+                        client.write_points(json_body)
+                    except Exception as e:
+                        m = str(datetime.datetime.now().strftime(
+                            "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED ticker write'
+                        logging.warning(m)
+                        logging.error(traceback.format_exc())
+                        pass
+
+                m = str(datetime.datetime.now().strftime(
+                    "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' SUCCEED records: ' + str(
+                    len(candel_list))
+                logging.info(m)
+                print(m)
+            except Exception as e:
+                m = str(datetime.datetime.now().strftime(
+                    "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED : ' + str(
+                    len(candel_list))
+                logging.warning(m)
+                print(m)
+                pass
+        else:
+            m = str(datetime.datetime.now().strftime(
+                "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED {exchange} response'
+            logging.warning(m)
+
+    except Exception as e:
+        m = str(datetime.datetime.now().strftime(
+            "%Y-%m-%d %H:%M:%S")) + ' ' + pair + timeframe + ' FAILED {exchange} api request'
+        logging.warning(m)
+        logging.error(traceback.format_exc())
+
+    if timeframe == '1h':
+        for tf in ['2h', '3h', '6h', '12h', '24h', '168h']:
+            # IMEFRAME DOWNSAMPLING
+            now = "'" + str(datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")) + "'"
+            try:
+                query = 'SELECT first(open) AS open, max(high) AS high, min(low) AS low, last(close) AS close, sum(volume) AS volume ' \
+                        'INTO ' + pair + tf + ' FROM ' + pair + '1h WHERE time <=' + now + ' GROUP BY time(' + tf + ')'
+
+                client.query(query)
+            except Exception as e:
+                m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + 'FAILED ' + tf + ' downsample' + pair
+                logging.WARNING(m)
+                logging.error(traceback.format_exc())
+                print(m)
+                pass
+
+
+def poloniex_fill(client, pair, timeframe,limit, t=4):
+    #Returns candlestick chart data. Required GET parameters are "currencyPair", "period"
+    # (candlestick period in seconds; valid values are 300, 900, 1800, 7200, 14400, and 86400),
+    # "start", and "end". "Start" and "end" are given in UNIX timestamp format and used to specify
+    # the date range for the data returned. Sample output:
+
+    end_pair = pair[-3:]
+    start_pair = pair[:-3]
+    if end_pair == 'USD':
+        end_pair = end_pair + 'T'
+    req_pair = end_pair + '_' + start_pair
+    exchange = 'Poloniex'
+
+
+    try:
+        # Build 1h
+        if timeframe == '1h':
+            now = int(time.time())
+            url = 'https://poloniex.com/public?command=returnChartData&currencyPair={}&start={}&end={}&period={}'.format(req_pair, now - 6*limit*60*30, now, 1800)
             request = requests.get(url)
             candel_list = request.json()
-
-            # Map timeframes for influx
-            if timeframe == '1d':
-                timeframe = '24h'
-            elif timeframe == '1w':
-                timeframe = '168h'
-
             # check if any response and if not error then write candles to influx
             if isinstance(candel_list,list) == True:
                 try:
@@ -556,14 +578,14 @@ def binance_fill(client, pair, timeframes=['1h', '2h', '6h', '12h', '24h', '168h
                         try:
                             json_body = [
                                 {
-                                    "measurement": pair + timeframe,
-                                    "time": int(1000000 * candel_list[i][0]),
+                                    "measurement": pair + '30m',
+                                    "time": int(1000000000 * candel_list[i]['date']),
                                     "fields": {
-                                        "open": float(candel_list[i][1]),
-                                        "close": float(candel_list[i][4]),
-                                        "high": float(candel_list[i][2]),
-                                        "low": float(candel_list[i][3]),
-                                        "volume": float(candel_list[i][5]),
+                                        "open": float(candel_list[i]['open']),
+                                        "close": float(candel_list[i]['close']),
+                                        "high": float(candel_list[i]['high']),
+                                        "low": float(candel_list[i]['low']),
+                                        "volume": float(candel_list[i]['volume']),
                                     }
                                 }
                             ]
@@ -589,326 +611,251 @@ def binance_fill(client, pair, timeframes=['1h', '2h', '6h', '12h', '24h', '168h
                     pass
             else:
                 m = str(datetime.datetime.now().strftime(
-                    "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED {exchange} response'
+                    "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED {} response'.format(exchange)
                 logging.warning(m)
 
-            # Avoid blocked API
-            time.sleep(t)
-        except Exception as e:
-            m = str(datetime.datetime.now().strftime(
-                "%Y-%m-%d %H:%M:%S")) + ' ' + pair + timeframe + ' FAILED {exchange} api request'
-            logging.warning(m)
-            logging.error(traceback.format_exc())
+            # 1h TIMEFRAME DOWNSAMPLING
+            now = "'" + str(datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")) + "'"
+            try:
+                query = 'SELECT first(open) AS open, max(high) AS high, min(low) AS low, last(close) AS close, sum(volume) AS volume ' \
+                        'INTO ' + pair + '1h FROM ' + pair + '30m WHERE time <=' + now + ' GROUP BY time(1h)'
 
+                client.query(query)
+            except Exception as e:
+                m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + 'FAILED 1h downsample' + pair
+                logging.WARNING(m)
+                logging.error(traceback.format_exc())
+                print(m)
+                pass
 
-        # 3h TIMEFRAME DOWNSAMPLING
-        now = "'" + str(datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")) + "'"
-        try:
-            query = 'SELECT first(open) AS open, max(high) AS high, min(low) AS low, last(close) AS close, sum(volume) AS volume ' \
-                    'INTO ' + pair + '3h FROM ' + pair + '1h WHERE time <=' + now + ' GROUP BY time(3h)'
+            # TIMEFRAME DOWNSAMPLING
+            for tf in ['2h', '3h', '6h', '12h', '24h', '168h']:
+                now = "'" + str(datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")) + "'"
+                try:
+                    query = 'SELECT first(open) AS open, max(high) AS high, min(low) AS low, last(close) AS close, sum(volume) AS volume ' \
+                            'INTO ' + pair + tf+' FROM ' + pair + '1h WHERE time <=' + now + ' GROUP BY time('+tf+')'
+                    client.query(query)
+                except Exception as e:
+                    m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + 'FAILED '+tf+' downsample' + pair
+                    logging.WARNING(m)
+                    logging.error(traceback.format_exc())
+                    print(m)
+                    pass
 
-            client.query(query)
-        except Exception as e:
-            m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + 'FAILED 3h downsample' + pair
-            logging.WARNING(m)
-            logging.error(traceback.format_exc())
-            print(m)
-            pass
+        elif timeframe == '2h':
+            now = time.time()
+            url = 'https://poloniex.com/public?command=returnChartData&currencyPair={}&start={}&end=9999999999&period={}'.format(
+                req_pair, now - 6*limit*60*60*2, 7200)
+            request = requests.get(url)
+            candel_list = request.json()
 
-    else:
-        status = False
+            # check if any response and if not error then write candles to influx
+            if isinstance(candel_list,list) == True:
+                try:
+                    for i in range(len(candel_list)):
+                        try:
+                            #151598160000000000
+                            #1515759780000000000
 
-        return status
-
-def poloniex_fill(client, pair, timeframes,limit, t=4):
-    #Returns candlestick chart data. Required GET parameters are "currencyPair", "period"
-    # (candlestick period in seconds; valid values are 300, 900, 1800, 7200, 14400, and 86400),
-    # "start", and "end". "Start" and "end" are given in UNIX timestamp format and used to specify
-    # the date range for the data returned. Sample output:
-
-    end_pair = pair[-3:]
-    start_pair = pair[:-3]
-    if end_pair == 'USD':
-        end_pair = end_pair + 'T'
-    req_pair = end_pair + '_' + start_pair
-    exchange = 'Poloniex'
-
-    for timeframe in timeframes:
-        try:
-            # Build 1h and 3h
-            if timeframe == '1h' or timeframe == '3h':
-                now = int(time.time())
-                url = 'https://poloniex.com/public?command=returnChartData&currencyPair={}&start={}&end={}&period={}'.format(req_pair, now - 6*limit*60*30, now, 1800)
-                request = requests.get(url)
-                candel_list = request.json()
-                # check if any response and if not error then write candles to influx
-                if isinstance(candel_list,list) == True:
-                    try:
-                        for i in range(len(candel_list)):
-                            try:
-                                json_body = [
-                                    {
-                                        "measurement": pair + '30m',
-                                        "time": int(1000000000 * candel_list[i]['date']),
-                                        "fields": {
-                                            "open": float(candel_list[i]['open']),
-                                            "close": float(candel_list[i]['close']),
-                                            "high": float(candel_list[i]['high']),
-                                            "low": float(candel_list[i]['low']),
-                                            "volume": float(candel_list[i]['volume']),
-                                        }
+                            json_body = [
+                                {
+                                    "measurement": pair + '2h',
+                                    "time": int(1000000000 * candel_list[i]['date']),
+                                    "fields": {
+                                        "open": float(candel_list[i]['open']),
+                                        "close": float(candel_list[i]['close']),
+                                        "high": float(candel_list[i]['high']),
+                                        "low": float(candel_list[i]['low']),
+                                        "volume": float(candel_list[i]['volume']),
                                     }
-                                ]
-                                client.write_points(json_body)
-                            except Exception as e:
-                                m = str(datetime.datetime.now().strftime(
-                                    "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED ticker write'
-                                logging.warning(m)
-                                logging.error(traceback.format_exc())
-                                pass
+                                }
+                            ]
+                            client.write_points(json_body)
+                        except Exception as e:
+                            m = str(datetime.datetime.now().strftime(
+                                "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED ticker write'
+                            logging.warning(m)
+                            logging.error(traceback.format_exc())
+                            pass
 
-                        m = str(datetime.datetime.now().strftime(
-                            "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' SUCCEED records: ' + str(
-                            len(candel_list))
-                        logging.info(m)
-                        print(m)
-                    except Exception as e:
-                        m = str(datetime.datetime.now().strftime(
-                            "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED : ' + str(
-                            len(candel_list))
-                        logging.warning(m)
-                        print(m)
-                        pass
-                else:
                     m = str(datetime.datetime.now().strftime(
-                        "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED {} response'.format(exchange)
+                        "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' SUCCEED records: ' + str(
+                        len(candel_list))
+                    logging.info(m)
+                    print(m)
+                except Exception as e:
+                    m = str(datetime.datetime.now().strftime(
+                        "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED : ' + str(
+                        len(candel_list))
                     logging.warning(m)
-
-                # 1h TIMEFRAME DOWNSAMPLING
-                now = "'" + str(datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")) + "'"
-                try:
-                    query = 'SELECT first(open) AS open, max(high) AS high, min(low) AS low, last(close) AS close, sum(volume) AS volume ' \
-                            'INTO ' + pair + '1h FROM ' + pair + '30m WHERE time <=' + now + ' GROUP BY time(1h)'
-
-                    client.query(query)
-                except Exception as e:
-                    m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + 'FAILED 1h downsample' + pair
-                    logging.WARNING(m)
-                    logging.error(traceback.format_exc())
                     print(m)
                     pass
+            else:
+                m = str(datetime.datetime.now().strftime(
+                    "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED {} response'.format(exchange)
+                logging.warning(m)
 
-                # 3h TIMEFRAME DOWNSAMPLING
-                now = "'" + str(datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")) + "'"
+            # 6h TIMEFRAME DOWNSAMPLING
+            now = "'" + str(datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")) + "'"
+            try:
+                query = 'SELECT first(open) AS open, max(high) AS high, min(low) AS low, last(close) AS close, sum(volume) AS volume ' \
+                        'INTO ' + pair + '6h FROM ' + pair + '2h WHERE time <=' + now + ' GROUP BY time(6h)'
+
+                client.query(query)
+            except Exception as e:
+                m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + 'FAILED 2h downsample' + pair
+                logging.WARNING(m)
+                logging.error(traceback.format_exc())
+                print(m)
+                pass
+
+            # 12h TIMEFRAME DOWNSAMPLING
+            now = "'" + str(datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")) + "'"
+            try:
+                query = 'SELECT first(open) AS open, max(high) AS high, min(low) AS low, last(close) AS close, sum(volume) AS volume ' \
+                        'INTO ' + pair + '12h FROM ' + pair + '2m WHERE time <=' + now + ' GROUP BY time(12h)'
+
+                client.query(query)
+            except Exception as e:
+                m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + 'FAILED 12h downsample' + pair
+                logging.WARNING(m)
+                logging.error(traceback.format_exc())
+                print(m)
+                pass
+        elif timeframe == '24h':
+            now = time.time()
+            url = 'https://poloniex.com/public?command=returnChartData&currencyPair={}&start={}&end=9999999999&period={}'.format(
+                req_pair, now - 7 * limit * 60 * 60 * 24, 86400)
+            request = requests.get(url)
+            candel_list = request.json()
+
+            # check if any response and if not error then write candles to influx
+            if isinstance(candel_list, list) == True:
                 try:
-                    query = 'SELECT first(open) AS open, max(high) AS high, min(low) AS low, last(close) AS close, sum(volume) AS volume ' \
-                            'INTO ' + pair + '3h FROM ' + pair + '30m WHERE time <=' + now + ' GROUP BY time(3h)'
-
-                    client.query(query)
-                except Exception as e:
-                    m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + 'FAILED 3h downsample' + pair
-                    logging.WARNING(m)
-                    logging.error(traceback.format_exc())
-                    print(m)
-                    pass
-            elif timeframe == '6h' or timeframe == '12h':
-                now = time.time()
-                url = 'https://poloniex.com/public?command=returnChartData&currencyPair={}&start={}&end=9999999999&period={}'.format(
-                    req_pair, now - 6*limit*60*60*2, 7200)
-                request = requests.get(url)
-                candel_list = request.json()
-
-                # check if any response and if not error then write candles to influx
-                if isinstance(candel_list,list) == True:
-                    try:
-                        for i in range(len(candel_list)):
-                            try:
-                                #151598160000000000
-                                #1515759780000000000
-
-                                json_body = [
-                                    {
-                                        "measurement": pair + '2h',
-                                        "time": int(1000000000 * candel_list[i]['date']),
-                                        "fields": {
-                                            "open": float(candel_list[i]['open']),
-                                            "close": float(candel_list[i]['close']),
-                                            "high": float(candel_list[i]['high']),
-                                            "low": float(candel_list[i]['low']),
-                                            "volume": float(candel_list[i]['volume']),
-                                        }
+                    for i in range(len(candel_list)):
+                        try:
+                            json_body = [
+                                {
+                                    "measurement": pair + '24h',
+                                    "time": int(1000000000 * candel_list[i]['date']),
+                                    "fields": {
+                                        "open": float(candel_list[i]['open']),
+                                        "close": float(candel_list[i]['close']),
+                                        "high": float(candel_list[i]['high']),
+                                        "low": float(candel_list[i]['low']),
+                                        "volume": float(candel_list[i]['volume']),
                                     }
-                                ]
-                                client.write_points(json_body)
-                            except Exception as e:
-                                m = str(datetime.datetime.now().strftime(
-                                    "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED ticker write'
-                                logging.warning(m)
-                                logging.error(traceback.format_exc())
-                                pass
+                                }
+                            ]
+                            client.write_points(json_body)
+                        except Exception as e:
+                            m = str(datetime.datetime.now().strftime(
+                                "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED ticker write'
+                            logging.warning(m)
+                            logging.error(traceback.format_exc())
+                            pass
 
-                        m = str(datetime.datetime.now().strftime(
-                            "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' SUCCEED records: ' + str(
-                            len(candel_list))
-                        logging.info(m)
-                        print(m)
-                    except Exception as e:
-                        m = str(datetime.datetime.now().strftime(
-                            "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED : ' + str(
-                            len(candel_list))
-                        logging.warning(m)
-                        print(m)
-                        pass
-                else:
                     m = str(datetime.datetime.now().strftime(
-                        "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED {} response'.format(exchange)
-                    logging.warning(m)
-
-                # 6h TIMEFRAME DOWNSAMPLING
-                now = "'" + str(datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")) + "'"
-                try:
-                    query = 'SELECT first(open) AS open, max(high) AS high, min(low) AS low, last(close) AS close, sum(volume) AS volume ' \
-                            'INTO ' + pair + '6h FROM ' + pair + '2h WHERE time <=' + now + ' GROUP BY time(6h)'
-
-                    client.query(query)
-                except Exception as e:
-                    m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + 'FAILED 2h downsample' + pair
-                    logging.WARNING(m)
-                    logging.error(traceback.format_exc())
+                        "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' SUCCEED records: ' + str(
+                        len(candel_list))
+                    logging.info(m)
                     print(m)
-                    pass
-
-                # 12h TIMEFRAME DOWNSAMPLING
-                now = "'" + str(datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")) + "'"
-                try:
-                    query = 'SELECT first(open) AS open, max(high) AS high, min(low) AS low, last(close) AS close, sum(volume) AS volume ' \
-                            'INTO ' + pair + '12h FROM ' + pair + '2m WHERE time <=' + now + ' GROUP BY time(12h)'
-
-                    client.query(query)
                 except Exception as e:
-                    m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + 'FAILED 12h downsample' + pair
-                    logging.WARNING(m)
-                    logging.error(traceback.format_exc())
-                    print(m)
-                    pass
-            elif timeframe == '24h' or timeframe == '168h':
-                now = time.time()
-                url = 'https://poloniex.com/public?command=returnChartData&currencyPair={}&start={}&end=9999999999&period={}'.format(
-                    req_pair, now - 7 * limit * 60 * 60 * 24, 86400)
-                request = requests.get(url)
-                candel_list = request.json()
-
-                # check if any response and if not error then write candles to influx
-                if isinstance(candel_list, list) == True:
-                    try:
-                        for i in range(len(candel_list)):
-                            try:
-                                json_body = [
-                                    {
-                                        "measurement": pair + '24h',
-                                        "time": int(1000000000 * candel_list[i]['date']),
-                                        "fields": {
-                                            "open": float(candel_list[i]['open']),
-                                            "close": float(candel_list[i]['close']),
-                                            "high": float(candel_list[i]['high']),
-                                            "low": float(candel_list[i]['low']),
-                                            "volume": float(candel_list[i]['volume']),
-                                        }
-                                    }
-                                ]
-                                client.write_points(json_body)
-                            except Exception as e:
-                                m = str(datetime.datetime.now().strftime(
-                                    "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED ticker write'
-                                logging.warning(m)
-                                logging.error(traceback.format_exc())
-                                pass
-
-                        m = str(datetime.datetime.now().strftime(
-                            "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' SUCCEED records: ' + str(
-                            len(candel_list))
-                        logging.info(m)
-                        print(m)
-                    except Exception as e:
-                        m = str(datetime.datetime.now().strftime(
-                            "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED : ' + str(
-                            len(candel_list))
-                        logging.warning(m)
-                        print(m)
-                        pass
-                else:
                     m = str(datetime.datetime.now().strftime(
-                        "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED {} response'.format(exchange)
+                        "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED : ' + str(
+                        len(candel_list))
                     logging.warning(m)
-
-                # 168h TIMEFRAME DOWNSAMPLING
-                now = "'" + str(datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")) + "'"
-                try:
-                    query = 'SELECT first(open) AS open, max(high) AS high, min(low) AS low, last(close) AS close, sum(volume) AS volume ' \
-                            'INTO ' + pair + '168h FROM ' + pair + '24h WHERE time <=' + now + ' GROUP BY time(168h)'
-
-                    client.query(query)
-                except Exception as e:
-                    m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + 'FAILED 168h downsample' + pair
-                    logging.WARNING(m)
-                    logging.error(traceback.format_exc())
                     print(m)
                     pass
+            else:
+                m = str(datetime.datetime.now().strftime(
+                    "%Y-%m-%d %H:%M:%S")) + ' ' + pair + ' ' + timeframe + ' FAILED {} response'.format(exchange)
+                logging.warning(m)
 
-            # Avoid blocked API
-            time.sleep(t)
-        except Exception as e:
-            m = str(datetime.datetime.now().strftime(
-                "%Y-%m-%d %H:%M:%S")) + ' ' + pair + timeframe + ' FAILED {} api request'.format(exchange)
-            logging.warning(m)
-            logging.error(traceback.format_exc())
+            # 168h TIMEFRAME DOWNSAMPLING
+            now = "'" + str(datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")) + "'"
+            try:
+                query = 'SELECT first(open) AS open, max(high) AS high, min(low) AS low, last(close) AS close, sum(volume) AS volume ' \
+                        'INTO ' + pair + '168h FROM ' + pair + '24h WHERE time <=' + now + ' GROUP BY time(168h)'
 
-    else:
-        status = False
+                client.query(query)
+            except Exception as e:
+                m = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + 'FAILED 168h downsample' + pair
+                logging.WARNING(m)
+                logging.error(traceback.format_exc())
+                print(m)
+                pass
 
-        return status
+    except Exception as e:
+        m = str(datetime.datetime.now().strftime(
+            "%Y-%m-%d %H:%M:%S")) + ' ' + pair + timeframe + ' FAILED {} api request'.format(exchange)
+        logging.warning(m)
+        logging.error(traceback.format_exc())
 
 
-def run_dbfill_full():
-    ################### CONFIG ###################
-
+def pair_fill(pair, exchange, last):
     conf = internal.Config('config.ini', 'services')
     db_name = conf['db_name']
     host = conf['host']
     port = int(conf['port'])
-    limit = int(conf['fill_limit'])
-
-    pairs = conf['pairs'].split(',')
-    timeframes = conf['fill_timeframes'].split(',')
-
-    ##############################################
-
     client = InfluxDBClient(host, port, 'root', 'root', db_name)
 
-    for pair in pairs:
-        status = bitfinex_fill(client, pair, timeframes, limit)
-        if status == False:
-            bitrex_fill(client, pair, t=6)
+    h_number = int((int(time.time()) - last)/3600)+1
+    threshold = 169
+
+    if exchange == 'bitfinex':
+        if h_number <= threshold:
+            timeframes = ['1h']
+            t = 0
+        else:
+            timeframes = ['1h', '3h', '6h', '12h', '24h', '168h']
+            t = 2
+
+        fill_type = exchange + '_fill'
+        for tf in timeframes:
+            limit = int(h_number / int(tf[:-1])) + 2
+            filler = globals()[fill_type]
+            filler(client, pair, tf, limit, t)
+
+    elif exchange == 'bittrex':
+        if h_number <= threshold:
+            timeframes = ['1h']
+        else:
+            timeframes = ['1h', '24h']
+
+        fill_type = exchange+'_fill'
+        for tf in timeframes:
+            limit = int(h_number/int(tf[:-1]))+2
+            filler = globals()[fill_type]
+            filler(client, pair, tf, limit, t=0)
+
+    elif exchange == 'binance':
+        if h_number <= threshold:
+            timeframes = ['1h']
+            t=0
+        else:
+            timeframes = ['1h', '2h', '6h', '12h', '24h', '168h']
+            t = 1
+
+        fill_type = exchange + '_fill'
+        for tf in timeframes:
+            limit = int(h_number / int(tf[:-1])) + 2
+            filler = globals()[fill_type]
+            filler(client, pair, tf, limit, t)
+
+    elif exchange == 'poloniex':
+        if h_number <= threshold:
+            timeframes = ['1h']
+        else:
+            timeframes = ['1h', '2h', '24h']
+
+        fill_type = exchange + '_fill'
+        for tf in timeframes:
+            limit = int(h_number / int(tf[:-1])) + 2
+            filler = globals()[fill_type]
+            filler(client, pair, tf, limit, t=0)
 
 
-def run_dbfill_selected(pair, timeframe, limit):
-    ################### CONFIG ###################
 
-    conf = internal.Config('config.ini', 'services')
-    db_name = conf['db_name']
-    host = conf['host']
-    port = int(conf['port'])
-
-    timeframes = [timeframe]
-
-    ##############################################
-    client = InfluxDBClient(host, port, 'root', 'root', db_name)
-    status = bitfinex_fill(client, pair, timeframes, limit, t=0)
-    if status == False:
-        status = poloniex_fill(client, pair, timeframes, limit, t=0)
-        if status == False:
-            status = binance_fill(client, pair, timeframes, t=2)
-            if status == False:
-                status = bitrex_fill(client, pair, t=0)
 
 

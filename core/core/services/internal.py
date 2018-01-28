@@ -256,3 +256,25 @@ def add_pair(pair, exchange):
 
     return message
 
+def check_exchange(pair):
+    conf = Config('config.ini', 'services')
+    db = conf['postgre_db']
+    user = conf['postgre_user']
+
+    q = "dbname='" + db + "' host='localhost' "
+    conn = psycopg2.connect(q)
+    cur = conn.cursor()
+
+    q = "dbname='" + db + "' host='localhost' "
+    conn = psycopg2.connect(q)
+    cur = conn.cursor()
+
+    SQL = "SELECT * FROM available_pairs WHERE pair = '{}';".format(pair)
+    cur.execute(SQL)
+    rows = cur.fetchall()
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return rows[0][1]
+
