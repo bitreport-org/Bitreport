@@ -7,6 +7,7 @@ import logging
 import threading
 import requests
 import traceback
+from influxdb import InfluxDBClient
 
 # Internal import
 from core.services import internal, microcaps, eventservice, dbservice
@@ -173,6 +174,11 @@ class All(Resource):
             pass
 
         try:
+            indidict['trend_resistance'] = channels.trend_resistance(data, start=magic_limit)
+        except:
+            pass
+
+        try:
             indidict['wedge2'] = channels.fallingwedge2(data, start=magic_limit)
         except:
             pass
@@ -246,14 +252,17 @@ class Fill(Resource):
 
     def post(self, pair, last):
         exchange = internal.check_exchange(pair)
-        try:
-            thread = threading.Thread(target=self.service3, args=(pair, exchange, last))
-            thread.setDaemon(True)
-            thread.start()
-            return 'Success', 200
-        except:
-            logging.error(traceback.format_exc())
-            return 'Request failed', 500
+        if exchange != 'None':
+            try:
+                thread = threading.Thread(target=self.service3, args=(pair, exchange, last))
+                thread.setDaemon(True)
+                thread.start()
+                return 'Success', 200
+            except:
+                logging.error(traceback.format_exc())
+                return 'Request failed', 500
+        else:
+            return 500
 
 class Pairs(Resource):
     def get(self):
@@ -322,6 +331,13 @@ api.add_resource(Channels, '/channel/<string:pair>/<string:timeframe>')
 
 if __name__ == '__main__':
     logging.basicConfig(filename='api_app.log', format='%(levelname)s:%(message)s', level=logging.DEBUG)
+
+    conf = internal.Config('config.ini', 'services')
+    db_name = conf['db_name']
+    host = conf['host']
+    port = int(conf['port'])
+    client = InfluxDBClient(host, port, 'root', 'root', db_name)
+    client.create_database(db_name)
 
     start_runner()
     app.run(host='0.0.0.0', debug=False)

@@ -99,6 +99,24 @@ def SAR(data, start):
 
     return {'sar': real.tolist()[start:]}
 
+
+def ALLIGATOR(data, start):
+    close = data['close']
+    data_len = close.size
+    output = {}
+
+    N1, N2, N3 = 13, 8, 5
+    jaw = [talib.SUM(close, N1)[N1-1] / N1]
+    teeth = [talib.SUM(close, N2)[N2-1] / N2]
+    lips = [talib.SUM(close, N3)[N3-1] / N3]
+
+    for i in range(1, data_len):
+        jaw.append((jaw[-1] * (N1 - 1) + close[i])/N1)
+        teeth.append((teeth[-1] * (N2 - 1) + close[i])/N2)
+        lips.append((lips[-1] * (N3 - 1) + close[i])/N3)
+
+    return {'jaw': jaw[start:], 'teeth': teeth[start:], 'lips': lips[start:]}
+
 ######### HILBERT transformations ##########
 
 def HT(data, start):
