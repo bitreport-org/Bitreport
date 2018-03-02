@@ -228,7 +228,7 @@ def show_pairs():
     cur.close()
     conn.close()
 
-    return  pairs_list
+    return pairs_list
 
 def add_pair(pair, exchange):
     conf = Config('config.ini', 'services')
@@ -265,13 +265,12 @@ def check_exchange(pair):
     conn = psycopg2.connect(q)
     cur = conn.cursor()
 
-    q = "dbname='" + db + "' host='localhost' "
-    conn = psycopg2.connect(q)
-    cur = conn.cursor()
-
     SQL = "SELECT * FROM available_pairs WHERE pair = '{}';".format(pair)
     cur.execute(SQL)
     rows = cur.fetchall()
+    if rows == []:
+        return 'None'
+
     conn.commit()
     cur.close()
     conn.close()

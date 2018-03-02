@@ -813,7 +813,7 @@ def pair_fill(pair, exchange, last):
 
         fill_type = exchange + '_fill'
         for tf in timeframes:
-            limit = int(h_number / int(tf[:-1])) + 2
+            limit = min(int(h_number / int(tf[:-1])) + 2, 700)
             filler = globals()[fill_type]
             filler(client, pair, tf, limit, t)
 
