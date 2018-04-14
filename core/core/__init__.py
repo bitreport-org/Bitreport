@@ -17,70 +17,10 @@ app = Flask(__name__)
 api = Api(app)
 conf = internal.Config('config.ini', 'services')
 
-# # TODO: delete dbservices before production deployment
-#
-# @app.before_first_request
-# def activate_job():
-#     def db_service():
-#         dbservice.run_dbservice()
-#
-#     def event_service():
-#         eventservice.run_events()
-#
-#     thread1 = threading.Thread(target=db_service)
-#     thread2 = threading.Thread(target=event_service)
-#     thread1.setDaemon(True)
-#     thread2.setDaemon(True)
-#
-#     thread1.start()
-#     thread2.start()
-#
-#
-# @app.route('/dbservice')
-# def db_service():
-#     def service1():
-#         dbservice.run_dbservice()
-#
-#     thread = threading.Thread(target=service1)
-#     thread.setDaemon(True)
-#     thread.start()
-
-
-@app.route('/dbfill')
-def db_fill_full():
-    def service2():
-        dbservice.run_dbfill_full()
-
-    thread = threading.Thread(target=service2)
-    thread.setDaemon(True)
-    thread.start()
-    return 'Database filled'
-
-
 @app.route("/")
 def hello():
     return "Wrong place, is it?"
 
-
-# Activates db_service
-def start_runner():
-    def start_loop():
-        not_started = True
-        while not_started:
-            #print('In start loop')
-            try:
-                r = requests.get('http://0.0.0.0:5000/')
-                if r.status_code == 200:
-                    #print('Server started, quiting start_loop')
-                    not_started = False
-                #print(r.status_code)
-            except:
-                pass
-            time.sleep(2)
-
-    print(str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")), 'START runner')
-    thread = threading.Thread(target=start_loop)
-    thread.start()
 
 #### API ####
 
@@ -91,7 +31,7 @@ magic_limit = int(conf['magic_limit'])
 
 class All(Resource):
     def get(self, pair, timeframe):
-
+        tic = time.time()
         ################################## PARSER #######################################
         parser = reqparse.RequestParser()
 
@@ -105,44 +45,28 @@ class All(Resource):
 
         output = {}
 
+        #TODO request data always with untill parameter
         if untill != None:
             data = internal.import_numpy_untill(pair, timeframe, limit + magic_limit, untill)
-            if data == False:
-                return 'Error', 500
-
-            # SET margin
-            margin = 26 #timestamps
-
-            # Generate timestamps for future
-            dates = internal.generate_dates(data, timeframe, margin)
-            output['dates'] = dates[magic_limit:]
-
-            output['candles'] = { 'open': data['open'].tolist()[magic_limit:],
-                                'high': data['high'].tolist()[magic_limit:],
-                                'close': data['close'].tolist()[magic_limit:],
-                                'low': data['low'].tolist()[magic_limit:],
-                                'volume': data['volume'].tolist()[magic_limit:]
-                            }
         else:
             data = internal.import_numpy(pair, timeframe, limit + magic_limit)
-            if data == False:
-                return 'Error', 500
 
-            # SET margin
-            margin = 26  # timestamps
+        if data == False:
+            return 'Error', 500
 
-            # Generate timestamps for future
-            dates = internal.generate_dates(data, timeframe, margin)
-            output['dates'] = dates[magic_limit:]
+        # SET margin
+        margin = 26  #timestamps
 
-            output['candles'] = {'open': data['open'].tolist()[magic_limit:],
-                               'high': data['high'].tolist()[magic_limit:],
-                               'close': data['close'].tolist()[magic_limit:],
-                               'low': data['low'].tolist()[magic_limit:],
-                               'volume': data['volume'].tolist()[magic_limit:]
-                               }
+        # Generate timestamps for future
+        dates = internal.generate_dates(data, timeframe, margin)
+        output['dates'] = dates[magic_limit:]
 
-
+        output['candles'] = { 'open': data['open'].tolist()[magic_limit:],
+                            'high': data['high'].tolist()[magic_limit:],
+                            'close': data['close'].tolist()[magic_limit:],
+                            'low': data['low'].tolist()[magic_limit:],
+                            'volume': data['volume'].tolist()[magic_limit:]
+                            }
         ################################ INDICATORS ######################################
 
         indicators_list = internal.get_function_list(indicators)
@@ -183,32 +107,12 @@ class All(Resource):
         except:
             pass
 
-        # LAST CHANNELS
-        lasts = channels.create_channels(dates, pair, timeframe, magic_limit)
-        try:
-            indidict['last_channel'] = lasts['last_channel']
-        except:
-            pass
-        try:
-            indidict['last_parabola'] = lasts['last_parabola']
-        except:
-            pass
-        try:
-            indidict['last_wedge'] = lasts['last_fallingwedge']
-        except:
-            pass
-
-        try:
-            indidict['last_wedge2'] = lasts['last_fallingwedge2']
-        except:
-            pass
 
         output['indicators'] = indidict
 
         ################################ PATTERNS ########################################
         # Short data for patterns:
-
-        pat_data = internal.import_numpy(pair, timeframe, limit)
+        pat_data = internal.import_numpy_untill(pair, timeframe, limit, untill)
 
         try:
             output['patterns'] = patterns.CheckAllPatterns(pat_data)
@@ -222,15 +126,11 @@ class All(Resource):
             output['levels'] = levels.srlevels(data)
         except Exception as e:
             logging.error(traceback.format_exc())
-            output['levels']=[]
+            output['levels'] = []
             pass
-
+        toc = time.time()
+        output['response_time'] = '{0:.2f} s'.format(toc-tic)
         return output, 200
-
-
-class Microcaps(Resource):
-    def get(self):
-        return microcaps.microcaps()
 
 
 events_list = []
@@ -272,7 +172,7 @@ class Pairs(Resource):
             for p in pairs_list:
                 output.append(p[0])
 
-            return output
+            return {'pairs':output, 'info':pairs_list}
         except:
             return 'Shit!', 500
 
@@ -294,43 +194,18 @@ class Pairs(Resource):
             return 'Shit!', 500
 
 
-class Channels(Resource):
-    def post(self, pair, timeframe):
-        parser = reqparse.RequestParser()
-
-        parser.add_argument('limit', type=int, help='Limit must be int')
-        parser.add_argument('channel_type')
-        args = parser.parse_args()
-
-        limit = args.get('limit')
-        channel_type = args.get('channel_type')
-
-        return channels.save_channel(pair, timeframe, limit, channel_type)
-
-    def get(self, pair, timeframe):
-        parser = reqparse.RequestParser()
-        parser.add_argument('channel_type')
-        args = parser.parse_args()
-        channel_type = args.get('channel_type')
-
-        l=channels.last_channel(pair, timeframe, channel_type)
-
-        return l
-
-
-
 ##################### ENDPOINTS ############################
 # Table with name 'pair'
 api.add_resource(All, '/data/<string:pair>/<string:timeframe>/')
-api.add_resource(Microcaps, '/microcaps')
 api.add_resource(Events, '/events')
 api.add_resource(Fill, '/fill/<string:pair>/<int:last>')
 api.add_resource(Pairs, '/pairs')
-api.add_resource(Channels, '/channel/<string:pair>/<string:timeframe>')
+#api.add_resource(Channels, '/channel/<string:pair>/<string:timeframe>')
+
 
 
 if __name__ == '__main__':
-    logging.basicConfig(filename='api_app.log', format='%(levelname)s:%(message)s', level=logging.DEBUG)
+    logging.basicConfig(filename='api_app.log', format='%(levelname)s:%(message)s', level=logging.WARNING)
 
     conf = internal.Config('config.ini', 'services')
     db_name = conf['db_name']
@@ -339,6 +214,6 @@ if __name__ == '__main__':
     client = InfluxDBClient(host, port, 'root', 'root', db_name)
     client.create_database(db_name)
 
-    start_runner()
-    app.run(host='0.0.0.0', debug=False)
+    #app.run(host='0.0.0.0', debug=True)
+    app.run(debug=True)
 

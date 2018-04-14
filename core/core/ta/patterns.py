@@ -91,7 +91,7 @@ def CheckAllPatterns(data, patterns_list = 'none', all = 1):
     'CDLXSIDEGAP3METHODS' ]
 
     for pattern in patterns_list:
-        integer = getattr(talib,pattern)(open, high, low, close)
+        integer = getattr(talib, pattern)(open, high, low, close)
         FindPattern(patterns, integer, pattern, data)
 
     return patterns

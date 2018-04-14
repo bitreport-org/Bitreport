@@ -95,8 +95,7 @@ def EMA(data, start):
 
 
 def SAR(data, start):
-    real = talib.SAR(data['high'], data['low'],acceleration=0.02, maximum=0.2)
-
+    real = talib.SAR(data['high'], data['low'], acceleration=0.02, maximum=0.2)
     return {'sar': real.tolist()[start:]}
 
 
@@ -336,37 +335,14 @@ def ICMF(data, start):
             'lagging span': lagging_span.tolist()[start:]}
 
 
-# Linear indicator
-def LIN(data, start, period = 20):
-    close = data['close']
-
-    indicator_values = [0] * period
-    for i in range(period,close.size):
-        probe_data = close[i-period : i]
-        a = talib.LINEARREG_SLOPE(probe_data, period)[-1]
-        b = talib.LINEARREG_INTERCEPT(probe_data, period)[-1]
-        indicator_values.append(a*period+b)
-
-    return {'lin':indicator_values[start:]}
-
-
-# Linear oscillator
-def LINO(data, start, period=20):
-    close = data['close']
-
-    a = talib.LINEARREG_SLOPE(close, period)
-    a = np.degrees(np.arctan(a))
-
-    return {'lino': a.tolist()[start:]}
-
 
 # Correlation Oscillator
 def CORRO(data, start, oscillator='RSI', period=50):
     close = data['close']
 
     oscillator_values = getattr(talib, oscillator)(close)
-
     corr_list= [0]*period
+
     for i in range(period, close.size):
         corr_list.append(np.corrcoef(close[i-period:i], oscillator_values[i-period:i])[0][1])
 
@@ -382,5 +358,3 @@ def MOON(data, start):
         phase_list.append(p[0])
 
     return {'labels': phase_list[start:], 'timestamps': dates[start:]}
-
-################################################################
