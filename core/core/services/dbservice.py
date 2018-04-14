@@ -72,7 +72,7 @@ def bitfinex_fill(client, pair, timeframe, limit):
                 #TIMEFRAME DOWNSAMPLING
                 try:
 
-                    query = "SELECT SELECT " \
+                    query = "SELECT " \
                             "first(open) AS open, " \
                             "max(high) AS high, " \
                             "min(low) AS low, " \
@@ -82,7 +82,7 @@ def bitfinex_fill(client, pair, timeframe, limit):
                     client.query(query)
                 except Exception as e:
                     m = '{} FAILED {} downsample {}'.format(logtime, tf, pair)
-                    logging.WARNING(m)
+                    logging.warning(m)
                     logging.error(traceback.format_exc())
                     print(m)
                     pass
@@ -177,7 +177,7 @@ def bittrex_fill(client, pair, timeframe, limit):
                         client.query(query)
                     except Exception as e:
                         m = '{} FAILED {} downsample {}'.format(logtime, tf, pair)
-                        logging.WARNING(m)
+                        logging.warning(m)
                         logging.error(traceback.format_exc())
                         print(m)
                         pass
@@ -271,7 +271,7 @@ def binance_fill(client, pair, timeframe, limit):
                         client.query(query)
                     except Exception as e:
                         m = '{} FAILED {} downsample {}'.format(logtime, tf, pair)
-                        logging.WARNING(m)
+                        logging.warning(m)
                         logging.error(traceback.format_exc())
                         print(m)
                         pass
@@ -366,7 +366,7 @@ def poloniex_fill(client, pair, timeframe,limit):
                         client.query(query)
                     except Exception as e:
                         m = '{} FAILED {} downsample {}'.format(logtime, tf, pair)
-                        logging.WARNING(m)
+                        logging.warning(m)
                         logging.error(traceback.format_exc())
                         print(m)
                         pass
@@ -387,37 +387,37 @@ def poloniex_fill(client, pair, timeframe,limit):
 
     return status
 
-def pair_fill(pair, exchange, last):
+def pair_fill(pair, exchange):
+    tic = time.time()
+
     conf = internal.Config('config.ini', 'services')
     db_name = conf['db_name']
     host = conf['host']
     port = int(conf['port'])
     client = InfluxDBClient(host, port, 'root', 'root', db_name)
 
-    h_number = int((int(time.time()) - last)/3600)+1
-    threshold = 169
+    last = internal.import_numpy(pair, '1h', 1)
+    if not last:
+        h_number = 168*52
+    else:
+        h_number = int((time.time() - last['date'][0] / 3600))+2
+
 
     if exchange == 'bitfinex':
-        if h_number <= threshold:
-            timeframes = ['1h']
-            t=0
-        else:
-            timeframes = ['1h', '3h', '6h', '12h', '24h', '168h']
-            t = 3
-
+        timeframes = ['1h', '3h', '6h', '12h', '24h', '168h']
         fill_type = exchange + '_fill'
         filler = globals()[fill_type]
 
         for tf in timeframes:
             limit = min(int(h_number / int(tf[:-1])) + 2, 700)
+
+            start = time.time()
             filler(client, pair, tf, limit)
-            time.sleep(t)
+            dt = time.time() - start
+            time.sleep(max(0, 2-dt))
 
     elif exchange == 'bittrex':
-        if h_number <= threshold:
-            timeframes = ['1h']
-        else:
-            timeframes = ['1h', '24h']
+        timeframes = ['1h', '24h']
 
         fill_type = exchange+'_fill'
         filler = globals()[fill_type]
@@ -427,32 +427,36 @@ def pair_fill(pair, exchange, last):
             filler(client, pair, tf, limit)
 
     elif exchange == 'binance':
-        if h_number <= threshold:
-            timeframes = ['1h']
-            t = 0
-        else:
-            timeframes = ['1h', '2h', '6h', '12h', '24h', '168h']
-            t = 2
+
+        timeframes = ['1h', '2h', '6h', '12h', '24h', '168h']
 
         fill_type = exchange + '_fill'
         filler = globals()[fill_type]
 
         for tf in timeframes:
             limit = int(h_number / int(tf[:-1])) + 2
+
+            start = time.time()
             filler(client, pair, tf, limit)
-            time.sleep(t)
+            dt = time.time() - start
+            time.sleep(max(0, 2 - dt))
 
     elif exchange == 'poloniex':
-        if h_number <= threshold:
-            timeframes = ['1h']
-            t = 0
-        else:
-            timeframes = ['1h', '2h', '24h']
-            t = 1
+
+        timeframes = ['1h', '2h', '24h']
+
         fill_type = exchange + '_fill'
         filler = globals()[fill_type]
 
         for tf in timeframes:
             limit = int(h_number / int(tf[:-1])) + 2
+            start = time.time()
+
             filler(client, pair, tf, limit)
-            time.sleep(t)
+            dt = time.time() - start
+            time.sleep(max(0, 1 - dt))
+
+    toc = time.time()
+    m = '{} from {} fill time: {:.2f} ms'.format(pair, exchange, (toc-tic)*1000)
+    logging.warning(m)
+    print(m)
