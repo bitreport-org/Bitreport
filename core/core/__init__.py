@@ -46,7 +46,7 @@ class All(Resource):
         output = {}
 
         #TODO request data always with untill parameter
-        if untill != None:
+        if isinstance(untill, int):
             data = internal.import_numpy_untill(pair, timeframe, limit + magic_limit, untill)
         else:
             data = internal.import_numpy(pair, timeframe, limit + magic_limit)
@@ -111,8 +111,11 @@ class All(Resource):
         output['indicators'] = indidict
 
         ################################ PATTERNS ########################################
-        # Short data for patterns:
-        pat_data = internal.import_numpy_untill(pair, timeframe, limit, untill)
+        # Short data for patterns
+        if isinstance(untill, int):
+            pat_data = internal.import_numpy_untill(pair, timeframe, limit + magic_limit, untill)
+        else:
+            pat_data = internal.import_numpy(pair, timeframe, limit + magic_limit)
 
         try:
             output['patterns'] = patterns.CheckAllPatterns(pat_data)
@@ -147,14 +150,14 @@ class Events(Resource):
 
 
 class Fill(Resource):
-    def service3(self, pair, exchange, last):
-        dbservice.pair_fill(pair, exchange, last)
+    def service3(self, pair, exchange):
+        dbservice.pair_fill(pair, exchange)
 
-    def post(self, pair, last):
+    def post(self, pair):
         exchange = internal.check_exchange(pair)
         if exchange != 'None':
             try:
-                thread = threading.Thread(target=self.service3, args=(pair, exchange, last))
+                thread = threading.Thread(target=self.service3, args=(pair, exchange))
                 thread.setDaemon(True)
                 thread.start()
                 return 'Success', 200
@@ -198,7 +201,7 @@ class Pairs(Resource):
 # Table with name 'pair'
 api.add_resource(All, '/data/<string:pair>/<string:timeframe>/')
 api.add_resource(Events, '/events')
-api.add_resource(Fill, '/fill/<string:pair>/<int:last>')
+api.add_resource(Fill, '/fill/<string:pair>')
 api.add_resource(Pairs, '/pairs')
 #api.add_resource(Channels, '/channel/<string:pair>/<string:timeframe>')
 
@@ -214,6 +217,6 @@ if __name__ == '__main__':
     client = InfluxDBClient(host, port, 'root', 'root', db_name)
     client.create_database(db_name)
 
-    #app.run(host='0.0.0.0', debug=True)
-    app.run(debug=True)
+    app.run(host='0.0.0.0', debug=True)
+    #app.run(debug=True)
 

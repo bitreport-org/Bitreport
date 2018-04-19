@@ -34,8 +34,8 @@ def import_numpy(pair, timeframe, limit):
     # Perform query and return JSON data
     query = 'SELECT * FROM {} ORDER BY time DESC LIMIT {};'.format(pair+timeframe, limit)
     params = 'db={}&q={}&epoch=s'.format(db, query)
-    r = client.request('query', params=params).json()['results'][0]['series'][0]
     try:
+        r = client.request('query', params=params).json()['results'][0]['series'][0]
         candle_list = r['values']
         candle_list.reverse()
         df = pd.DataFrame(candle_list, columns=r['columns'])
@@ -123,8 +123,6 @@ def position(now=None):
    lunations = dec("0.20439731") + (days * dec("0.03386319269"))
 
    return lunations % dec(1)
-
-
 def phase(pos):
    index = (pos * dec(8)) + dec("0.5")
    index = math.floor(index)
@@ -138,8 +136,6 @@ def phase(pos):
       6: "🌗",
       7: "🌘"
    }[int(index) & 7]
-
-
 def what_phase(timestamp):
    t = datetime.datetime.fromtimestamp(int(timestamp))
    pos = position(t)
@@ -169,7 +165,6 @@ def show_pairs():
     conn.close()
 
     return pairs_list
-
 def add_pair(pair, exchange):
     conf = Config('config.ini', 'services')
     db = conf['postgre_db']
@@ -195,7 +190,6 @@ def add_pair(pair, exchange):
     conn.close()
 
     return message
-
 def check_exchange(pair):
     conf = Config('config.ini', 'services')
     db = conf['postgre_db']
