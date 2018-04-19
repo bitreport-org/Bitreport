@@ -398,11 +398,12 @@ def pair_fill(pair, exchange, last):
 
     if last == None:
         last = internal.import_numpy(pair, '1h', 1)
+        last = last['date'][0]
 
     if not last:
         h_number = 168*52
     else:
-        h_number = int((time.time() - last['date'][0] / 3600))+2
+        h_number = int((time.time() - last / 3600))+2
 
 
     if exchange == 'bitfinex':
