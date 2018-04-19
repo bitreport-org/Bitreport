@@ -135,10 +135,10 @@ def fallingwedge(data, start, margin=26):
         upper_b = break_tuple1[2]
         point2 = break_tuple1[0]
 
-        point3 = point1 + talib.MININDEX(close[point1:point2], timeperiod=point2 - point1)[-1]
+        point3 = point1 + talib.MININDEX(close[point1:point2+2], timeperiod=point2 - point1)[-1]
 
         a_list = []
-        for i in range(point2 + 1, close_size):
+        for i in range(point3 + 1, close_size):
             a = (close[i] - close[point3]) / (i - point3)
             b = close[i] - a * i
             a_list.append((i, a, b))
@@ -292,8 +292,92 @@ def fallingwedge2(data, start, margin=26):
                        'lower': (lower_a, lower_b)
                        }}
 
+def trend_resistance(data, start, margin=26):
+    full_size = data['close'].size
+    close = data['close']#[start:]
+    close_size = close.size
+
+    point1 = talib.MAXINDEX(close, timeperiod=close_size)[-1]
+    # min_index = talib.MININDEX(close, timeperiod=close_size)[-1]
+
+    # From max_index calculate alpha for points (max_index, close(max_index)), (i, close(i))
+    a_list = []
+
+    if point1 < close_size-4:
+        # frist tangent
+        for i in range(point1 + 1, close_size - 2):
+            a = (close[i] - close[point1]) / (i - point1)
+            b = close[i] - a * i
+
+            a1 = (close[i + 2] - close[point1]) / (i + 2 - point1)
+            if a1 < 0.8 * a:
+                a_list.append((i, a, b))
+
+        break_tuple1 = max(a_list, key=itemgetter(1))
+        a1 = break_tuple1[1]
+        b1 = break_tuple1[2]
+        point2 = break_tuple1[0]
+        a_list = []
+
+
+        # # second tangent
+        # for i in range(point2 + 1, close_size - 2):
+        #     a = (close[i] - close[point2]) / (i - point2)
+        #     b = close[i] - a * i
+        #
+        #     a2 = (close[i + 2] - close[point2]) / (i + 2 - point2)
+        #     if a2 < 0.8 * a:
+        #         a_list.append((i, a, b))
+        #
+        # break_tuple1 = max(a_list, key=itemgetter(1))
+        # a2 = break_tuple1[1]
+        # b2 = break_tuple1[2]
+        # point3 = break_tuple1[0]
+        # a_list = []
+        #
+        # # third tangent
+        # for i in range(point3 + 1, close_size - 2):
+        #     a = (close[i] - close[point3]) / (i - point3)
+        #     b = close[i] - a * i
+        #
+        #     a3 = (close[i + 2] - close[point3]) / (i + 2 - point3)
+        #     if a3 < 0.8 * a:
+        #         a_list.append((i, a, b))
+        #
+        # break_tuple1 = max(a_list, key=itemgetter(1))
+        # a3 = break_tuple1[1]
+        # b3 = break_tuple1[2]
+
+        resistance1 = [None] * (point1 - 1)
+        resistance2 = [None] #* (point2 - 1)
+        resistance3 = [None] #* (point3 - 1)
+
+        for i in range(point1, close_size + margin + 1):
+            resistance1.append(a1 * i + b1)
+
+        # for i in range(point2, close_size + margin + 1):
+        #     resistance2.append(a2 * i + b2)
+        #
+        # for i in range(point3, close_size + margin + 1):
+        #     resistance3.append(a3 * i + b3)
+        #
+        # print(point1, point2, point3)
+
+    else:
+        resistance1 = [None] * (full_size + margin)
+        resistance2 = [None] * (full_size + margin)
+        resistance3 = [None] * (full_size + margin)
+
+    #print(len(resistance1),len(resistance2),len(resistance3))
+    return {'upperband': resistance1[start:],
+            'middleband': resistance2[start:],
+            'lowerband': resistance3[start:]
+            }
+
+
 
 # Channels saver
+# TODO decide if we are going to use it
 def save_channel(pair, timeframe,limit, channel_type):
     conf = internal.Config('config.ini', 'services')
     db_name = conf['db_name']
