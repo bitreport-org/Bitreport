@@ -68,9 +68,14 @@ class Plotter
     out
   end
 
+  def price_length
+    m = [lows.min - margin, highs.max + margin]
+    (Math.log10((m.max - m.min) / 10).round.abs + 3).clamp(6, 12)
+  end
+
   def preamble
     <<~GNU
-      set lmargin at screen 0.05
+      set lmargin #{price_length + 1}
       set rmargin at screen 0.99
 
       set xdata time
@@ -132,28 +137,28 @@ class Plotter
       @data << timestamps.zip(indicators['BB']['upperband'], indicators['BB']['middleband'], indicators['BB']['lowerband']).map { |candle| candle.join(' ') }.push('e') * 3
     end
     if indicators['KC']
-      @plots << "using 1:2:4 notitle with filledcurves linecolor '#f4#{YELLOW}'" <<
+      @plots << "using 1:2:4 notitle with filledcurves linecolor '#f6#{YELLOW}'" <<
                 "using 1:2 notitle with lines linecolor '#40#{YELLOW}' lw 1.5" <<
                 "using 1:4 notitle with lines linecolor '#40#{YELLOW}' lw 1.5"
       @data << timestamps.zip(indicators['KC']['upperband'], indicators['KC']['middleband'], indicators['KC']['lowerband']).map { |candle| candle.join(' ') }.push('e') * 3
     end
     if indicators['parabola']
       name = 'parabola'
-      @plots << "using 1:2:4 notitle with filledcurves linecolor '#f4#{RED}'" <<
+      @plots << "using 1:2:4 notitle with filledcurves linecolor '#f6#{RED}'" <<
                 "using 1:2 notitle with lines linecolor '#40#{RED}' lw 1.5" <<
                 "using 1:4 notitle with lines linecolor '#40#{RED}' lw 1.5"
       @data << timestamps.zip(indicators[name]['upperband'], indicators[name]['middleband'], indicators[name]['lowerband']).map { |candle| candle.join(' ') }.push('e') * 3
     end
     if indicators['channel']
       name = 'channel'
-      @plots << "using 1:2:4 notitle with filledcurves linecolor '#f4#{YELLOW}'" <<
+      @plots << "using 1:2:4 notitle with filledcurves linecolor '#f6#{YELLOW}'" <<
                 "using 1:2 notitle with lines linecolor '#40#{YELLOW}' lw 1.5" <<
                 "using 1:4 notitle with lines linecolor '#40#{YELLOW}' lw 1.5"
       @data << timestamps.zip(indicators[name]['upperband'], indicators[name]['middleband'], indicators[name]['lowerband']).map { |candle| candle.join(' ') }.push('e') * 3
     end
     if indicators['linear']
       name = 'linear'
-      @plots << "using 1:2:4 notitle with filledcurves linecolor '#f4#{YELLOW}'" <<
+      @plots << "using 1:2:4 notitle with filledcurves linecolor '#f6#{YELLOW}'" <<
                 "using 1:2 notitle with lines linecolor '#40#{YELLOW}' lw 1.5" <<
                 "using 1:4 notitle with lines linecolor '#40#{YELLOW}' lw 1.5"
       @data << timestamps.zip(indicators[name]['upperband'], indicators[name]['middleband'], indicators[name]['lowerband']).map { |candle| candle.join(' ') }.push('e') * 3
@@ -171,10 +176,10 @@ class Plotter
 
   def prepare_wedge_bg
     if indicators['wedge']
-      @plots << "using 1:2:4 notitle with filledcurves linecolor '#f4#{YELLOW}'" <<
+      @plots << "using 1:2:3 notitle with filledcurves linecolor '#f6#{YELLOW}'" <<
         "using 1:2 notitle with lines linecolor '#40#{YELLOW}' lw 1.5" <<
-        "using 1:4 notitle with lines linecolor '#40#{YELLOW}' lw 1.5"
-      @data << timestamps.zip(indicators['wedge']['upperband'], indicators['wedge']['middleband'], indicators['wedge']['lowerband']).map { |candle| candle.join(' ') }.push('e') * 3
+        "using 1:3 notitle with lines linecolor '#40#{YELLOW}' lw 1.5"
+      @data << timestamps.zip(indicators['wedge']['upperband'], indicators['wedge']['lowerband']).map { |candle| candle.join(' ') }.push('e') * 3
     end
   end
 
