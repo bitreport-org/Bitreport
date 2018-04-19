@@ -41,11 +41,11 @@ def import_numpy(pair, timeframe, limit):
         df = pd.DataFrame(candle_list, columns=r['columns'])
 
         candles_dict = {'date': list(df.time),
-                        'open': np.array(df.open),
-                        'close': np.array(df.close),
-                        'high': np.array(df.high),
-                        'low': np.array(df.low),
-                        'volume': np.array(df.volume)
+                        'open': np.array(df.open, dtype='float'),
+                        'close': np.array(df.close, dtype='float'),
+                        'high': np.array(df.high, dtype='float'),
+                        'low': np.array(df.low, dtype='float'),
+                        'volume': np.array(df.volume, dtype='float')
                         }
 
         return candles_dict
@@ -70,11 +70,11 @@ def import_numpy_untill(pair, timeframe, limit, untill):
         df = pd.DataFrame(candle_list, columns=r['columns'])
 
         candles_dict = {'date': list(df.time),
-                        'open': np.array(df.open),
-                        'close': np.array(df.close),
-                        'high': np.array(df.high),
-                        'low': np.array(df.low),
-                        'volume': np.array(df.volume)
+                        'open': np.array(df.open, dtype='float'),
+                        'close': np.array(df.close, dtype='float'),
+                        'high': np.array(df.high, dtype='float'),
+                        'low': np.array(df.low, dtype='float'),
+                        'volume': np.array(df.volume, dtype='float')
                         }
 
         return candles_dict
@@ -147,66 +147,23 @@ def what_phase(timestamp):
 #PostgreSQL stuff
 def show_pairs():
     conf = Config('config.ini', 'services')
-    db = conf['postgre_db']
+    file = conf['exchanges']
+    df = pd.DataFrame(np.load(file), columns=['pair', 'exchange'])
+    return {'pair': df.iloc[:, 0], 'exchange':df.iloc[:, 1]}
 
-    conn = psycopg2.connect(dbname=db, host='localhost')
-    cur = conn.cursor()
-
-    SQL = "SELECT * FROM available_pairs;"
-    cur.execute(SQL)
-    rows = cur.fetchall()
-
-    pairs_list = []
-    for row in rows:
-        pairs_list.append(row)
-
-    conn.commit()
-    cur.close()
-    conn.close()
-
-    return pairs_list
 def add_pair(pair, exchange):
     conf = Config('config.ini', 'services')
-    db = conf['postgre_db']
-
-    q = "dbname='"+db+"' host='localhost' "
-    conn = psycopg2.connect(q)
-    cur = conn.cursor()
-
-    data = (pair, exchange)
-    SQL = "SELECT * FROM available_pairs WHERE pair=%s and exchange=%s"
-    cur.execute(SQL, data,)
-    rows=cur.fetchall()
-
-    if len(rows) == 0:
-        SQL = "INSERT INTO available_pairs VALUES (%s, %s);"
-        cur.execute(SQL, data,)
-        message = 'Pair added'
+    file = conf['exchanges']
+    df = pd.DataFrame(np.load(file), columns=['pair', 'exchange'])
+    df2 = df.isin([pair])
+    if df2[df2['pair'] == True].size != 0:
+        return 'Pair already exists', 200
     else:
-        message = 'Pair already exist'
+        df.append(pd.DataFrame([pair, exchange], columns=['pair', 'exchange']))
+        return 'Pair added', 200
 
-    conn.commit()
-    cur.close()
-    conn.close()
-
-    return message
 def check_exchange(pair):
     conf = Config('config.ini', 'services')
-    db = conf['postgre_db']
-
-    q = "dbname='" + db + "' host='localhost' "
-    conn = psycopg2.connect(q)
-    cur = conn.cursor()
-
-    SQL = "SELECT * FROM available_pairs WHERE pair = '{}';".format(pair)
-    cur.execute(SQL)
-    rows = cur.fetchall()
-    if rows == []:
-        return 'None'
-
-    conn.commit()
-    cur.close()
-    conn.close()
-
-    return rows[0][1]
-
+    file = conf['exchanges']
+    df = pd.DataFrame(np.load(file), columns=['pair', 'exchange'])
+    return list(df[df.pair == pair].exchange)[0]
