@@ -149,7 +149,7 @@ def show_pairs():
     conf = Config('config.ini', 'services')
     file = conf['exchanges']
     df = pd.DataFrame(np.load(file), columns=['pair', 'exchange'])
-    return {'pair': df.iloc[:, 0], 'exchange':df.iloc[:, 1]}
+    return list(df.pair)
 
 def add_pair(pair, exchange):
     conf = Config('config.ini', 'services')
@@ -159,8 +159,12 @@ def add_pair(pair, exchange):
     if df2[df2['pair'] == True].size != 0:
         return 'Pair already exists', 200
     else:
-        df.append(pd.DataFrame([pair, exchange], columns=['pair', 'exchange']))
-        return 'Pair added', 200
+        try:
+            df = df.append(pd.DataFrame([[pair, exchange]], columns=['pair', 'exchange']), ignore_index=True)
+            np.save('exchanges', df)
+            return 'Pair added', 200
+        except:
+            return 'shit', 500
 
 def check_exchange(pair):
     conf = Config('config.ini', 'services')
