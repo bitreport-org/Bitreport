@@ -11,7 +11,7 @@ from core.services import internal
 logtime = dt.now().strftime("%Y-%m-%d %H:%M:%S")
 
 def bitfinex_fill(client, pair, timeframe, limit):
-
+    name = pair + timeframe
     try:
         # Map timeframes for Bitfinex
         timeframeR = timeframe
@@ -29,7 +29,6 @@ def bitfinex_fill(client, pair, timeframe, limit):
 
         # check if any response and if not error then write candles to influx
         l = len(candel_list)
-        name = pair+timeframe
 
         if l > 0 and candel_list[0] != 'error':
             try:
@@ -387,6 +386,7 @@ def poloniex_fill(client, pair, timeframe,limit):
 
     return status
 
+
 def pair_fill(pair, exchange, last):
     tic = time.time()
 
@@ -459,7 +459,14 @@ def pair_fill(pair, exchange, last):
             dt = time.time() - start
             time.sleep(max(0, 1 - dt))
 
+    else:
+        m = '{} exchange {} does not exist'.format(logtime, exchange)
+        logging.warning(m)
+        print(m)
+        return 0
+
     toc = time.time()
-    m = '{} from {} fill time: {:.2f} ms'.format(pair, exchange, (toc-tic)*1000)
+    m = '{} filled {} from {} fill time: {:.2f} ms'.format(logtime, pair, exchange, (toc-tic)*1000)
     logging.warning(m)
     print(m)
+    return 1
