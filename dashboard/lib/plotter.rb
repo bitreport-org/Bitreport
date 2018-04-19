@@ -298,6 +298,7 @@ class Plotter
       set origin 0.0,0.05
 
       set format x "%Y-%m-%d\\n%H:%M"
+      set ytics("0" 0)
 
       set bmargin 1
       set tmargin 0
@@ -323,6 +324,7 @@ class Plotter
       set origin 0.0,0.05
 
       set format x "%Y-%m-%d\\n%H:%M"
+      set ytics("0" 0)
 
       set bmargin 1
       set tmargin 0
@@ -425,6 +427,7 @@ class Plotter
       set origin 0.0,0.05
 
       set format x "%Y-%m-%d\\n%H:%M"
+      set ytics("30" 30, "70" 70)
 
       set bmargin 1
       set tmargin 0
@@ -455,6 +458,7 @@ class Plotter
       set origin 0.0,0.05
 
       set format x "%Y-%m-%d\\n%H:%M"
+      set ytics("0" 0)
 
       set bmargin 1
       set tmargin 0
@@ -481,6 +485,7 @@ class Plotter
       set origin 0.0,0.05
 
       set format x "%Y-%m-%d\\n%H:%M"
+      unset ytics
 
       set bmargin 1
       set tmargin 0
@@ -536,6 +541,7 @@ class Plotter
       set origin 0.0,0.05
 
       set format x "%Y-%m-%d\\n%H:%M"
+      set ytics("90%%" 0.9, "-90%%" -0.9)
 
       set bmargin 1
       set tmargin 0
@@ -565,6 +571,7 @@ class Plotter
       set origin 0.0,0.05
 
       set format x "%Y-%m-%d\\n%H:%M"
+      set ytics("20" 20, "80" 80)
 
       set bmargin 1
       set tmargin 0
@@ -597,6 +604,7 @@ class Plotter
       set origin 0.0,0.05
 
       set format x "%Y-%m-%d\\n%H:%M"
+      set ytics("20" 20, "80" 80)
 
       set bmargin 1
       set tmargin 0
