@@ -156,7 +156,7 @@ class Fill(Resource):
     def post(self, pair):
         exchange = internal.check_exchange(pair)
         parser = reqparse.RequestParser()
-        parser.add_argument('last')
+        parser.add_argument('last', type=int)
         args = parser.parse_args()
         last = args.get('last')
         if exchange != 'None':
