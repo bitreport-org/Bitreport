@@ -387,7 +387,7 @@ def poloniex_fill(client, pair, timeframe,limit):
 
     return status
 
-def pair_fill(pair, exchange):
+def pair_fill(pair, exchange, last):
     tic = time.time()
 
     conf = internal.Config('config.ini', 'services')
@@ -396,7 +396,9 @@ def pair_fill(pair, exchange):
     port = int(conf['port'])
     client = InfluxDBClient(host, port, 'root', 'root', db_name)
 
-    last = internal.import_numpy(pair, '1h', 1)
+    if last == None:
+        last = internal.import_numpy(pair, '1h', 1)
+
     if not last:
         h_number = 168*52
     else:

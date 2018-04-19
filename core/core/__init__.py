@@ -150,14 +150,18 @@ class Events(Resource):
 
 
 class Fill(Resource):
-    def service3(self, pair, exchange):
-        dbservice.pair_fill(pair, exchange)
+    def service3(self, pair, exchange, last):
+        dbservice.pair_fill(pair, exchange, last)
 
     def post(self, pair):
         exchange = internal.check_exchange(pair)
+        parser = reqparse.RequestParser()
+        parser.add_argument('last')
+        args = parser.parse_args()
+        last = args.get('last')
         if exchange != 'None':
             try:
-                thread = threading.Thread(target=self.service3, args=(pair, exchange))
+                thread = threading.Thread(target=self.service3, args=(pair, exchange, last))
                 thread.setDaemon(True)
                 thread.start()
                 return 'Success', 200
