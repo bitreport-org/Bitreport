@@ -5,7 +5,7 @@ import time
 import traceback
 import requests
 from core.services import internal
-from core import config
+import config
 
 # Database Bitfinex fill
 logtime = dt.now().strftime("%Y-%m-%d %H:%M:%S")

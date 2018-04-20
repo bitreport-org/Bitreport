@@ -3,6 +3,7 @@ import talib
 import numpy as np
 from core.services import internal
 
+
 ###################     TAlib indicators    ###################
 
 def BB(data, start, timeperiod=20, nbdevup=2, nbdevdn=2, matype=0):

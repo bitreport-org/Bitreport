@@ -5,8 +5,7 @@ import math
 import datetime
 from decimal import Decimal as dec
 import pandas as pd
-from core import config
-
+import config
 
 
 def import_numpy(pair, timeframe, limit):

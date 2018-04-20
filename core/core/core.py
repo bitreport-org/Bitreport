@@ -8,8 +8,9 @@ import traceback
 from influxdb import InfluxDBClient
 
 # Internal import
-from services import internal, dbservice
-from ta import indicators, levels, patterns, channels
+from core.services import internal
+from core.services import dbservice
+from core.ta import indicators, levels, patterns, channels
 import config
 
 app = Flask(__name__)
@@ -43,7 +44,6 @@ magic_limit = conf.MAGIC_LIMIT
 def data_service(pair, timeframe):
     limit = request.args.get('limit', default=None, type=int)
     untill = request.args.get('untill', default=None, type=int)
-    print(limit, untill)
 
     tic = time.time()
     ############################### DATA REQUEST #####################################

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import time
-from requests import put, post
+from requests import post
 import datetime
 import talib
 import logging
