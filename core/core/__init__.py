@@ -97,17 +97,6 @@ class All(Resource):
         except:
             pass
 
-        try:
-            indidict['trend_resistance'] = channels.trend_resistance(data, start=magic_limit)
-        except:
-            pass
-
-        try:
-            indidict['wedge2'] = channels.fallingwedge2(data, start=magic_limit)
-        except:
-            pass
-
-
         output['indicators'] = indidict
 
         ################################ PATTERNS ########################################
@@ -175,11 +164,7 @@ class Pairs(Resource):
     def get(self):
         try:
             pairs_list = internal.show_pairs()
-            output = []
-            for p in pairs_list:
-                output.append(p[0])
-
-            return {'pairs':output, 'info':pairs_list}
+            return pairs_list
         except:
             return 'Shit!', 500
 
@@ -191,9 +176,6 @@ class Pairs(Resource):
             args = parser.parse_args()
             exchange = args.get('exchange')
             pair = args.get('pair')
-            if exchange == None:
-                exchange='bitfinex'
-
             response = internal.add_pair(pair, exchange)
             return response
 
@@ -221,6 +203,6 @@ if __name__ == '__main__':
     client = InfluxDBClient(host, port, 'root', 'root', db_name)
     client.create_database(db_name)
 
-    app.run(host='0.0.0.0', debug=True)
-    #app.run(debug=True)
+    #app.run(host='0.0.0.0', debug=True)
+    app.run(debug=True)
 
