@@ -1,34 +1,19 @@
+# -*- coding: utf-8 -*-
 import numpy as np
-import configparser
 from influxdb import InfluxDBClient
 import math
 import datetime
 from decimal import Decimal as dec
-import psycopg2
 import pandas as pd
+from core import config
 
-def Config(file, section):
-    config = configparser.ConfigParser()
-    config.read(file)
-
-    dict1 = {}
-    options = config.options(section)
-    for option in options:
-        try:
-            dict1[option] = config.get(section, option)
-            if dict1[option] == -1:
-                print("skip: %s" % option)
-        except:
-            print("exception on %s!" % option)
-            dict1[option] = None
-    return dict1
 
 
 def import_numpy(pair, timeframe, limit):
-    conf = Config('config.ini', 'services')
-    db = conf['db_name']
-    host = conf['host']
-    port = int(conf['port'])
+    conf = config.BaseConfig()
+    db = conf.DBNAME
+    host = conf.HOST
+    port = conf.PORT
     client = InfluxDBClient(host, port, 'root', 'root', db)
 
     # Perform query and return JSON data
@@ -54,12 +39,11 @@ def import_numpy(pair, timeframe, limit):
 
 
 def import_numpy_untill(pair, timeframe, limit, untill):
-    conf = Config('config.ini', 'services')
-    db = conf['db_name']
-    host = conf['host']
-    port = int(conf['port'])
+    conf = config.BaseConfig()
+    db = conf.DBNAME
+    host = conf.HOST
+    port = conf.PORT
     client = InfluxDBClient(host, port, 'root', 'root', db)
-
     # Perform query and return JSON data
     query = 'SELECT * FROM {} WHERE time<={} ORDER BY time DESC LIMIT {};'.format(pair+timeframe, 1000000000*untill, limit)
     params = 'db={}&q={}&epoch=s'.format(db, query)
@@ -113,6 +97,35 @@ def get_function_list(module):
     return l
 
 
+def show_pairs():
+    conf = config.BaseConfig()
+    file = conf.EXCHANGES
+    df = pd.DataFrame(np.load(file), columns=['pair', 'exchange'])
+    return list(df.pair)
+
+
+def add_pair(pair, exchange):
+    conf = config.BaseConfig()
+    file = conf.EXCHANGES
+    df = pd.DataFrame(np.load(file), columns=['pair', 'exchange'])
+    df2 = df.isin([pair])
+    if df2[df2['pair'] == True].size != 0:
+        return 'Pair already exists', 200
+    else:
+        try:
+            df = df.append(pd.DataFrame([[pair, exchange]], columns=['pair', 'exchange']), ignore_index=True)
+            np.save('exchanges', df)
+            return 'Pair added', 200
+        except:
+            return 'shit', 500
+
+
+def check_exchange(pair):
+    conf = config.BaseConfig()
+    file = conf.EXCHANGES
+    df = pd.DataFrame(np.load(file), columns=['pair', 'exchange'])
+    return list(df[df.pair == pair].exchange)[0]
+
 # FUNNY MOON STUFF
 def position(now=None):
    if now is None:
@@ -123,6 +136,8 @@ def position(now=None):
    lunations = dec("0.20439731") + (days * dec("0.03386319269"))
 
    return lunations % dec(1)
+
+
 def phase(pos):
    index = (pos * dec(8)) + dec("0.5")
    index = math.floor(index)
@@ -136,6 +151,8 @@ def phase(pos):
       6: "🌗",
       7: "🌘"
    }[int(index) & 7]
+
+
 def what_phase(timestamp):
    t = datetime.datetime.fromtimestamp(int(timestamp))
    pos = position(t)
@@ -144,30 +161,3 @@ def what_phase(timestamp):
    roundedpos = round(float(pos), 3)
    return (phasename, roundedpos)
 
-#PostgreSQL stuff
-def show_pairs():
-    conf = Config('config.ini', 'services')
-    file = conf['exchanges']
-    df = pd.DataFrame(np.load(file), columns=['pair', 'exchange'])
-    return list(df.pair)
-
-def add_pair(pair, exchange):
-    conf = Config('config.ini', 'services')
-    file = conf['exchanges']
-    df = pd.DataFrame(np.load(file), columns=['pair', 'exchange'])
-    df2 = df.isin([pair])
-    if df2[df2['pair'] == True].size != 0:
-        return 'Pair already exists', 200
-    else:
-        try:
-            df = df.append(pd.DataFrame([[pair, exchange]], columns=['pair', 'exchange']), ignore_index=True)
-            np.save('exchanges', df)
-            return 'Pair added', 200
-        except:
-            return 'shit', 500
-
-def check_exchange(pair):
-    conf = Config('config.ini', 'services')
-    file = conf['exchanges']
-    df = pd.DataFrame(np.load(file), columns=['pair', 'exchange'])
-    return list(df[df.pair == pair].exchange)[0]

@@ -1,7 +1,7 @@
+# -*- coding: utf-8 -*-
 import talib
 import numpy as np
 from core.services import internal
-from operator import itemgetter
 
 ###################     TAlib indicators    ###################
 
@@ -189,7 +189,7 @@ def ICM(data, start):
 
     # Tenkan-sen (Conversion Line): (9-period high + 9-period low)/2))
     n1=9
-    #TODO: czy tu ma być [0] czy [None] ?
+    #TODO: czy tu ma byc [0] czy [None] ?
     conversion_line = [0]*n1
     for i in range(n1, len):
         conversion_line.append((np.max(high[i-n1:i]) + np.min(low[i-n1:i]))/2)

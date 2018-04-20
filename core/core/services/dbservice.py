@@ -1,16 +1,17 @@
+# -*- coding: utf-8 -*-
 from influxdb import InfluxDBClient
 from datetime import datetime as dt
 import time
-import logging
 import traceback
 import requests
 from core.services import internal
-
+from core import config
 
 # Database Bitfinex fill
 logtime = dt.now().strftime("%Y-%m-%d %H:%M:%S")
 
-def bitfinex_fill(client, pair, timeframe, limit):
+
+def bitfinex_fill(app, client, pair, timeframe, limit):
     name = pair + timeframe
     try:
         # Map timeframes for Bitfinex
@@ -50,21 +51,20 @@ def bitfinex_fill(client, pair, timeframe, limit):
                         client.write_points(json_body)
                     except Exception as e:
                         m = '{} FAILED ticker write {}'.format(logtime, name)
-                        logging.warning(m)
-                        logging.error(traceback.format_exc())
+                        app.logger.warning(m)
+                        app.logger.error(traceback.format_exc())
                         pass
 
                 m = '{} SUCCEDED write {} records for {}'.format(logtime, l, name)
-                logging.warning(m)
-                print(m)
+                app.logger.warning(m)
+
             except Exception as e:
                 m = '{} FAILED write {}'.format(logtime, name)
-                logging.warning(m)
-                print(m)
+                app.logger.warning(m)
                 pass
         else:
             m = '{} FAILED {} Bitfinex response'.format(logtime, name)
-            logging.warning(m)
+            app.logger.warning(m)
 
         if timeframeR == '1h':
             for tf in ['2h']:
@@ -81,23 +81,22 @@ def bitfinex_fill(client, pair, timeframe, limit):
                     client.query(query)
                 except Exception as e:
                     m = '{} FAILED {} downsample {}'.format(logtime, tf, pair)
-                    logging.warning(m)
-                    logging.error(traceback.format_exc())
-                    print(m)
+                    app.logger.warning(m)
+                    app.logger.error(traceback.format_exc())
                     pass
 
         status = True
 
     except Exception as e:
         m = '{} FAILED Bitfinex api request for {}'.format(logtime, name)
-        logging.warning(m)
-        logging.error(traceback.format_exc())
+        app.logger.warning(m)
+        app.logger.error(traceback.format_exc())
         status = False
 
     return status
 
 
-def bittrex_fill(client, pair, timeframe, limit):
+def bittrex_fill(app, client, pair, timeframe, limit):
     name_map = {'30m': 'thirtyMin',
                 '1h': 'hour',
                 '2h': 'hour',
@@ -155,12 +154,12 @@ def bittrex_fill(client, pair, timeframe, limit):
                         client.write_points(json_body)
                     except Exception as e:
                         m = '{} FAILED ticker write {}'.format(logtime, name)
-                        logging.warning(m)
-                        logging.error(traceback.format_exc())
+                        app.logger.warning(m)
+                        app.logger.error(traceback.format_exc())
                     pass
                 m = '{} SUCCEDED write records for {}'.format(logtime, name)
-                logging.warning(m)
-                print(m)
+                app.logger.warning(m)
+
 
                 # Data downsample
                 timeframes2 = downsamples[measurement_name]
@@ -176,27 +175,27 @@ def bittrex_fill(client, pair, timeframe, limit):
                         client.query(query)
                     except Exception as e:
                         m = '{} FAILED {} downsample {}'.format(logtime, tf, pair)
-                        logging.warning(m)
-                        logging.error(traceback.format_exc())
-                        print(m)
+                        app.logger.warning(m)
+                        app.logger.error(traceback.format_exc())
+
                         pass
 
             except Exception as e:
                 m = '{} FAILED write {}'.format(logtime, name)
-                logging.warning(m)
-                print(m)
+                app.logger.warning(m)
+
                 pass
         else:
             m = '{} FAILED {} Bitrex response: {}'.format(logtime, name, response['message'])
-            logging.warning(m)
+            app.logger.warning(m)
     except Exception as e:
         m = '{} FAILED Bitrex api request for {}'.format(logtime, name)
-        logging.warning(m)
+        app.logger.warning(m)
 
     return status
 
 
-def binance_fill(client, pair, timeframe, limit):
+def binance_fill(app, client, pair, timeframe, limit):
     end_pair = pair[-3:]
     start_pair = pair[:-3]
     if end_pair == 'USD':
@@ -240,19 +239,19 @@ def binance_fill(client, pair, timeframe, limit):
                         client.write_points(json_body)
                     except Exception as e:
                         m = '{} FAILED ticker write {}'.format(logtime, name)
-                        logging.warning(m)
-                        logging.error(traceback.format_exc())
+                        app.logger.warning(m)
+                        app.logger.error(traceback.format_exc())
                         pass
 
                 status = True
                 m = '{} SUCCEDED write {} records for {}'.format(logtime, l, name)
-                logging.warning(m)
-                print(m)
+                app.logger.warning(m)
+
 
             except Exception as e:
                 m = '{} FAILED write {}'.format(logtime, name)
-                logging.warning(m)
-                print(m)
+                app.logger.warning(m)
+
                 pass
 
             # Downsampling
@@ -270,25 +269,25 @@ def binance_fill(client, pair, timeframe, limit):
                         client.query(query)
                     except Exception as e:
                         m = '{} FAILED {} downsample {}'.format(logtime, tf, pair)
-                        logging.warning(m)
-                        logging.error(traceback.format_exc())
-                        print(m)
+                        app.logger.warning(m)
+                        app.logger.error(traceback.format_exc())
+
                         pass
         else:
             m = '{} FAILED {} Binance response'.format(logtime, name)
-            logging.warning(m)
+            app.logger.warning(m)
 
 
     except Exception as e:
         m = '{} FAILED Binance api request for {}'.format(logtime, name)
-        logging.warning(m)
-        logging.error(traceback.format_exc())
+        app.logger.warning(m)
+        app.logger.error(traceback.format_exc())
         pass
 
     return status
 
 
-def poloniex_fill(client, pair, timeframe,limit):
+def poloniex_fill(app, client, pair, timeframe,limit):
     #Returns candlestick chart data. Required GET parameters are "currencyPair", "period"
     # (candlestick period in seconds; valid values are 300, 900, 1800, 7200, 14400, and 86400),
     # "start", and "end". "Start" and "end" are given in UNIX timestamp format and used to specify
@@ -344,13 +343,13 @@ def poloniex_fill(client, pair, timeframe,limit):
                         client.write_points(json_body)
                     except Exception as e:
                         m = '{} FAILED ticker write {}'.format(logtime, name)
-                        logging.warning(m)
-                        logging.error(traceback.format_exc())
+                        app.logger.warning(m)
+                        app.logger.error(traceback.format_exc())
                         pass
                 status = True
                 m = '{} SUCCEDED write {} records for {}'.format(logtime, l, name)
-                logging.warning(m)
-                print(m)
+                app.logger.warning(m)
+
 
                 # Downsampling
                 for tf in r['downsamples']:
@@ -365,36 +364,34 @@ def poloniex_fill(client, pair, timeframe,limit):
                         client.query(query)
                     except Exception as e:
                         m = '{} FAILED {} downsample {}'.format(logtime, tf, pair)
-                        logging.warning(m)
-                        logging.error(traceback.format_exc())
-                        print(m)
+                        app.logger.warning(m)
+                        app.logger.error(traceback.format_exc())
                         pass
 
             except Exception as e:
                 m = '{} FAILED write {}'.format(logtime, name)
-                logging.warning(m)
-                print(m)
+                app.logger.warning(m)
                 pass
         else:
             m = '{} FAILED {} Poloniex response'.format(logtime, name)
-            logging.warning(m)
+            app.logger.warning(m)
     except Exception as e:
         m = '{} FAILED Poloniex api request for {}'.format(logtime, name)
-        logging.warning(m)
-        logging.error(traceback.format_exc())
+        app.logger.warning(m)
+        app.logger.error(traceback.format_exc())
         status = False
 
     return status
 
 
-def pair_fill(pair, exchange, last):
+def pair_fill(app, pair, exchange, last):
     tic = time.time()
 
-    conf = internal.Config('config.ini', 'services')
-    db_name = conf['db_name']
-    host = conf['host']
-    port = int(conf['port'])
-    client = InfluxDBClient(host, port, 'root', 'root', db_name)
+    conf = config.BaseConfig()
+    db = conf.DBNAME
+    host = conf.HOST
+    port = conf.PORT
+    client = InfluxDBClient(host, port, 'root', 'root', db)
 
     if last == None:
         last = internal.import_numpy(pair, '1h', 1)
@@ -415,7 +412,7 @@ def pair_fill(pair, exchange, last):
             limit = min(int(h_number / int(tf[:-1])) + 2, 700)
 
             start = time.time()
-            filler(client, pair, tf, limit)
+            filler(app, client, pair, tf, limit)
             dt = time.time() - start
             time.sleep(max(0, 2-dt))
 
@@ -427,7 +424,7 @@ def pair_fill(pair, exchange, last):
 
         for tf in timeframes:
             limit = int(h_number/int(tf[:-1]))+2
-            filler(client, pair, tf, limit)
+            filler(app, client, pair, tf, limit)
 
     elif exchange == 'binance':
 
@@ -440,7 +437,7 @@ def pair_fill(pair, exchange, last):
             limit = int(h_number / int(tf[:-1])) + 2
 
             start = time.time()
-            filler(client, pair, tf, limit)
+            filler(app, client, pair, tf, limit)
             dt = time.time() - start
             time.sleep(max(0, 2 - dt))
 
@@ -455,18 +452,17 @@ def pair_fill(pair, exchange, last):
             limit = int(h_number / int(tf[:-1])) + 2
             start = time.time()
 
-            filler(client, pair, tf, limit)
+            filler(app, client, pair, tf, limit)
             dt = time.time() - start
             time.sleep(max(0, 1 - dt))
 
     else:
         m = '{} exchange {} does not exist'.format(logtime, exchange)
-        logging.warning(m)
-        print(m)
-        return 0
+        app.logger.warning(m)
+        return 'Failed', 500
 
     toc = time.time()
     m = '{} filled {} from {} fill time: {:.2f} ms'.format(logtime, pair, exchange, (toc-tic)*1000)
-    logging.warning(m)
-    print(m)
-    return 1
+    app.logger.warning(m)
+
+    return 'Success', 200
