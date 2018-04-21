@@ -40,9 +40,10 @@ def hello():
 # returned data has length = limit
 magic_limit = conf.MAGIC_LIMIT
 
-@app.route('/data/<pair>/<timeframe>/', methods=['GET'])
-def data_service(pair, timeframe):
+@app.route('/<pair>', methods=['GET'])
+def data_service(pair):
     if request.method == 'GET':
+        timeframe = request.args.get('timeframe', default='1h', type=str)
         limit = request.args.get('limit', default=10, type=int)
         untill = request.args.get('untill', default=None, type=int)
         app.logger.info('Request for {} {} limit {} untill {}'.format(pair, timeframe, limit, untill))
@@ -142,8 +143,9 @@ def event_service():
         return jsonify(events_list)
 
 
-@app.route('/fill/<pair>', methods=['POST'])
+@app.route('/fill', methods=['POST'])
 def fill_service(pair):
+    pair = request.args.get('pair', type=str)
     last = request.args.get('last', type=int)
     exchange = internal.check_exchange(pair)
     if exchange != 'None':
