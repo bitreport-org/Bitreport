@@ -42,102 +42,101 @@ magic_limit = conf.MAGIC_LIMIT
 
 @app.route('/data/<pair>/<timeframe>/', methods=['GET'])
 def data_service(pair, timeframe):
-    limit = request.args.get('limit', default=None, type=int)
-    untill = request.args.get('untill', default=None, type=int)
+    if request.method == 'GET':
+        limit = request.args.get('limit', default=10, type=int)
+        untill = request.args.get('untill', default=None, type=int)
+        app.logger.info('Request for {} {} limit {} untill {}'.format(pair, timeframe, limit, untill))
+        tic = time.time()
+        ############################### DATA REQUEST #####################################
+        output = {}
+        if isinstance(untill, int):
+            data = internal.import_numpy_untill(pair, timeframe, limit + magic_limit, untill)
+        else:
+            data = internal.import_numpy(pair, timeframe, limit + magic_limit)
 
-    tic = time.time()
-    ############################### DATA REQUEST #####################################
+        if data == False:
+            app.logger.warning('Empty database response {}'.format(pair+timeframe))
+            return 'Error', 500
 
-    output = {}
+        # SET margin
+        margin = 26  # timestamps
 
-    # TODO request data always with untill parameter
-    if isinstance(untill, int):
-        data = internal.import_numpy_untill(pair, timeframe, limit + magic_limit, untill)
-    else:
-        data = internal.import_numpy(pair, timeframe, limit + magic_limit)
+        # Generate timestamps for future
+        dates = internal.generate_dates(data, timeframe, margin)
+        output['dates'] = dates[magic_limit:]
 
-    if data == False:
-        return 'Error', 500
+        output['candles'] = {'open': data['open'].tolist()[magic_limit:],
+                             'high': data['high'].tolist()[magic_limit:],
+                             'close': data['close'].tolist()[magic_limit:],
+                             'low': data['low'].tolist()[magic_limit:],
+                             'volume': data['volume'].tolist()[magic_limit:]
+                             }
+        ################################ INDICATORS ######################################
 
-    # SET margin
-    margin = 26  # timestamps
+        indicators_list = internal.get_function_list(indicators)
+        indidict = {}
+        for indic in indicators_list:
+            try:
+                indidict[indic] = getattr(indicators, indic)(data, start=magic_limit)
+            except Exception as e:
+                app.logger.warning(indic)
+                app.logger.warning(traceback.format_exc())
+                pass
 
-    # Generate timestamps for future
-    dates = internal.generate_dates(data, timeframe, margin)
-    output['dates'] = dates[magic_limit:]
-
-    output['candles'] = {'open': data['open'].tolist()[magic_limit:],
-                         'high': data['high'].tolist()[magic_limit:],
-                         'close': data['close'].tolist()[magic_limit:],
-                         'low': data['low'].tolist()[magic_limit:],
-                         'volume': data['volume'].tolist()[magic_limit:]
-                         }
-    ################################ INDICATORS ######################################
-
-    indicators_list = internal.get_function_list(indicators)
-    indidict = {}
-    for indic in indicators_list:
+        ################################ CHANNELS #########################################
+        # TODO after channels implementation in Dashboard it must be adjusted
+        # Basic channels
         try:
-            indidict[indic] = getattr(indicators, indic)(data, start=magic_limit)
-        except Exception as e:
-            app.logger.warning(indic)
-            app.logger.warning(traceback.format_exc())
+            indidict['channel'] = channels.channel(data, start=magic_limit)
+        except:
             pass
 
-    ################################ CHANNELS #########################################
-    # TODO after channels implementation in Dashboard it must be adjusted
-    # Basic channels
-    try:
-        indidict['channel'] = channels.channel(data, start=magic_limit)
-    except:
-        pass
+        try:
+            indidict['parabola'] = channels.parabola(data, start=magic_limit)
+        except:
+            pass
 
-    try:
-        indidict['parabola'] = channels.parabola(data, start=magic_limit)
-    except:
-        pass
+        try:
+            indidict['wedge'] = channels.fallingwedge(data, start=magic_limit)
+        except:
+            pass
 
-    try:
-        indidict['wedge'] = channels.fallingwedge(data, start=magic_limit)
-    except:
-        pass
+        output['indicators'] = indidict
 
-    output['indicators'] = indidict
+        ################################ PATTERNS ########################################
+        # Short data for patterns
+        if isinstance(untill, int):
+            pat_data = internal.import_numpy_untill(pair, timeframe, limit + magic_limit, untill)
+        else:
+            pat_data = internal.import_numpy(pair, timeframe, limit + magic_limit)
 
-    ################################ PATTERNS ########################################
-    # Short data for patterns
-    if isinstance(untill, int):
-        pat_data = internal.import_numpy_untill(pair, timeframe, limit + magic_limit, untill)
-    else:
-        pat_data = internal.import_numpy(pair, timeframe, limit + magic_limit)
+        try:
+            output['patterns'] = patterns.CheckAllPatterns(pat_data)
+        except Exception as e:
+            app.logger.warning(traceback.format_exc())
+            output['patterns'] = []
+            pass
 
-    try:
-        output['patterns'] = patterns.CheckAllPatterns(pat_data)
-    except Exception as e:
-        app.logger.warning(traceback.format_exc())
-        output['patterns'] = []
-        pass
-
-    ################################ LEVELS ##########################################
-    try:
-        output['levels'] = levels.srlevels(data)
-    except Exception as e:
-        app.logger.warning(traceback.format_exc())
-        output['levels'] = []
-        pass
-    toc = time.time()
-    output['response_time'] = '{0:.2f} s'.format(toc - tic)
-    return jsonify(output), 200
+        ################################ LEVELS ##########################################
+        try:
+            output['levels'] = levels.srlevels(data)
+        except Exception as e:
+            app.logger.warning(traceback.format_exc())
+            output['levels'] = []
+            pass
+        toc = time.time()
+        output['response_time'] = '{0:.2f} ms'.format(1000*(toc - tic))
+        return jsonify(output), 200
 
 
 events_list = []
 @app.route('/events', methods=['GET', 'PUT'])
-def event_servie():
+def event_service():
     if request.method == 'PUT':
         events_list.append(ast.literal_eval(request.form['data']))
         now = int(time.mktime(datetime.datetime.now().timetuple()))
         for event in events_list:
-            if now - event['time'] > 60 * int(conf['event_limit']):
+            if now - event['time'] > 60 * int(conf.EVENT_LIMIT):
                 events_list.pop(events_list.index(event))
     elif request.method == 'GET':
         return jsonify(events_list)
@@ -166,9 +165,12 @@ def pair_service():
         except:
             return 'Shit!', 500
     elif request.method == 'POST':
+        exchange = request.args.get('exchange', type=str)
+        pair = request.args.get('pair', type=str)
+
+        app.logger.info('Pair added: {} | {}'.format(pair, exchange))
+
         try:
-            exchange = request.args.get('exchange', type=str)
-            pair = request.args.get('pair', type=str)
             response = internal.add_pair(pair, exchange)
             return jsonify(response)
         except:
