@@ -23,7 +23,7 @@ module Admin
     private
 
     def data_url
-      "http://127.0.0.1:5000/data/#{symbol}/#{timeframe}/?limit=#{limit}"
+      "http://127.0.0.1:5000/#{symbol}?timeframe=#{timeframe}&limit=#{limit}"
     end
 
     def generate_image(save = true)
