@@ -88,18 +88,20 @@ def data_service(pair):
         # TODO after channels implementation in Dashboard it must be adjusted
         # Basic channels
         try:
-            indidict['channel'] = channels.channel(data, start=magic_limit)
+            indidict['channel'] = channels.channel(data)
+        except:
+            app.logger.warning(traceback.format_exc())
+            pass
+
+        try:
+            indidict['parabola'] = channels.parabola(data)
         except:
             pass
 
         try:
-            indidict['parabola'] = channels.parabola(data, start=magic_limit)
+            indidict['wedge'] = channels.fallingwedge(data)
         except:
-            pass
-
-        try:
-            indidict['wedge'] = channels.fallingwedge(data, start=magic_limit)
-        except:
+            app.logger.warning(traceback.format_exc())
             pass
 
         output['indicators'] = indidict
