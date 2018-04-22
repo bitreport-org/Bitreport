@@ -1,7 +1,8 @@
 import numpy as np
 import talib
-from operator import itemgetter
-from config import BaseConfig as config
+import config
+
+config = config.BaseConfig()
 
 def channel(data, percent=80):
     margin = config.MARGIN
@@ -36,6 +37,7 @@ def channel(data, percent=80):
                 'vector': (a, b, std)
             }
         }
+
 
 def parabola(data, percent=100):
     margin = config.MARGIN
@@ -133,6 +135,8 @@ def fallingwedge(data):
                        'upper': (upper_a, upper_b),
                        'lower': (lower_a, lower_b)
                        }}
+
+
 def raisingwedge(data):
     margin = config.MARGIN
     start = config.MAGIC_LIMIT

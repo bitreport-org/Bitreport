@@ -78,14 +78,12 @@ def data_service(pair):
         indidict = {}
         for indic in indicators_list:
             try:
-                indidict[indic] = getattr(indicators, indic)(data, start=magic_limit)
+                indidict[indic] = getattr(indicators, indic)(data)
             except Exception as e:
-                app.logger.warning(indic)
-                app.logger.warning(traceback.format_exc())
+                app.logger.warning('Indicator {}, error: /n {}'.format(indic, traceback.format_exc()))
                 pass
 
         ################################ CHANNELS #########################################
-        # TODO after channels implementation in Dashboard it must be adjusted
         # Basic channels
         try:
             indidict['channel'] = channels.channel(data)
@@ -96,10 +94,17 @@ def data_service(pair):
         try:
             indidict['parabola'] = channels.parabola(data)
         except:
+            app.logger.warning(traceback.format_exc())
             pass
 
         try:
             indidict['wedge'] = channels.fallingwedge(data)
+        except:
+            app.logger.warning(traceback.format_exc())
+            pass
+
+        try:
+            indidict['rwedge'] = channels.raisingwedge(data)
         except:
             app.logger.warning(traceback.format_exc())
             pass
@@ -127,6 +132,7 @@ def data_service(pair):
             app.logger.warning(traceback.format_exc())
             output['levels'] = []
             pass
+
         toc = time.time()
         output['response_time'] = '{0:.2f} ms'.format(1000*(toc - tic))
         return jsonify(output), 200

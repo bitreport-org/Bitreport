@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 import talib
 import numpy as np
-from core.services import internal
+from decimal import Decimal as dec
+import datetime
+import math
 
+import config
+config = config.BaseConfig()
 
 ###################     TAlib indicators    ###################
-
-def BB(data, start, timeperiod=20, nbdevup=2, nbdevdn=2, matype=0):
+def BB(data, timeperiod=20, nbdevup=2, nbdevdn=2, matype=0):
+    start = config.MAGIC_LIMIT
     m =10000
     close = m * data['close']
     upperband, middleband, lowerband = talib.BBANDS(close, timeperiod, nbdevup, nbdevdn, matype)
@@ -20,55 +24,53 @@ def BB(data, start, timeperiod=20, nbdevup=2, nbdevdn=2, matype=0):
             'lowerband':lowerband.tolist()[start:]}
 
 
-def MACD(data, start, fastperiod=12, slowperiod=26, signalperiod=9 ):
+def MACD(data, fastperiod=12, slowperiod=26, signalperiod=9 ):
+    start = config.MAGIC_LIMIT
     macd, signal, hist = talib.MACD(data['close'], fastperiod, slowperiod, signalperiod)
-    #
-    # print('data ask macd :', data['close'].size)
-    # print(len(data['date'].tolist()[slowperiod+7:]), 'macd', macd.tolist()[slowperiod:])
-
-    # to avoid NaN values skip 7 first values...
     return {'macd' : macd.tolist()[start:],
             'signal':signal.tolist()[start:],
             'hist':hist.tolist()[start:]}
 
 
-def RSI(data, start, timeperiod=14):
+def RSI(data, timeperiod=14):
+    start = config.MAGIC_LIMIT
     real = talib.RSI(data['close'], timeperiod)
-
-    # print('data ask rsi:', data['close'].size)
-    # print(len(data['date'].tolist()[timeperiod:]), len(real.tolist()[timeperiod:]))
-
     return {'rsi':real.tolist()[start:]} #,'date': data['date'].tolist()[start:]}
 
 
-def STOCH(data, start, fastk_period=5, slowk_period=3, slowk_matype=0, slowd_period=3, slowd_matype=0):
+def STOCH(data, fastk_period=5, slowk_period=3, slowk_matype=0, slowd_period=3, slowd_matype=0):
+    start = config.MAGIC_LIMIT
     slowk, slowd = talib.STOCH(data['high'], data['low'], data['close'],
                                fastk_period, slowk_period, slowk_matype, slowd_period, slowd_matype)
     return {'slowk': slowk.tolist()[start:], 'slowd': slowd.tolist()[start:]}
 
 
-def STOCHRSI(data, start, timeperiod=14, fastk_period=5, fastd_period=3, fastd_matype=0):
+def STOCHRSI(data, timeperiod=14, fastk_period=5, fastd_period=3, fastd_matype=0):
+    start = config.MAGIC_LIMIT
     fastk, fastd = talib.STOCHRSI(data['close'], timeperiod, fastk_period, fastd_period, fastd_matype)
     return {'fastk': fastk.tolist()[start:], 'fastd': fastd.tolist()[start:]}
 
 
-def MOM(data, start, timeperiod=10):
+def MOM(data, timeperiod=10):
+    start = config.MAGIC_LIMIT
     real = talib.MOM(data['close'], timeperiod)
     return {'mom': real.tolist()[start:]}
 
 
-def ADX(data, start, timeperiod=14):
+def ADX(data, timeperiod=14):
+    start = config.MAGIC_LIMIT
     real = talib.ADX(data['high'], data['low'], data['close'], timeperiod)
     return {'adx': real.tolist()[start:]}
 
 
-def AROON(data, start, timeperiod=14):
+def AROON(data, timeperiod=14):
+    start = config.MAGIC_LIMIT
     aroondown, aroonup = talib.AROON(data['high'], data['low'], timeperiod)
     return {'down': aroondown.tolist()[start:], 'up': aroonup.tolist()[start:]}
 
 
-def SMA(data, start):
-
+def SMA(data):
+    start = config.MAGIC_LIMIT
     periods = [10, 20 ,50]
     names = ['fast', 'medium','slow']
     dict = {}
@@ -79,11 +81,13 @@ def SMA(data, start):
 
     return dict
 
-def OBV(data, start):
+def OBV(data):
+    start = config.MAGIC_LIMIT
     real = talib.OBV(data['close'], data['volume'])
     return {'obv': real.tolist()[start:]}
 
-def EMA(data, start):
+def EMA(data):
+    start = config.MAGIC_LIMIT
     periods = [10, 20, 50]
     names = ['fast', 'medium', 'slow']
     dict = {}
@@ -95,12 +99,14 @@ def EMA(data, start):
     return dict
 
 
-def SAR(data, start):
+def SAR(data):
+    start = config.MAGIC_LIMIT
     real = talib.SAR(data['high'], data['low'], acceleration=0.02, maximum=0.2)
     return {'sar': real.tolist()[start:]}
 
 
-def ALLIGATOR(data, start):
+def ALLIGATOR(data):
+    start = config.MAGIC_LIMIT
     close = data['close']
     data_len = close.size
     output = {}
@@ -121,18 +127,20 @@ def ALLIGATOR(data, start):
 ###################   Bitreport indicators   ###################
 
 # Elliott Wave Oscillator:
-def EWO(data, start, fast = 5, slow = 35):
+def EWO(data, fast = 5, slow = 35):
+    start = config.MAGIC_LIMIT
     close = data['close']
     real = talib.EMA(close, fast) - talib.EMA(close, slow)
     return {'ewo': real.tolist()[start:]}
 
 
 # Keltner channels:
-def KC(data,start):
+def KC(data):
     # Keltner Channels
     # Middle Line: 20-day exponential moving average
     # Upper Channel Line: 20-day EMA + (2 x ATR(10))
     # Lower Channel Line: 20-day EMA - (2 x ATR(10))
+    start = config.MAGIC_LIMIT
     close = data['close']
     high = data['high']
     low = data['low']
@@ -145,7 +153,8 @@ def KC(data,start):
 
 
 # Tom Demark Sequential
-def TDS(data, start):
+def TDS(data):
+    start = config.MAGIC_LIMIT
     close = data['close']
     low = data['low']
     high = data['high']
@@ -184,22 +193,23 @@ def TDS(data, start):
 
 
 # Ichimoku Cloud:
-def ICM(data, start):
+def ICM(data):
+    start = config.MAGIC_LIMIT
     open, high, low, close=data['open'], data['high'], data['low'], data['close']
-    len = close.size
+    close_size = close.size
 
     # Tenkan-sen (Conversion Line): (9-period high + 9-period low)/2))
     n1=9
     #TODO: czy tu ma byc [0] czy [None] ?
     conversion_line = [0]*n1
-    for i in range(n1, len):
+    for i in range(n1, close_size):
         conversion_line.append((np.max(high[i-n1:i]) + np.min(low[i-n1:i]))/2)
     conversion_line = np.array(conversion_line)
 
     # Kijun-sen (Base Line): (26-period high + 26-period low)/2))
     n2=26
     base_line = [0]*n2
-    for i in range(n2, len):
+    for i in range(n2, close_size):
          base_line.append((np.max(high[i-n2:i]) + np.min(low[i-n2:i]))/2)
 
     base_line = np.array(base_line)
@@ -210,42 +220,33 @@ def ICM(data, start):
     # Senkou Span B (Leading Span B): (52-period high + 52-period low)/2))
     n3 = 52
     leading_spanB = [0]*n3
-    for i in range(n3, len):
+    for i in range(n3, close_size):
         leading_spanB.append((np.max(high[i-n3:i]) + np.min(low[i-n3:i]))/2)
 
-    leading_spanB = np.array(leading_spanB)
-
-    # Chikou Span (Lagging Span): Close plotted 26 days in the past
-    n4 = 26
-    lagging_span =[]
-    for i in range(0, len-n4):
-        lagging_span.append(close[i+n4])
-    lagging_span = np.array(lagging_span)
-
-
-    return {'conversion line': [0],
-            'base line': [0],
+    return {'conversion line': [],
+            'base line': [],
             'leading span A': leading_spanA.tolist()[start-n2:],
-            'leading span B': leading_spanB.tolist()[start-n2:],
-            'lagging span': [0]}
+            'leading span B': leading_spanB[start-n2:],
+            'lagging span': []}
 
 # Ichimoku Cloud FULL:
-def ICMF(data, start):
+def ICMF(data):
+    start = config.MAGIC_LIMIT
     open, high, low, close=data['open'], data['high'], data['low'], data['close']
-    len = close.size
+    close_size = close.size
 
     # Tenkan-sen (Conversion Line): (9-period high + 9-period low)/2))
     n1=9
     #TODO: czy tu ma być [0] czy [None] ?
     conversion_line = [0]*n1
-    for i in range(n1, len):
+    for i in range(n1, close_size):
         conversion_line.append((np.max(high[i-n1:i]) + np.min(low[i-n1:i]))/2)
     conversion_line = np.array(conversion_line)
 
     # Kijun-sen (Base Line): (26-period high + 26-period low)/2))
     n2=26
     base_line = [0]*n2
-    for i in range(n2, len):
+    for i in range(n2, close_size):
          base_line.append((np.max(high[i-n2:i]) + np.min(low[i-n2:i]))/2)
 
     base_line = np.array(base_line)
@@ -256,7 +257,7 @@ def ICMF(data, start):
     # Senkou Span B (Leading Span B): (52-period high + 52-period low)/2))
     n3 = 52
     leading_spanB = [0]*n3
-    for i in range(n3, len):
+    for i in range(n3, close_size):
         leading_spanB.append((np.max(high[i-n3:i]) + np.min(low[i-n3:i]))/2)
 
     leading_spanB = np.array(leading_spanB)
@@ -264,7 +265,7 @@ def ICMF(data, start):
     # Chikou Span (Lagging Span): Close plotted 26 days in the past
     n4 = 26
     lagging_span =[]
-    for i in range(0, len-n4):
+    for i in range(0, close_size-n4):
         lagging_span.append(close[i+n4])
     lagging_span = np.array(lagging_span)
 
@@ -276,9 +277,9 @@ def ICMF(data, start):
             'lagging span': lagging_span.tolist()[start:]}
 
 
-
 # Correlation Oscillator
-def CORRO(data, start, oscillator='RSI', period=50):
+def CORRO(data, oscillator='RSI', period=50):
+    start = config.MAGIC_LIMIT
     close = data['close']
 
     oscillator_values = getattr(talib, oscillator)(close)
@@ -289,13 +290,46 @@ def CORRO(data, start, oscillator='RSI', period=50):
 
     return {'corro': corr_list[start:]}
 
+# Phase indicator
+def position(now=None):
+   if now is None:
+      now = datetime.datetime.now()
 
-def MOON(data, start):
+   diff = now - datetime.datetime(2001, 1, 1)
+   days = dec(diff.days) + (dec(diff.seconds) / dec(86400))
+   lunations = dec("0.20439731") + (days * dec("0.03386319269"))
+
+   return lunations % dec(1)
+
+def phase(pos):
+   index = (pos * dec(8)) + dec("0.5")
+   index = math.floor(index)
+   return {
+      0: "🌑",
+      1: "🌒",
+      2: "🌓",
+      3: "🌔",
+      4: "🌕",
+      5: "🌖",
+      6: "🌗",
+      7: "🌘"
+   }[int(index) & 7]
+
+def what_phase(timestamp):
+   t = datetime.datetime.fromtimestamp(int(timestamp))
+   pos = position(t)
+   phasename = phase(pos)
+
+   roundedpos = round(float(pos), 3)
+   return (phasename, roundedpos)
+
+def MOON(data):
+    start = config.MAGIC_LIMIT
     dates = data['date']
     phase_list = []
 
     for moment in dates:
-        p = internal.what_phase(moment)
+        p = what_phase(moment)
         phase_list.append(p[0])
 
     return {'labels': phase_list[start:], 'timestamps': dates[start:]}

@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 from influxdb import InfluxDBClient
-import math
 import datetime
-from decimal import Decimal as dec
 import pandas as pd
 import config
 
@@ -31,7 +29,6 @@ def import_numpy(pair, timeframe, limit):
                         'low': np.array(df.low, dtype='float'),
                         'volume': np.array(df.volume, dtype='float')
                         }
-
         return candles_dict
     except:
         return False
@@ -87,7 +84,10 @@ def generate_dates(data, timeframe, margin):
 
 def get_function_list(module):
     l = dir(module)
-    buildin = ['__builtins__', '__cached__', '__doc__', '__file__', '__loader__', '__name__', '__package__', '__spec__', 'talib', 'np', 'internal']
+    buildin = ['__builtins__', '__cached__', '__doc__', 
+    '__file__', '__loader__', '__name__', '__package__', '__spec__', 'talib', 'np', 
+    'internal', 'position', 'start', 'phase', 'what_phase', 'dec', 'datetime', 'config', 'math']
+
     for x in buildin:
         try:
             l.pop(l.index(x))
@@ -125,38 +125,4 @@ def check_exchange(pair):
     df = pd.DataFrame(np.load(file), columns=['pair', 'exchange'])
     return list(df[df.pair == pair].exchange)[0]
 
-# FUNNY MOON STUFF
-def position(now=None):
-   if now is None:
-      now = datetime.datetime.now()
-
-   diff = now - datetime.datetime(2001, 1, 1)
-   days = dec(diff.days) + (dec(diff.seconds) / dec(86400))
-   lunations = dec("0.20439731") + (days * dec("0.03386319269"))
-
-   return lunations % dec(1)
-
-
-def phase(pos):
-   index = (pos * dec(8)) + dec("0.5")
-   index = math.floor(index)
-   return {
-      0: "🌑",
-      1: "🌒",
-      2: "🌓",
-      3: "🌔",
-      4: "🌕",
-      5: "🌖",
-      6: "🌗",
-      7: "🌘"
-   }[int(index) & 7]
-
-
-def what_phase(timestamp):
-   t = datetime.datetime.fromtimestamp(int(timestamp))
-   pos = position(t)
-   phasename = phase(pos)
-
-   roundedpos = round(float(pos), 3)
-   return (phasename, roundedpos)
 

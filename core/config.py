@@ -5,6 +5,7 @@ class BaseConfig(object):
     MAGIC_LIMIT = 79
     EVENT_LIMIT = 3
     EXCHANGES = 'core/services/exchanges.npy'
+    MARGIN=26
 
 
 class DevelopmentConfig(BaseConfig):
