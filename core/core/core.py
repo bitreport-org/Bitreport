@@ -152,9 +152,9 @@ def event_service():
 
 
 @app.route('/fill', methods=['POST'])
-def fill_service(pair):
+def fill_service():
     pair = request.args.get('pair', type=str)
-    last = request.args.get('last', type=int)
+    last = request.args.get('last',default=None, type=int)
     exchange = internal.check_exchange(pair)
     if exchange != 'None':
         try:
