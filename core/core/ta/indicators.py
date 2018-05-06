@@ -4,16 +4,44 @@ import numpy as np
 from decimal import Decimal as dec
 import datetime
 import math
+#from sklearn.linear_model import LogisticRegression
+from sklearn.externals import joblib
+import os
 
 import config
 config = config.BaseConfig()
 
+
 ###################     TAlib indicators    ###################
 def BB(data, timeperiod=20, nbdevup=2, nbdevdn=2, matype=0):
     start = config.MAGIC_LIMIT
-    m =10000
+    m = 10000
     close = m * data['close']
     upperband, middleband, lowerband = talib.BBANDS(close, timeperiod, nbdevup, nbdevdn, matype)
+    
+    # TOKENS
+    info = []
+    band_position = ( close - lowerband ) / (upperband -lowerband)
+    p = band_position[-1] 
+
+    if p > 1:
+        info.append('PRICE_BREAK_UP')
+    elif p < 0:
+        info.append('PRICE_BREAK_DOWN')
+    elif p > 0.95:
+        info.append('PRICE_ONBAND_UP')
+    elif p < 0.05:
+        info.append('PRICE_ONBAND_DOWN')
+    else:
+        info.append('PRICE_BETWEEN')
+
+    test_data = band_position[-10:]
+    squeeze = joblib.load('{}/core/ta/squeezeCLF10.pkl'.format(os.getcwd())) 
+    if squeeze.predict([test_data])[0] == 1:
+        info.append('BANDS_SQUEEZE')
+
+
+
 
     upperband = upperband/m
     middleband = middleband/m
@@ -21,7 +49,8 @@ def BB(data, timeperiod=20, nbdevup=2, nbdevdn=2, matype=0):
 
     return {'upperband' : upperband.tolist()[start:],
             'middleband':middleband.tolist()[start:],
-            'lowerband':lowerband.tolist()[start:]}
+            'lowerband':lowerband.tolist()[start:],
+            'info': info}
 
 
 def MACD(data, fastperiod=12, slowperiod=26, signalperiod=9 ):
@@ -34,8 +63,30 @@ def MACD(data, fastperiod=12, slowperiod=26, signalperiod=9 ):
 
 def RSI(data, timeperiod=14):
     start = config.MAGIC_LIMIT
-    real = talib.RSI(data['close'], timeperiod)
-    return {'rsi':real.tolist()[start:]} #,'date': data['date'].tolist()[start:]}
+    close = data['close']
+    real = talib.RSI(close, timeperiod)
+
+    info = []
+    if real[-1] >= 70:
+        info.append('RSI_OVERBOUGHT')
+    elif real[-1] <= 30:
+        info.append('RSI_OVERSOLD')
+
+    delta = 5
+    direction = real[-1] - real[-1 - delta]
+    if direction < 0:
+        info.append('DIRECTION_FALLING')
+    else:
+        info.append('DIRECTION_RISING')
+
+    div = np.corrcoef(close[-26:], real[-26:])[0][1]
+
+    if div >0.9:
+        info.append('DIV_POSITIVE')
+    elif div < 0.87:
+        info.append('DIV_NEGATIVE')
+
+    return {'rsi':real.tolist()[start:], 'info': info }
 
 
 def STOCH(data, fastk_period=5, slowk_period=3, slowk_matype=0, slowd_period=3, slowd_matype=0):
@@ -71,15 +122,29 @@ def AROON(data, timeperiod=14):
 
 def SMA(data):
     start = config.MAGIC_LIMIT
+    close = data['close']
     periods = [10, 20 ,50]
     names = ['fast', 'medium','slow']
-    dict = {}
+    dic = {}
+    info =[]
 
-    for i in range(len(periods)):
-        real = talib.SMA(data['close'], periods[i])
-        dict[names[i]] = real.tolist()[start:]
+    for name, p in zip(names, periods):
+        real = talib.SMA(close, p)
+        dic[name] = real.tolist()[start:]
 
-    return dict
+        #TOKENS
+        if close[-1] > real[-1] and close[-2] < real[-2]:
+            info.append('CROSS_UP_{}'.format(name.upper()))
+        elif close[-1] < real[-1] and close[-2] > real[-2]:
+            info.append('CROSS_DOWN_{}'.format(name.upper()))
+
+        if close[-1] > real[-1]:
+            info.append('POSITION_UP_{}'.format(name.upper() ) )
+        else:
+            info.append('POSITION_DOWN_{}'.format(name.upper() ) )
+
+    dic['info'] = info
+    return dic
 
 def OBV(data):
     start = config.MAGIC_LIMIT
@@ -88,15 +153,29 @@ def OBV(data):
 
 def EMA(data):
     start = config.MAGIC_LIMIT
-    periods = [10, 20, 50]
-    names = ['fast', 'medium', 'slow']
-    dict = {}
+    close = data['close']
+    periods = [10, 20 ,50]
+    names = ['fast', 'medium','slow']
+    dic = {}
+    info =[]
 
-    for i in range(len(periods)):
-        real = talib.EMA(data['close'], periods[i])
-        dict[names[i]] = real.tolist()[start:]
+    for name, p in zip(names, periods):
+        real = talib.EMA(close, p)
+        dic[name] = real.tolist()[start:]
 
-    return dict
+        #TOKENS
+        if close[-1] > real[-1] and close[-2] < real[-2]:
+            info.append('CROSS_UP_{}'.format(name.upper()))
+        elif close[-1] < real[-1] and close[-2] > real[-2]:
+            info.append('CROSS_DOWN_{}'.format(name.upper()))
+
+        if close[-1] > real[-1]:
+            info.append('POSITION_UP_{}'.format(name.upper() ) )
+        else:
+            info.append('POSITION_DOWN_{}'.format(name.upper() ) )
+
+    dic['info'] = info
+    return dic
 
 
 def SAR(data):
@@ -189,7 +268,19 @@ def TDS(data):
 
     td_list_type = [0]*n + td_list_type
 
-    return {'tds':td_list_type[start:]}
+    # TOKEN
+    info = []
+    if 'psell' in td_list_type[-5:]:
+        info.append('PERFECT_SELL')
+    elif 'pbuy' in td_list_type[-5:]:
+        info.append('PERFECT_BUY')
+
+    if td_list_type[-1] in ['sell', 'psell']:
+        info.append('LAST_SELL')
+    else:
+        info.append('LAST_BUY')
+
+    return {'tds':td_list_type[start:], 'info': info}
 
 
 # Ichimoku Cloud:
@@ -277,59 +368,59 @@ def ICMF(data):
             'lagging span': lagging_span.tolist()[start:]}
 
 
-# Correlation Oscillator
-def CORRO(data, oscillator='RSI', period=50):
-    start = config.MAGIC_LIMIT
-    close = data['close']
+# # Correlation Oscillator
+# def CORRO(data, oscillator='RSI', period=25):
+#     start = config.MAGIC_LIMIT
+#     close = data['close']
 
-    oscillator_values = getattr(talib, oscillator)(close)
-    corr_list= [0]*period
+#     oscillator_values = getattr(talib, oscillator)(close)
+#     corr_list= [0]*period
 
-    for i in range(period, close.size):
-        corr_list.append(np.corrcoef(close[i-period:i], oscillator_values[i-period:i])[0][1])
+#     for i in range(period, close.size):
+#         corr_list.append(np.corrcoef(close[i-period:i], oscillator_values[i-period:i])[0][1])
 
-    return {'corro': corr_list[start:]}
+#     return {'corro': corr_list[start:]}
 
 # Phase indicator
-def position(now=None):
-   if now is None:
-      now = datetime.datetime.now()
+# def position(now=None):
+#    if now is None:
+#       now = datetime.datetime.now()
 
-   diff = now - datetime.datetime(2001, 1, 1)
-   days = dec(diff.days) + (dec(diff.seconds) / dec(86400))
-   lunations = dec("0.20439731") + (days * dec("0.03386319269"))
+#    diff = now - datetime.datetime(2001, 1, 1)
+#    days = dec(diff.days) + (dec(diff.seconds) / dec(86400))
+#    lunations = dec("0.20439731") + (days * dec("0.03386319269"))
 
-   return lunations % dec(1)
+#    return lunations % dec(1)
 
-def phase(pos):
-   index = (pos * dec(8)) + dec("0.5")
-   index = math.floor(index)
-   return {
-      0: "🌑",
-      1: "🌒",
-      2: "🌓",
-      3: "🌔",
-      4: "🌕",
-      5: "🌖",
-      6: "🌗",
-      7: "🌘"
-   }[int(index) & 7]
+# def phase(pos):
+#    index = (pos * dec(8)) + dec("0.5")
+#    index = math.floor(index)
+#    return {
+#       0: "🌑",
+#       1: "🌒",
+#       2: "🌓",
+#       3: "🌔",
+#       4: "🌕",
+#       5: "🌖",
+#       6: "🌗",
+#       7: "🌘"
+#    }[int(index) & 7]
 
-def what_phase(timestamp):
-   t = datetime.datetime.fromtimestamp(int(timestamp))
-   pos = position(t)
-   phasename = phase(pos)
+# def what_phase(timestamp):
+#    t = datetime.datetime.fromtimestamp(int(timestamp))
+#    pos = position(t)
+#    phasename = phase(pos)
 
-   roundedpos = round(float(pos), 3)
-   return (phasename, roundedpos)
+#    roundedpos = round(float(pos), 3)
+#    return (phasename, roundedpos)
 
-def MOON(data):
-    start = config.MAGIC_LIMIT
-    dates = data['date']
-    phase_list = []
+# def MOON(data):
+#     start = config.MAGIC_LIMIT
+#     dates = data['date']
+#     phase_list = []
 
-    for moment in dates:
-        p = what_phase(moment)
-        phase_list.append(p[0])
+#     for moment in dates:
+#         p = what_phase(moment)
+#         phase_list.append(p[0])
 
-    return {'labels': phase_list[start:], 'timestamps': dates[start:]}
+#     return {'labels': phase_list[start:], 'timestamps': dates[start:]}
