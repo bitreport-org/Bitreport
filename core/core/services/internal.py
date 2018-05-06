@@ -4,7 +4,7 @@ from influxdb import InfluxDBClient
 import datetime
 import pandas as pd
 import config
-
+import types
 
 def import_numpy(pair, timeframe, limit):
     conf = config.BaseConfig()
@@ -83,17 +83,7 @@ def generate_dates(data, timeframe, margin):
 
 
 def get_function_list(module):
-    l = dir(module)
-    buildin = ['__builtins__', '__cached__', '__doc__', 
-    '__file__', '__loader__', '__name__', '__package__', '__spec__', 'talib', 'np', 
-    'internal', 'position', 'start', 'phase', 'what_phase', 'dec', 'datetime', 'config', 'math']
-
-    for x in buildin:
-        try:
-            l.pop(l.index(x))
-        except:
-            pass
-    return l
+    return [module.__dict__.get(a) for a in dir(module) if isinstance(module.__dict__.get(a), types.FunctionType)]
 
 
 def show_pairs():

@@ -78,7 +78,7 @@ def data_service(pair):
         indidict = {}
         for indic in indicators_list:
             try:
-                indidict[indic] = getattr(indicators, indic)(data)
+                indidict[indic.__qualname__] = indic(data)
             except Exception as e:
                 app.logger.warning('Indicator {}, error: /n {}'.format(indic, traceback.format_exc()))
                 pass
