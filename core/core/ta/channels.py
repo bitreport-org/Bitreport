@@ -4,6 +4,8 @@ import config
 
 config = config.BaseConfig()
 
+
+
 def channel(data, percent=80):
     margin = config.MARGIN
     start = config.MAGIC_LIMIT
@@ -28,9 +30,32 @@ def channel(data, percent=80):
     x0 = data['date'][0]
     dx = int(data['date'][1] - data['date'][0])
 
+    # TOKENS
+    info = []
+    p = ( close[-1] - up_channel[-1-margin] ) / (up_channel[-1-margin]-bottom_channel[-1-margin]) 
+
+    if p > 1:
+        info.append('PRICE_BREAK_UP')
+    elif p < 0:
+        info.append('PRICE_BREAK_DOWN')
+    elif p > 0.95:
+        info.append('PRICE_ONBAND_UP')
+    elif p < 0.05:
+        info.append('PRICE_ONBAND_DOWN')
+    else:
+        info.append('PRICE_BETWEEN')
+
+    if a < -0.1:
+        info.append('DIRECTION_DOWN')
+    elif a > 0.1:
+        info.append('DIRECTION_UP')
+    else:
+        info.append('DIRECTION_HORIZONTAL')
+
     return {'upperband': up_channel.tolist()[start:],
             'middleband': channel.tolist()[start:],
             'lowerband': bottom_channel.tolist()[start:],
+            'info': info,
             'params': {
                 'x0': x0,
                 'dx': dx,
@@ -117,24 +142,24 @@ def fallingwedge(data):
         if up_start_value - down_start_value <= up_end_value - down_end_value:
             upper_band = upper_a * np.arange(full_size) + upper_b
             lower_band = lower_a * np.arange(full_size) + lower_b
+            # Parameters for channel extrapolation
+            params = {'x0': data['date'][point1],
+                       'dx': int(data['date'][1]-data['date'][0]),
+                       'upper': (upper_a, upper_b),
+                       'lower': (lower_a, lower_b)
+                       }
         else:
             lower_band, upper_band = np.array([]), np.array([])
+            params = []
 
     else:
         lower_band, upper_band = np.array([]), np.array([])
-
-    # Parameters for channel extrapolation
-    x0 = data['date'][point1]
-    dx = int(data['date'][1]-data['date'][0])
+        params = []
 
     return {'upperband': upper_band.tolist(),
             'middleband': [],
             'lowerband': lower_band.tolist(),
-            'params': {'x0': x0,
-                       'dx': dx,
-                       'upper': (upper_a, upper_b),
-                       'lower': (lower_a, lower_b)
-                       }}
+            'params': params}
 
 
 def raisingwedge(data):
@@ -176,21 +201,21 @@ def raisingwedge(data):
         if up_start_value - down_start_value >= up_end_value - down_end_value:
             upper_band = upper_a * np.arange(full_size) + upper_b
             lower_band = lower_a * np.arange(full_size) + lower_b
+            # Parameters for channel extrapolation
+            params = {'x0': data['date'][point1],
+                       'dx': int(data['date'][1]-data['date'][0]),
+                       'upper': (upper_a, upper_b),
+                       'lower': (lower_a, lower_b)
+                       }
         else:
             lower_band, upper_band = np.array([]), np.array([])
+            params = []
 
     else:
         lower_band, upper_band = np.array([]), np.array([])
-
-    # Parameters for channel extrapolation
-    x0 = data['date'][point1]
-    dx = int(data['date'][1]-data['date'][0])
+        params = []
 
     return {'upperband': upper_band.tolist(),
             'middleband': [],
             'lowerband': lower_band.tolist(),
-            'params': {'x0': x0,
-                       'dx': dx,
-                       'upper': (upper_a, upper_b),
-                       'lower': (lower_a, lower_b)
-                       }}
+            'params': params}
