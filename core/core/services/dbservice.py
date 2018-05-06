@@ -382,11 +382,13 @@ def pair_fill(app, pair, exchange, last):
     client = InfluxDBClient(host, port, 'root', 'root', db)
 
     if last == None:
-        last = internal.import_numpy(pair, '1h', 1)
-        last = last['date'][0]
-
-    if not last:
-        h_number = 168*52
+        try:
+            last = internal.import_numpy(pair, '1h', 1)
+            last = last['date'][0]
+            h_number = 168*52
+        except:
+            h_number = 168*52
+            last = int(time.time() - h_number)
     else:
         h_number = int((time.time() - last / 3600))+2
 
