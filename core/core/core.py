@@ -41,7 +41,7 @@ def hello():
 magic_limit = conf.MAGIC_LIMIT
 
 @app.route('/<pair>', methods=['GET'])
-def data_service(pair):
+def data_service(pair: str):
     if request.method == 'GET':
         timeframe = request.args.get('timeframe', default='1h', type=str)
         limit = request.args.get('limit', default=10, type=int)

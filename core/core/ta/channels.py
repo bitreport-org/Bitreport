@@ -6,7 +6,7 @@ config = config.BaseConfig()
 
 
 
-def channel(data, percent=80):
+def channel(data: dict, percent: int = 80):
     margin = config.MARGIN
     start = config.MAGIC_LIMIT
 
@@ -64,7 +64,7 @@ def channel(data, percent=80):
         }
 
 
-def parabola(data, percent=100):
+def parabola(data: dict, percent: int =100):
     margin = config.MARGIN
     start = config.MAGIC_LIMIT
 
@@ -103,7 +103,7 @@ def parabola(data, percent=100):
             }
 
 
-def fallingwedge(data):
+def fallingwedge(data: dict):
     margin = config.MARGIN
     start = config.MAGIC_LIMIT
 
@@ -162,7 +162,7 @@ def fallingwedge(data):
             'params': params}
 
 
-def raisingwedge(data):
+def raisingwedge(data: dict):
     margin = config.MARGIN
     start = config.MAGIC_LIMIT
 
