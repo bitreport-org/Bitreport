@@ -85,29 +85,14 @@ def data_service(pair: str):
 
         ################################ CHANNELS #########################################
         # Basic channels
-        try:
-            indidict['channel'] = channels.channel(data)
-        except:
-            app.logger.warning(traceback.format_exc())
-            pass
 
-        try:
-            indidict['parabola'] = channels.parabola(data)
-        except:
-            app.logger.warning(traceback.format_exc())
-            pass
-
-        try:
-            indidict['wedge'] = channels.fallingwedge(data)
-        except:
-            app.logger.warning(traceback.format_exc())
-            pass
-
-        try:
-            indidict['rwedge'] = channels.raisingwedge(data)
-        except:
-            app.logger.warning(traceback.format_exc())
-            pass
+        channels_list = internal.get_function_list(channels)
+        for ch in channels_list:
+            try:
+                indidict[ch.__qualname__] = ch(data)
+            except Exception as e:
+                app.logger.warning('Indicator {}, error: /n {}'.format(ch, traceback.format_exc()))
+                pass
 
         output['indicators'] = indidict
 
@@ -139,31 +124,28 @@ def data_service(pair: str):
 
 
 events_list = []
-@app.route('/events', methods=['GET', 'PUT'])
+@app.route('/events', methods=['GET'])
 def event_service():
-    if request.method == 'PUT':
-        events_list.append(ast.literal_eval(request.form['data']))
-        now = int(time.mktime(datetime.datetime.now().timetuple()))
-        for event in events_list:
-            if now - event['time'] > 60 * int(conf.EVENT_LIMIT):
-                events_list.pop(events_list.index(event))
-    elif request.method == 'GET':
+    if request.method == 'GET':
         return jsonify(events_list)
 
 
 @app.route('/fill', methods=['POST'])
 def fill_service():
-    pair = request.args.get('pair', type=str)
+    pair = request.args.get('pair',default=None, type=str)
     last = request.args.get('last',default=None, type=int)
-    exchange = internal.check_exchange(pair)
-    if exchange != 'None':
-        try:
-            return dbservice.pair_fill(app, pair, exchange, last)
-        except:
-            app.logger.warning(traceback.format_exc())
-            return 'Request failed', 500
+    if pair != None:
+        exchange = internal.check_exchange(pair)
+        if exchange != None:
+            try:
+                return dbservice.pair_fill(app, pair, exchange, last)
+            except:
+                app.logger.warning(traceback.format_exc())
+                return 'Request failed', 500
+        else:
+            return 'Pair not added', 500
     else:
-        return 'Pair not added'
+        return 'Pair not provided', 500
 
 
 @app.route('/pairs', methods=['GET', 'POST'])
