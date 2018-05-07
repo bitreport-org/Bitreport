@@ -40,9 +40,6 @@ def BB(data, timeperiod=20, nbdevup=2, nbdevdn=2, matype=0):
     if squeeze.predict([test_data])[0] == 1:
         info.append('BANDS_SQUEEZE')
 
-
-
-
     upperband = upperband/m
     middleband = middleband/m
     lowerband = lowerband/m
@@ -68,9 +65,9 @@ def RSI(data, timeperiod=14):
 
     info = []
     if real[-1] >= 70:
-        info.append('RSI_OVERBOUGHT')
+        info.append('OSCILLATOR_OVERBOUGHT')
     elif real[-1] <= 30:
-        info.append('RSI_OVERSOLD')
+        info.append('OSCILLATOR_OVERSOLD')
 
     delta = 5
     direction = real[-1] - real[-1 - delta]
@@ -93,7 +90,14 @@ def STOCH(data, fastk_period=5, slowk_period=3, slowk_matype=0, slowd_period=3, 
     start = config.MAGIC_LIMIT
     slowk, slowd = talib.STOCH(data['high'], data['low'], data['close'],
                                fastk_period, slowk_period, slowk_matype, slowd_period, slowd_matype)
-    return {'slowk': slowk.tolist()[start:], 'slowd': slowd.tolist()[start:]}
+    
+    info = []
+    if slowk[-1] >= 70:
+        info.append('OSCILLATOR_OVERBOUGHT')
+    elif slowk[-1] <= 30:
+        info.append('OSCILLATOR_OVERSOLD')
+
+    return {'slowk': slowk.tolist()[start:], 'slowd': slowd.tolist()[start:], 'info': info}
 
 
 def STOCHRSI(data, timeperiod=14, fastk_period=5, fastd_period=3, fastd_matype=0):
@@ -131,25 +135,34 @@ def SMA(data):
     for name, p in zip(names, periods):
         real = talib.SMA(close, p)
         dic[name] = real.tolist()[start:]
-
-        #TOKENS
-        if close[-1] > real[-1] and close[-2] < real[-2]:
-            info.append('CROSS_UP_{}'.format(name.upper()))
-        elif close[-1] < real[-1] and close[-2] > real[-2]:
-            info.append('CROSS_DOWN_{}'.format(name.upper()))
-
+        # TOKENS
         if close[-1] > real[-1]:
-            info.append('POSITION_UP_{}'.format(name.upper() ) )
+                info.append('POSITION_UP_{}'.format(name.upper() ) )
         else:
             info.append('POSITION_DOWN_{}'.format(name.upper() ) )
 
+    #TOKENS
+    for i in range(-10, 0):
+        if dic['fast'][i] < dic['slow'][i] and dic['fast'][i-1] >= dic['slow'][i-1]:
+            info.append('CROSS_BEARISH')
+        elif dic['fast'][i] > dic['slow'][i] and dic['fast'][i-1] <= dic['slow'][i-1]:
+            info.append('CROSS_BULLISH')
+
+        for name in names:
+            if close[i] > real[i] and close[i-1] < real[i-1]:
+                info.append('CROSS_UP_{}'.format(name.upper()))
+            elif close[i] < real[i] and close[i-1] > real[i-1]:
+                info.append('CROSS_DOWN_{}'.format(name.upper()))
+
     dic['info'] = info
     return dic
+
 
 def OBV(data):
     start = config.MAGIC_LIMIT
     real = talib.OBV(data['close'], data['volume'])
     return {'obv': real.tolist()[start:]}
+
 
 def EMA(data):
     start = config.MAGIC_LIMIT
@@ -162,17 +175,24 @@ def EMA(data):
     for name, p in zip(names, periods):
         real = talib.EMA(close, p)
         dic[name] = real.tolist()[start:]
-
-        #TOKENS
-        if close[-1] > real[-1] and close[-2] < real[-2]:
-            info.append('CROSS_UP_{}'.format(name.upper()))
-        elif close[-1] < real[-1] and close[-2] > real[-2]:
-            info.append('CROSS_DOWN_{}'.format(name.upper()))
-
+        # TOKENS
         if close[-1] > real[-1]:
-            info.append('POSITION_UP_{}'.format(name.upper() ) )
+                info.append('POSITION_UP_{}'.format(name.upper() ) )
         else:
             info.append('POSITION_DOWN_{}'.format(name.upper() ) )
+
+    #TOKENS
+    for i in range(-10, 0):
+        if dic['fast'][i] < dic['slow'][i] and dic['fast'][i-1] >= dic['slow'][i-1]:
+            info.append('CROSS_BEARISH')
+        elif dic['fast'][i] > dic['slow'][i] and dic['fast'][i-1] <= dic['slow'][i-1]:
+            info.append('CROSS_BULLISH')
+
+        for name in names:
+            if close[i] > real[i] and close[i-1] < real[i-1]:
+                info.append('CROSS_UP_{}'.format(name.upper()))
+            elif close[i] < real[i] and close[i-1] > real[i-1]:
+                info.append('CROSS_DOWN_{}'.format(name.upper()))
 
     dic['info'] = info
     return dic
