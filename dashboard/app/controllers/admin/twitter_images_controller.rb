@@ -49,6 +49,9 @@ module Admin
           end
         end
       end.sort { |x, y| x[2] <=> y[2] }.flatten
+      @twitter_image.comment ||= @twitter_image.raw_data['indicators'].slice(*@twitter_image.indicators).flat_map do |indicator, params|
+        TextGenerator.new(indicator, params['info']) if params['info']
+      end
     end
 
     def preview
