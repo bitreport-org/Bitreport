@@ -113,6 +113,8 @@ def check_exchange(pair):
     conf = config.BaseConfig()
     file = conf.EXCHANGES
     df = pd.DataFrame(np.load(file), columns=['pair', 'exchange'])
-    return list(df[df.pair == pair].exchange)[0]
-
+    try:
+        return list(df[df.pair == pair].exchange.values)[0]
+    except:
+        return None
 
