@@ -97,18 +97,18 @@ def data_service(pair: str):
         output['indicators'] = indidict
 
         ################################ PATTERNS ########################################
-        # Short data for patterns
-        if isinstance(untill, int):
-            pat_data = internal.import_numpy_untill(pair, timeframe, limit + magic_limit, untill)
-        else:
-            pat_data = internal.import_numpy(pair, timeframe, limit + magic_limit)
+        # # Short data for patterns
+        # if isinstance(untill, int):
+        #     pat_data = internal.import_numpy_untill(pair, timeframe, limit + magic_limit, untill)
+        # else:
+        #     pat_data = internal.import_numpy(pair, timeframe, limit + magic_limit)
 
-        try:
-            output['patterns'] = patterns.CheckAllPatterns(pat_data)
-        except Exception as e:
-            app.logger.warning(traceback.format_exc())
-            output['patterns'] = []
-            pass
+        # try:
+        #     output['patterns'] = patterns.CheckAllPatterns(pat_data)
+        # except Exception as e:
+        #     app.logger.warning(traceback.format_exc())
+        #     output['patterns'] = []
+        #     pass
 
         ################################ LEVELS ##########################################
         try:
