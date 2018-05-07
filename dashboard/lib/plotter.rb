@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Plotter
-  attr_reader :timestamps, :candles, :patterns, :indicators, :levels, :step, :margin, :filename
+  attr_reader :timestamps, :candles, :indicators, :levels, :step, :margin, :filename
 
   WHITE = 'e6e6e6'
   BLACK = '363631'
@@ -11,10 +11,9 @@ class Plotter
   RED = 'db504a'
   PURPLE = 'f455c7'
 
-  def initialize(timestamps, candles, patterns, indicators, levels)
+  def initialize(timestamps, candles, indicators, levels)
     @timestamps = timestamps
     @candles = candles
-    @patterns = patterns || {}
     @indicators = indicators || {}
     @levels = levels || {}
     @step = timestamps[1].to_i - timestamps[0].to_i
@@ -42,7 +41,6 @@ class Plotter
     prepare_ema
     prepare_lin
     prepare_tds
-    prepare_patterns
     out << commands
     out << send((indicators.keys & %w[EWO MACD RSI STOCH LINO OBV MOM STOCHRSI HTphasor HTmode HTsin CORRO]).first.downcase.to_sym)
     io = IO.popen('gnuplot -persist', 'w+')
@@ -276,14 +274,6 @@ class Plotter
       counts << ((indicators['TDS']['tds'][i] == indicators['TDS']['tds'][i - 1] || (indicators['TDS']['tds'][i] == 'buy' && indicators['TDS']['tds'][i - 1] == 'pbuy') || (indicators['TDS']['tds'][i] == 'pbuy' && indicators['TDS']['tds'] == 'buy') || (indicators['TDS']['tds'][i] == 'sell' && indicators['TDS']['tds'][i - 1] == 'psell') || (indicators['TDS']['tds'][i] == 'psell' && indicators['TDS']['tds'][i - 1] == 'sell')) ? counts.last + 1 : 1)
     end
     @data << timestamps.zip(prices, vals, counts).select { |el| el[1] && el[3] >= 9 }.map { |candle| candle[0..2].join(' ') }.push('e')
-  end
-
-  def prepare_patterns
-    return unless patterns.any?
-    @plots << "using 1:2 notitle with points lc '##{WHITE}' ps 1.5" <<
-              "using 1:2 notitle with points lc '##{WHITE}' ps 1.5"
-    @data << patterns.first[1]['up'].map { |t| "#{t} #{highs[timestamps.index(t) || 0]}" }.push('e') <<
-             patterns.first[1]['down'].map { |t| "#{t} #{lows[timestamps.index(t) || 0]}" }.push('e')
   end
 
   def commands

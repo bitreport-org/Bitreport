@@ -32,7 +32,6 @@ module Admin
       @change = body['candles']['close'].last - body['candles']['open'].first
       Plotter.new(body['dates'],
                   body['candles'],
-                  body['patterns'].slice(*patterns),
                   body['indicators'].slice(*indicators),
                   body['levels'].values.flatten.uniq & (levels&.map(&:to_f) || [])).plot(save)
     end
