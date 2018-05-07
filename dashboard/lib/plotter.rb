@@ -217,7 +217,7 @@ class Plotter
     # @plots << "using 1:2 title 'Tenkan-sen' with lines linecolor '##{BLUE}' lw 1.5" <<
     #           "using 1:3 title 'Kijun-sen' with lines linecolor '##{YELLOW}' lw 1.5" <<
     #           "using 1:4 title 'Chikou' with lines linecolor '#40#{GREEN}' lw 1.5"
-    @data << timestamps.zip(indicators['ICM']['conversion line'], indicators['ICM']['base line'], indicators['ICM']['lagging span']).map { |candle| candle.join(' ') }.push('e') * 3
+    # @data << timestamps.zip(indicators['ICM']['conversion line'], indicators['ICM']['base line'], indicators['ICM']['lagging span']).map { |candle| candle.join(' ') }.push('e') * 3
   end
 
   def prepare_wedge_fg
