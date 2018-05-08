@@ -23,23 +23,6 @@
                 = f.check_box :levels, { multiple: true }, level, nil
             td= type
             td= level
-    h4.ui.dividing.header Patterns
-    table#patterns.ui.compact.celled.definition.table
-      thead
-        tr
-          th
-          th Pattern name
-          th Direction
-          th Time
-      tbody
-        - @patterns.each_slice(3) do |name, direction, timestamp|
-          tr
-            td.collapsing
-              .ui.fitted.slider.checkbox
-                = f.check_box :patterns, { multiple: true }, name, nil
-            td= name
-            td= direction
-            td= timestamp
     h4.ui.dividing.header Chart Description
     .field
       = f.label :comment

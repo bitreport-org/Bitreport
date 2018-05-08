@@ -47,12 +47,6 @@ fetchNewImage = ->
 
 fetchExistingImage = ->
   oldUrl = $('img#preview').attr('src')
-  patterns = []
-  for pattern in $('table#patterns input[type=checkbox]:checked').parents('tr')
-    values = []
-    $(pattern).children('td:gt(0)').each ->
-      values.push(@innerText)
-    patterns.push(values)
   levels = []
   for level in $('table#levels input[type=checkbox]:checked').parents('tr')
     values = []
@@ -81,17 +75,6 @@ fetchExistingImage = ->
       ctx.fillText(date, 1810, 200)
       ctx.textAlign = 'left'
       offset = 220
-      if patterns.length > 0
-        offset += 40
-        ctx.font = 'bold 22px PT Sans'
-        ctx.fillText('Patterns', 1610, offset)
-        offset += 40
-        ctx.font = '22px PT Sans'
-        for pattern in patterns
-          ctx.fillText(pattern[0], 1610, offset)
-          ctx.fillText(pattern[2], 1760, offset)
-          ctx.fillText(pattern[1], 1970, offset)
-          offset += 40
       if levels.length > 0
         offset += 40
         ctx.font = 'bold 22px PT Sans'

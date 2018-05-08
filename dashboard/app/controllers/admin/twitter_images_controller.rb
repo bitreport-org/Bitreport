@@ -42,13 +42,6 @@ module Admin
           [type.capitalize, level]
         end
       end.flatten
-      @patterns = @twitter_image.raw_data['patterns'].flat_map do |name, directions|
-        directions.flat_map do |direction, timestamps|
-          timestamps.map do |timestamp|
-            [name, direction == 'up' ? '➚' : '➘', Time.at(timestamp).utc.strftime('%F %H:%M')]
-          end
-        end
-      end.sort { |x, y| x[2] <=> y[2] }.flatten
       @twitter_image.comment ||= @twitter_image.raw_data['indicators'].slice(*@twitter_image.indicators).flat_map do |indicator, params|
         TextGenerator.new(indicator, params['info']) if params['info']
       end
@@ -81,7 +74,7 @@ module Admin
     # Never trust parameters from the scary internet, only allow the white list through.
     def twitter_image_params
       params.require(:admin_twitter_image).permit(:symbol, :timeframe, :limit, :comment,
-                                                  patterns: [], indicators: [], levels: [])
+                                                  indicators: [], levels: [])
     end
   end
 end
