@@ -157,19 +157,18 @@ def fill_service():
 @app.route('/pairs', methods=['GET', 'POST'])
 def pair_service():
     if request.method == 'GET':
-        try:
+        #try:
             pairs_list = internal.show_pairs()
             return jsonify(pairs_list)
-        except:
-            return 'Shit!', 500
+        #except:
+         #   return 'Shit!', 500
     elif request.method == 'POST':
         exchange = request.args.get('exchange', type=str)
         pair = request.args.get('pair', type=str)
 
-        app.logger.info('Pair added: {} | {}'.format(pair, exchange))
-
         try:
             response = internal.add_pair(pair, exchange)
+            app.logger.info('Pair added: {} | {}'.format(pair, exchange))
             return jsonify(response)
         except:
             app.logger.warning(traceback.format_exc())

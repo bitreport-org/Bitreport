@@ -89,21 +89,27 @@ def get_function_list(module):
 def show_pairs():
     conf = config.BaseConfig()
     file = conf.EXCHANGES
-    df = pd.DataFrame(np.load(file), columns=['pair', 'exchange'])
-    return list(df.pair)
+    with np.load('exchanges.npz') as data:
+        pairs = data['pairs']
+
+    return pairs.tolist()
 
 
 def add_pair(pair, exchange):
     conf = config.BaseConfig()
     file = conf.EXCHANGES
-    df = pd.DataFrame(np.load(file), columns=['pair', 'exchange'])
-    df2 = df.isin([pair])
-    if df2[df2['pair'] == True].size != 0:
+
+    with np.load('exchanges.npz') as data:
+        pairs = data['pairs']
+        exchanges = data['exchanges']
+    
+    if pair in pairs:
         return 'Pair already exists', 200
     else:
         try:
-            df = df.append(pd.DataFrame([[pair, exchange]], columns=['pair', 'exchange']), ignore_index=True)
-            np.save('exchanges', df)
+            pairs = np.append(pairs, [pair])
+            exchanges = np.append(exchanges, [exchange])
+            np.savez('exchanges', pairs= pairs, exchanges = exchanges)
             return 'Pair added', 200
         except:
             return 'shit', 500
@@ -112,9 +118,14 @@ def add_pair(pair, exchange):
 def check_exchange(pair):
     conf = config.BaseConfig()
     file = conf.EXCHANGES
-    df = pd.DataFrame(np.load(file), columns=['pair', 'exchange'])
+
+    with np.load('exchanges.npz') as data:
+        pairs = data['pairs']
+        exchanges = data['exchanges']
+
     try:
-        return list(df[df.pair == pair].exchange.values)[0]
+        i = np.where(pairs == pair)[0][0]
+        return exchanges[i]
     except:
         return None
 
