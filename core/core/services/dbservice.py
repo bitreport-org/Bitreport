@@ -24,33 +24,33 @@ def bitfinex_fill(app, client, pair, timeframe, limit):
 
         url = 'https://api.bitfinex.com/v2/candles/trade:{}:t{}/hist?limit={}&start=946684800000'.format(timeframeR, pair, limit)
         request = requests.get(url)
-        candel_list = request.json()
+        candle_list = request.json()
 
 
         # check if any response and if not error then write candles to influx
-        l = len(candel_list)
+        l = len(candle_list)
 
-        if l > 0 and candel_list[0] != 'error':
+        if l > 0 and candle_list[0] != 'error':
             try:
                 for i in range(l):
                     try:
                         json_body = [
                             {
                                 "measurement": name,
-                                "time": int(1000000 * candel_list[i][0]),
+                                "time": int(1000000 * candle_list[i][0]),
                                 "fields": {
-                                    "open": float(candel_list[i][1]),
-                                    "close": float(candel_list[i][2]),
-                                    "high": float(candel_list[i][3]),
-                                    "low": float(candel_list[i][4]),
-                                    "volume": float(candel_list[i][5]),
+                                    "open": float(candle_list[i][1]),
+                                    "close": float(candle_list[i][2]),
+                                    "high": float(candle_list[i][3]),
+                                    "low": float(candle_list[i][4]),
+                                    "volume": float(candle_list[i][5]),
                                 }
                             }
                         ]
-                        client.write_points(json_body)
+                        client.write_points(json_body, retention_policy = 'autogen')
                     except Exception as e:
-                        m = 'FAILED ticker write {} error: \n  {}'.format(name, traceback.format_exc().splitlines()[-2])
-                        app.logger.warning(m)
+                        #m = 'FAILED ticker write {} error: \n  {}'.format(name, traceback.format_exc().splitlines()[-2])
+                        #app.logger.warning(m)
                         pass
 
                 m = 'SUCCEDED write {} records for {}'.format(l, name)
@@ -94,102 +94,93 @@ def bitfinex_fill(app, client, pair, timeframe, limit):
 
 
 def bittrex_fill(app, client, pair, timeframe, limit):
-    name_map = {'30m': 'thirtyMin',
-                '1h': 'hour',
-                '2h': 'hour',
-                '3h': 'hour',
-                '6h':'hour',
-                '12h':'hour',
-                '24h': 'day',
-                '168h': 'day',
-                'hour' : '1h',
-                'day' : '24h',
-                'thirtyMin' : '30m'
-    }
-    downsamples = {
-        'hour': ['2h', '3h', '6h', '12h'],
-        'day': ['168h'],
-        'thirtyMin': []
-    }
-    name = pair+timeframe
     status = False
-
+    downsamples = {
+        '1h': ['2h', '3h', '6h', '12h'],
+        '24h': ['168h']
+    }
+    
+    # Prepare pair for request
     end_pair = pair[-3:]
     start_pair = pair[:-3]
     if end_pair == 'USD':
         end_pair = end_pair + 'T'
     req_pair = end_pair + '-' + start_pair
 
-    interval = name_map[timeframe]
-    measurement_name = name_map[interval]
+    timeframes = ['1h', '24h']
+    bittrex_tf = ['hour', 'day']
+    for tf, btf in zip(timeframes, bittrex_tf):
+        name = pair + tf
+        try:
+            url = 'https://bittrex.com/Api/v2.0/pub/market/GetTicks?marketName={}&tickInterval={}'.format(req_pair, btf)
+            request = requests.get(url)
+            response = request.json()
 
-    try:
-        url = 'https://bittrex.com/Api/v2.0/pub/market/GetTicks?marketName={}&tickInterval={}'.format(req_pair, interval)
-        request = requests.get(url)
-        response = request.json()
-
-        # check if any response and if not error then write candles to influx
-        if response['success']:
-            candel_list = response['result']
-            try:
-                # Write ticker
-                for row in candel_list:
-                    try:
-                        json_body = [
-                            {
-                                "measurement": measurement_name,
-                                "time": row['T'],
-                                "fields": {
-                                    "open": float(row['O']),
-                                    "close": float(row['C']),
-                                    "high": float(row['H']),
-                                    "low": float(row['L']),
-                                    "volume": float(row['BV']),
+            # check if any response and if not error then write candles to influx
+            if response['success']:
+                candle_list = response['result']
+                try:
+                    # Write ticker
+                    for row in candle_list:
+                        try:
+                            json_body = [
+                                {
+                                    "measurement": name,
+                                    "time": row['T'],
+                                    "fields": {
+                                        "open": float(row['O']),
+                                        "close": float(row['C']),
+                                        "high": float(row['H']),
+                                        "low": float(row['L']),
+                                        "volume": float(row['BV']),
+                                    }
                                 }
-                            }
-                        ]
-                        client.write_points(json_body)
-                    except Exception as e:
-                        m = 'FAILED ticker write {} error: \n  {}'.format(name, traceback.format_exc().splitlines()[-2])
-                        app.logger.warning(m)
-                        pass
-                m = 'SUCCEDED write records for {}'.format(name)
-                app.logger.info(m)
+                            ]
+                            client.write_points(json_body, retention_policy = 'autogen')
+                        except Exception as e:
+                            #m = 'FAILED ticker write {} error: \n  {}'.format(name, traceback.format_exc().splitlines()[-2])
+                            #app.logger.warning(m)
+                            pass
+                    m = 'SUCCEDED write {} records for {}'.format(len(candle_list), name)
+                    app.logger.info(m)
+                    status = True
 
 
-                # Data downsample
-                timeframes2 = downsamples[measurement_name]
-                for tf in timeframes2:
-                    try:
-                        query = "SELECT first(open) AS open, " \
-                                "max(high) AS high," \
-                                "min(low) AS low, " \
-                                "last(close) AS close, " \
-                                "sum(volume) AS volume " \
-                                "INTO {} FROM {} WHERE time <= '{}' GROUP BY time({})".format(name, pair + measurement_name,time_now,  tf)
+                    # Data downsample
+                    for tf_sample in downsamples[tf]:
+                        try:
+                            query = "SELECT first(open) AS open, " \
+                                    "max(high) AS high," \
+                                    "min(low) AS low, " \
+                                    "last(close) AS close, " \
+                                    "sum(volume) AS volume " \
+                                    "INTO {} FROM {} WHERE time <= '{}' GROUP BY time({})".format(pair+tf_sample, name, time_now,  tf_sample)
+                            client.query(query)
 
-                        client.query(query)
-                    except Exception as e:
-                        m = 'FAILED {} downsample {} error: \n {}'.format( tf, pair, traceback.format_exc())
-                        app.logger.warning(m)
-                        pass
+                        except Exception as e:
+                            m = 'FAILED {} downsample {} error: \n {}'.format( tf, pair, traceback.format_exc())
+                            app.logger.warning(m)
+                            pass
 
-            except Exception as e:
-                m = 'FAILED write {}'.format(name)
+                except Exception as e:
+                    m = 'FAILED write {}'.format(name)
+                    app.logger.warning(m)
+                    pass
+
+            else:
+                m = 'FAILED {} Bitrex response: {}'.format(name, response['message'])
                 app.logger.warning(m)
 
-                pass
-        else:
-            m = 'FAILED {} Bitrex response: {}'.format(name, response['message'])
+        except Exception as e:
+            m = 'FAILED Bitrex api request for {}'.format(name)
             app.logger.warning(m)
-    except Exception as e:
-        m = 'FAILED Bitrex api request for {}'.format(name)
-        app.logger.warning(m)
 
     return status
 
 
 def binance_fill(app, client, pair, timeframe, limit):
+    
+    #Prepare pair for request
     end_pair = pair[-3:]
     start_pair = pair[:-3]
     if end_pair == 'USD':
@@ -209,31 +200,31 @@ def binance_fill(app, client, pair, timeframe, limit):
         # defualt last 500 candles
         url = 'https://api.binance.com/api/v1/klines?symbol={}&interval={}'.format(req_pair, timeframeR)
         request = requests.get(url)
-        candel_list = request.json()
+        candle_list = request.json()
 
         # check if any response and if not error then write candles to influx
-        if isinstance(candel_list,list) == True:
+        if isinstance(candle_list,list) == True:
             try:
-                l = len(candel_list)
+                l = len(candle_list)
                 for i in range(l):
                     try:
                         json_body = [
                             {
                                 "measurement": name,
-                                "time": int(1000000 * candel_list[i][0]),
+                                "time": int(1000000 * candle_list[i][0]),
                                 "fields": {
-                                    "open": float(candel_list[i][1]),
-                                    "close": float(candel_list[i][4]),
-                                    "high": float(candel_list[i][2]),
-                                    "low": float(candel_list[i][3]),
-                                    "volume": float(candel_list[i][5]),
+                                    "open": float(candle_list[i][1]),
+                                    "close": float(candle_list[i][4]),
+                                    "high": float(candle_list[i][2]),
+                                    "low": float(candle_list[i][3]),
+                                    "volume": float(candle_list[i][5]),
                                 }
                             }
                         ]
-                        client.write_points(json_body)
+                        client.write_points(json_body, retention_policy = 'autogen')
                     except Exception as e:
-                        m = 'FAILED ticker write {} error: \n  {}'.format(name, traceback.format_exc().splitlines()[-2])
-                        app.logger.warning(m)
+                        #m = 'FAILED ticker write {} error: \n  {}'.format(name, traceback.format_exc().splitlines()[-2])
+                        #app.logger.warning(m)
                         pass
 
                 status = True
@@ -286,8 +277,8 @@ def poloniex_fill(app, client, pair, timeframe,limit):
     now = int(time.time())
     request_types = {
         '30m': {'name': '30m', 'start': now - 6 * limit * 60 * 30, 'downsamples': ['1h', '3h'], 'value': 1800},
-        '2h': {'name': '2h', 'start': now - 6 * limit * 60 * 60 * 2, 'downsaples': ['6h', '12h'], 'value': 7200},
-        '24h': {'name': '24h', 'start': now - 7 * limit * 60 * 60 * 24, 'downsaples': ['168h'], 'value': 86400}
+        '2h': {'name': '2h', 'start': now - 6 * limit * 60 * 60 * 2, 'downsamples': ['6h', '12h'], 'value': 7200},
+        '24h': {'name': '24h', 'start': now - 7 * limit * 60 * 60 * 24, 'downsamples': ['168h'], 'value': 86400}
     }
     name_map = {'30m': '30m',
                 '1h': '30m',
@@ -310,30 +301,30 @@ def poloniex_fill(app, client, pair, timeframe,limit):
         r = request_types[name_map[timeframe]]
         url = 'https://poloniex.com/public?command=returnChartData&currencyPair={}&start={}&end={}&period={}'.format(req_pair, r['start'], now, r['value'])
         request = requests.get(url)
-        candel_list = request.json()
+        candle_list = request.json()
         # check if any response and if not error then write candles to influx
-        if isinstance(candel_list, list):
+        if isinstance(candle_list, list):
             try:
-                l = len(candel_list)
+                l = len(candle_list)
                 for i in range(l):
                     try:
                         json_body = [
                             {
                                 "measurement": pair + r['name'],
-                                "time": int(1000000000 * candel_list[i]['date']),
+                                "time": int(1000000000 * candle_list[i]['date']),
                                 "fields": {
-                                    "open": float(candel_list[i]['open']),
-                                    "close": float(candel_list[i]['close']),
-                                    "high": float(candel_list[i]['high']),
-                                    "low": float(candel_list[i]['low']),
-                                    "volume": float(candel_list[i]['volume']),
+                                    "open": float(candle_list[i]['open']),
+                                    "close": float(candle_list[i]['close']),
+                                    "high": float(candle_list[i]['high']),
+                                    "low": float(candle_list[i]['low']),
+                                    "volume": float(candle_list[i]['volume']),
                                 }
                             }
                         ]
-                        client.write_points(json_body)
+                        client.write_points(json_body, retention_policy = 'autogen')
                     except Exception as e:
-                        m = 'FAILED ticker write {} error: \n  {}'.format(name, traceback.format_exc().splitlines()[-2])
-                        app.logger.warning(m)
+                        #m = 'FAILED ticker write {} error: \n  {}'.format(name, traceback.format_exc().splitlines()[-2])
+                        #app.logger.warning(m)
                         pass
                 status = True
                 m = 'SUCCEDED write {} records for {}'.format(l, name)
@@ -385,12 +376,12 @@ def pair_fill(app, pair, exchange, last):
         try:
             last = internal.import_numpy(pair, '1h', 1)
             last = last['date'][0]
-            h_number = 168*52
+            h_number = 168*2
         except:
-            h_number = 168*52
+            h_number = 168*2
             last = int(time.time() - h_number)
     else:
-        h_number = int((time.time() - last / 3600))+2
+        h_number = int((time.time() - last) / 3600)+2
 
 
     if exchange == 'bitfinex':
@@ -407,14 +398,12 @@ def pair_fill(app, pair, exchange, last):
             time.sleep(max(0, 2-dt))
 
     elif exchange == 'bittrex':
-        timeframes = ['1h', '24h']
-
         fill_type = exchange+'_fill'
         filler = globals()[fill_type]
 
-        for tf in timeframes:
-            limit = int(h_number/int(tf[:-1]))+2
-            filler(app, client, pair, tf, limit)
+        # bittrex has only 1h and 24h so loop is in the function
+        limit = int(h_number) + 2
+        filler(app, client, pair, 'tf', limit)
 
     elif exchange == 'binance':
 

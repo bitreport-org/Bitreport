@@ -129,3 +129,16 @@ def check_exchange(pair):
     except:
         return None
 
+def show_pairs_exchanges():
+    conf = config.BaseConfig()
+    file = conf.EXCHANGES
+    with np.load('exchanges.npz') as data:
+        pairs = data['pairs']
+        exchanges = data['exchanges']
+        
+    return np.stack((pairs, exchanges), axis=1).tolist()
+
+
+
+
+
