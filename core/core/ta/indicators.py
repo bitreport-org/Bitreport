@@ -91,10 +91,11 @@ def STOCH(data, fastk_period=5, slowk_period=3, slowk_matype=0, slowd_period=3, 
     slowk, slowd = talib.STOCH(data['high'], data['low'], data['close'],
                                fastk_period, slowk_period, slowk_matype, slowd_period, slowd_matype)
     
+    #TOKENS
     info = []
-    if slowk[-1] >= 70:
+    if slowk[-1] >= 80:
         info.append('OSCILLATOR_OVERBOUGHT')
-    elif slowk[-1] <= 30:
+    elif slowk[-1] <= 20:
         info.append('OSCILLATOR_OVERSOLD')
 
     return {'slowk': slowk.tolist()[start:], 'slowd': slowd.tolist()[start:], 'info': info}
@@ -200,8 +201,18 @@ def EMA(data):
 
 def SAR(data):
     start = config.MAGIC_LIMIT
+    close = data['close']
     real = talib.SAR(data['high'], data['low'], acceleration=0.02, maximum=0.2)
-    return {'sar': real.tolist()[start:]}
+
+    # TOKENS
+    info = []
+    for i in range(-10,0):
+        if real[i-1] <= close[i-1] and real[i] >= close[i]:
+            info.append('DIRECTION_DOWN')
+        elif real[i-1] >= close[i-1] and real[i] <= close[i]:
+            info.append('DIRECTION_UP')
+
+    return {'sar': real.tolist()[start:], 'info': info}
 
 
 def ALLIGATOR(data):
