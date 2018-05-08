@@ -129,7 +129,7 @@ def fallingwedge(data: dict):
         point3 = point1 + talib.MININDEX(close[point1 : point2], timeperiod=len(close[point1: point2]))[-1]
         
         # Lower band
-        a_values = np.divide(np.array(close[point3+2 : end+1]) - close[point3], np.arange(point2+1, end+1) - point3)
+        a_values = np.divide(np.array(close[point3+1 : end+1]) - close[point3], np.arange(point3+1, end+1) - point3)
         lower_a = np.min(a_values)
         lower_b = close[point3] - lower_a * point3
 
@@ -189,7 +189,7 @@ def raisingwedge(data: dict):
         point3 = point1 + talib.MAXINDEX(close[point1: point2], timeperiod=len(close[point1: point2]))[-1]
         
         # Upper band
-        a_values = np.divide(np.array(close[point3+2 : end+1]) - close[point3], np.arange(point3+2, end+1) - point3)
+        a_values = np.divide(np.array(close[point3+1 : end+1]) - close[point3], np.arange(point3+1, end+1) - point3)
         upper_a = np.max(a_values)
         upper_b = close[point3] - upper_a * point3
 
