@@ -44,8 +44,13 @@ magic_limit = conf.MAGIC_LIMIT
 def data_service(pair: str):
     if request.method == 'GET':
         timeframe = request.args.get('timeframe', default='1h', type=str)
-        limit = request.args.get('limit', default=10, type=int)
+        limit = request.args.get('limit', default=11, type=int)
         untill = request.args.get('untill', default=None, type=int)
+
+        # Minimum response is 11 candles:
+        if limit <11:
+            limit=11
+
         app.logger.info('Request for {} {} limit {} untill {}'.format(pair, timeframe, limit, untill))
         tic = time.time()
         ############################### DATA REQUEST #####################################
@@ -97,6 +102,7 @@ def data_service(pair: str):
         output['indicators'] = indidict
 
         ################################ PATTERNS ########################################
+        output['patterns'] = []
         # # Short data for patterns
         # if isinstance(untill, int):
         #     pat_data = internal.import_numpy_untill(pair, timeframe, limit + magic_limit, untill)
