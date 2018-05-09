@@ -20,11 +20,18 @@ class TextGenerator
       DIV_NEGATIVE: ['The RSI is showing a negative divergence. This may suggest trend reversal.']
     },
     wedge: {
-
+      PRICE_BREAK_UP: ['Price broke out from the wedge.', 'Price is above the wedge.'],
+      PRICE_BREAK_DOWN: ['Price broke down from the wedge.', 'Price is below the wedge.'],
+      PRICE_ONBAND_UP: ['Price is moving close to the upper wedge.', 'Price is close to the upper wedge.'],
+      PRICE_ONBAND_DOWN: ['Price is moving close to the lower wedge.', 'Price is close to the lower wedge.'],
+      PRICE_BETWEEN: ['Price stays within the wedge.', 'Price is still moving inside the wedge.'],
+      SHAPE_TRIANGLE: ['Wedge is a nice triangle.'],
+      SHAPE_PARALLEL: ['Wedge creates a nice channel.', 'Wedge\' s bands are parallel.'],
+      SHAPE_CONTRACTING: ['Would the wedge end as channel or as a triangle?']
     },
     channel: {
-      PRICE_BREAK_UP: ['Price has broke out of the channel', 'Price is now above the channel.'],
-      PRICE_BREAK_DOWN: ['Price has broke out of the channel', 'Price is now below the channel.'],
+      PRICE_BREAK_UP: ['Price has broke out of the channel.', 'Price is now above the channel.'],
+      PRICE_BREAK_DOWN: ['Price has broke out of the channel.', 'Price is now below the channel.'],
       PRICE_BETWEEN: ['Prices stays whithin channel.', 'Price is still moving whithin the channel.'],
       PRICE_ONBAND_UP: ['We are close to the upper band of the channel.', 'Price is close to the upper band of the channel.'],
       PRICE_ONBAND_DOWN:['We are close to the lower band of the channel.', 'Price is close to the lower band of the channel.'],
