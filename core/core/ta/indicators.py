@@ -35,8 +35,9 @@ def BB(data, timeperiod=20, nbdevup=2, nbdevdn=2, matype=0):
     else:
         info.append('PRICE_BETWEEN')
 
-    test_data = band_position[-10:]
-    squeeze = joblib.load('{}/core/ta/squeezeCLF10.pkl'.format(os.getcwd())) 
+    width = upperband - lowerband
+    test_data = width[-15:] / np.max(width[-15:])
+    squeeze = joblib.load('{}/core/ta/clfs/squeeze01CLF15.pkl'.format(os.getcwd())) 
     if squeeze.predict([test_data])[0] == 1:
         info.append('BANDS_SQUEEZE')
 
