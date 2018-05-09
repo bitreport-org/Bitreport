@@ -5,6 +5,8 @@ import time
 import datetime
 import logging
 import traceback
+import numpy as np
+from scipy import stats
 from influxdb import InfluxDBClient
 
 # Internal import
@@ -123,6 +125,23 @@ def data_service(pair: str):
             app.logger.warning(traceback.format_exc())
             output['levels'] = []
             pass
+
+        ################################ INFO ##########################################
+        info = {}
+
+        # Volume tokens
+        info['volume'] = []
+        threshold = np.percentile(data['volume'], 80)
+        if data['volume'][-2] > threshold or data['volume'][-1] > threshold:
+            info['volume'].append('VOLUME_SPIKE')
+        
+        slope, i, r, p, std = stats.linregress(np.arange(data['volume'][-10:].size), data['volume'][-10:])
+        if slope < 0.0:
+            info['volume'].append('DIRECTION_DOWN')
+        else:
+            info['volume'].append('DIRECTION_UP')
+
+        output['info'] = info
 
         toc = time.time()
         output['response_time'] = '{0:.2f} ms'.format(1000*(toc - tic))
