@@ -41,7 +41,9 @@ class TextGenerator
       PRICE_ONBAND_DOWN:['We are close to the lower band of the channel.', 'Price is close to the lower band of the channel.'],
       DIRECTION_UP: ['The channel is steady moving up.', 'Channel is pointing up, will the price stay within it?'],
       DIRECTION_DOWN: ['The channel is steady moving down.', 'Channel is pointing down, will the price stay within it?'],
-      DIRECTION_HORIZONTAL: ['The channel moves roughly horizontally.']
+      DIRECTION_HORIZONTAL: ['The channel moves roughly horizontally.'],
+      PRICE_PULLBACK: ['Price pullbacks after moving above the channel.'],
+      PRICE_THROWBACK: ['Price makes a throwback after moving below the channel.']
     },
     TDS: {
 

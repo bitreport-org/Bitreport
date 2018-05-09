@@ -34,6 +34,7 @@ def channel(data: dict, percent: int = 80):
     info = []
     p = ( close[-1] - up_channel[-1-margin] ) / (up_channel[-1-margin]-bottom_channel[-1-margin]) 
 
+    # Price Tokens
     if p > 1:
         info.append('PRICE_BREAK_UP')
     elif p < 0:
@@ -45,6 +46,13 @@ def channel(data: dict, percent: int = 80):
     else:
         info.append('PRICE_BETWEEN')
 
+    n_last_points = 10
+    if np.sum(close[-n_last_points:] > up_channel[-n_last_points-margin : -margin]) > 0 and close[-1] < up_channel[-1]:
+        info.append('PRICE_PULLBACK')
+    elif np.sum(close[-n_last_points:] < bottom_channel[-n_last_points-margin : -margin]) > 0 and close[-1] > bottom_channel[-1]:
+        info.append('PRICE_THROWBACK')
+
+    # Drirection Tokens
     if a < -0.1:
         info.append('DIRECTION_DOWN')
     elif a > 0.1:
@@ -227,7 +235,6 @@ def wedge(data: dict):
 
         return upper_band, lower_band, width, info, params
 
-    
     # Falling wedge
     upper_band, lower_band, width, info, params = make_wedge('falling')
 
