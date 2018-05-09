@@ -27,7 +27,11 @@ class TextGenerator
       PRICE_BETWEEN: ['Price stays within the wedge.', 'Price is still moving inside the wedge.'],
       SHAPE_TRIANGLE: ['Wedge is a nice triangle.'],
       SHAPE_PARALLEL: ['Wedge creates a nice channel.', 'Wedge\' s bands are parallel.'],
-      SHAPE_CONTRACTING: ['Would the wedge end as channel or as a triangle?']
+      SHAPE_CONTRACTING: ['Would the wedge end as channel or as a triangle?'],
+      DIRECTION_UP: ['Wedge is pointing up.', 'Wedge seems to be moving up.'],
+      DIRECTION_DOWN: ['Wedge is pointing down.', 'Wedge seems to be moving down.'],
+      PRICE_PULLBACK: ['Price pullbacks after moving above the wedge.'],
+      PRICE_THROWBACK: ['Price makes a throwback after moving below the wedge.']
     },
     channel: {
       PRICE_BREAK_UP: ['Price has broke out of the channel.', 'Price is now above the channel.'],

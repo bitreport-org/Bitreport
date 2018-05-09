@@ -103,121 +103,146 @@ def parabola(data: dict, percent: int =100):
             }
 
 
-def fallingwedge(data: dict):
+def wedge(data: dict):
     margin = config.MARGIN
     start = config.MAGIC_LIMIT
 
-    full_size = data['close'].size
-    close = data['close'][start:]
+    close, low, high = data['close'][start:], data['low'][start:], data['high'][start:]
     close_size = close.size
 
-    # Upper start point
-    point1 = talib.MAXINDEX(close, timeperiod=close_size)[-1]
-    
-    end = close_size-6
-    if point1 < end:
-        # Upper band
-        a_values = np.divide(np.array(close[point1+2 : end+1]) - close[point1], np.arange(point1+2, end+1) - point1)
-        upper_a = np.max(a_values)
-        upper_b = close[point1] - upper_a * point1
-
-        # End point
-        point2, = np.where(a_values == upper_a)[0]
-        point2 = ( point1 + 2 ) + point2 
-
-        # Lower start point
-        point3 = point1 + talib.MININDEX(close[point1 : point2], timeperiod=len(close[point1: point2]))[-1]
+    def make_wedge(t):
+        lower_band, upper_band, width, params, info = np.array([]), np.array([]), np.array([]), [], []
         
-        # Lower band
-        a_values = np.divide(np.array(close[point3+1 : end+1]) - close[point3], np.arange(point3+1, end+1) - point3)
-        lower_a = np.min(a_values)
-        lower_b = close[point3] - lower_a * point3
+        if t == 'falling':
+            dt = low
+            f0 = talib.MAXINDEX
+            f1 = np.max
+            f2 = talib.MININDEX
+            f3 = np.min
+        else:
+            dt = high
+            f0 = talib.MININDEX
+            f1 = np.min
+            f2 = talib.MAXINDEX
+            f3 = np.max
 
-        # Check if wedge makes sense
-        up_start_value = upper_a * close[point1] + upper_b
-        down_start_value = lower_a * close[point1] + lower_b
-        up_end_value = upper_a * close[point1] + upper_b
-        down_end_value = lower_a * close[point1] + lower_b
+        lower_band, upper_band = np.array([]), np.array([])
+        point1 = f0(close, timeperiod=close_size)[-1]
+    
+        end = close_size-5
+        if point1 < close_size - 30:
+            # Band 1
+            a_values = np.divide(np.array(close[point1+2 : end+1]) - close[point1], np.arange(point1+2, end+1) - point1)
+            a1 = f1(a_values)
+            b1 = close[point1] - a1 * point1
 
-        # Has shape >
-        if up_start_value - down_start_value <= up_end_value - down_end_value:
-            upper_band = upper_a * np.arange(full_size) + upper_b
-            lower_band = lower_a * np.arange(full_size) + lower_b
+            # End point
+            point2, = np.where(a_values == a1)[0]
+            point2 = ( point1 + 2 ) + point2 
+
+            # Mid point
+            point3 = point1 + f2(close[point1 : point2], timeperiod=len(close[point1: point2]))[-1]
+            point3_value = close[point3]
+
+            earlier_point3 = f2(dt[:point3], timeperiod=len(dt[:point3]))[-1]
+            
+            # Band 2
+            if earlier_point3 < point3:
+                point3 = earlier_point3
+                point3_value = dt[point3]
+
+                a_values = np.divide(np.array(dt[point3+1 : end+1]) - point3_value, np.arange(point3+1, end+1) - point3)
+                a2 = f3(a_values)
+                b2 = dt[point3] - a2 * point3
+
+            else:
+                a_values = np.divide(np.array(close[point3+1 : end+1]) - point3_value, np.arange(point3+1, end+1) - point3)
+                a2 = f3(a_values)
+                b2 = close[point3] - a2 * point3
+
+            # Create upper and lower band
+            if t == 'falling':
+                upper,lower = np.array([a1, b1]), np.array([a2, b2])
+                upper_band = a1 * np.arange(close_size) + b1
+                lower_band = a2 * np.arange(close_size) + b2
+            else:
+                upper,lower = np.array([a2, b2]), np.array([a1, b1])
+                upper_band = a2 * np.arange(close_size) + b2
+                lower_band = a1 * np.arange(close_size) + b1
+
+            # Shape Tokens
+            width = upper_band - lower_band 
+            if width[-1]/width[0] > 0.90:
+                info.append('SHAPE_PARALLEL')
+            elif width[-1]/width[0] < 0.75:
+                info.append('SHAPE_TRIANGLE')
+            else:
+                info.append('SHAPE_CONTRACTING')
+
+            # Break Tokens
+            if close[-1] > upper_band[-1]:
+                info.append('PRICE_BREAK_UP')
+            elif close[-1] < lower_band[-1]:
+                info.append('PRICE_BREAK_DOWN')
+
+            # Price Tokens
+            if (close[-1]-lower_band[-1])/width[-1] >= 0.95:
+                info.append('PRICE_ONBAND_UP')
+            elif (close[-1]-lower_band[-1])/width[-1] <= 0.05:
+                info.append('PRICE_ONBAND_UP')
+            else:
+                info.append('PRICE_BETWEEN')
+
+            n_last_points = 10
+            if np.sum(close[-n_last_points:] > upper_band[-n_last_points:]) > 0 and close[-1] < upper_band[-1]:
+                info.append('PRICE_PULLBACK')
+            elif np.sum(close[-n_last_points:] < lower_band[-n_last_points:]) > 0 and close[-1] > lower_band[-1]:
+                info.append('PRICE_THROWBACK')
+
+            
+            # Direction Tokens
+            wedge_dir = (lower_band[0] + width[0] - lower_band[-1] + width[-1]) / lower_band.size
+            if wedge_dir > 0.25:
+                info.append('DIRECTION_UP')
+            elif wedge_dir < -0.25:
+                info.append('DIRECTION_DOWN')
+            else:
+                info.append('DIRECTION_HORIZONTAL')
+
+
+            # Wedge extension
+            for i in range(margin):
+                new_point_up = np.sum(upper * [close_size+i, 1])
+                new_point_down = np.sum(lower * [close_size+i, 1])
+                if new_point_up > new_point_down:
+                    upper_band = np.append(upper_band, new_point_up)
+                    lower_band = np.append(lower_band, new_point_down)
+
             # Parameters for channel extrapolation
             params = {'x0': data['date'][point1],
                        'dx': int(data['date'][1]-data['date'][0]),
-                       'upper': (upper_a, upper_b),
-                       'lower': (lower_a, lower_b)
+                       'upper': (a1, b1),
+                       'lower': (a2, b2)
                        }
-        else:
-            lower_band, upper_band = np.array([]), np.array([])
-            params = []
 
-    else:
-        lower_band, upper_band = np.array([]), np.array([])
-        params = []
+        return upper_band, lower_band, width, info, params
+
+    
+    # Falling wedge
+    upper_band, lower_band, width, info, params = make_wedge('falling')
+
+    # Check if wedge makes sense
+    if width.size > 0  and width[0] - width[-1] < 0:
+        # Rising wedge
+        upper_band, lower_band, width, info, params = make_wedge('raising')
+        # Check if wedge makes sense
+        if width.size > 0  and width[0] - width[-1] < 0:
+            lower_band, upper_band = np.array([]), np.array([])
+            params, info = [], []
+      
 
     return {'upperband': upper_band.tolist(),
             'middleband': [],
             'lowerband': lower_band.tolist(),
-            'params': params}
-
-
-def raisingwedge(data: dict):
-    margin = config.MARGIN
-    start = config.MAGIC_LIMIT
-
-    full_size = data['close'].size
-    close = data['close'][start:]
-    close_size = close.size
-
-    # Lower start point
-    point1 = talib.MININDEX(close, timeperiod=close_size)[-1]
-    
-    end = close_size-6
-    if point1 < end:
-        # Lower band
-        a_values = np.divide(np.array(close[point1+2 : end+1]) - close[point1], np.arange(point1+2, end+1) - point1)
-        lower_a = np.min(a_values)
-        lower_b = close[point1] - lower_a * point1
-
-        # End point
-        point2, = np.where(a_values == lower_a)[0]
-        point2 = (point1 + 2) + point2
-
-        # Upper start point
-        point3 = point1 + talib.MAXINDEX(close[point1: point2], timeperiod=len(close[point1: point2]))[-1]
-        
-        # Upper band
-        a_values = np.divide(np.array(close[point3+1 : end+1]) - close[point3], np.arange(point3+1, end+1) - point3)
-        upper_a = np.max(a_values)
-        upper_b = close[point3] - upper_a * point3
-
-        # Check if wedge makes sense
-        up_start_value = upper_a * close[point1] + upper_b
-        down_start_value = lower_a * close[point1] + lower_b
-        up_end_value = upper_a * close[point1] + upper_b
-        down_end_value = lower_a * close[point1] + lower_b
-
-        # Has shape >
-        if up_start_value - down_start_value >= up_end_value - down_end_value:
-            upper_band = upper_a * np.arange(full_size) + upper_b
-            lower_band = lower_a * np.arange(full_size) + lower_b
-            # Parameters for channel extrapolation
-            params = {'x0': data['date'][point1],
-                       'dx': int(data['date'][1]-data['date'][0]),
-                       'upper': (upper_a, upper_b),
-                       'lower': (lower_a, lower_b)
-                       }
-        else:
-            lower_band, upper_band = np.array([]), np.array([])
-            params = []
-
-    else:
-        lower_band, upper_band = np.array([]), np.array([])
-        params = []
-
-    return {'upperband': upper_band.tolist(),
-            'middleband': [],
-            'lowerband': lower_band.tolist(),
+            'info': info,
             'params': params}
