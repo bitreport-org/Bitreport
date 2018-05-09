@@ -318,7 +318,7 @@ def TDS(data):
 # Ichimoku Cloud:
 def ICM(data):
     start = config.MAGIC_LIMIT
-    open, high, low, close=data['open'], data['high'], data['low'], data['close']
+    open, high, low, close = data['open'], data['high'], data['low'], data['close']
     close_size = close.size
 
     # Tenkan-sen (Conversion Line): (9-period high + 9-period low)/2))
@@ -346,11 +346,29 @@ def ICM(data):
     for i in range(n3, close_size):
         leading_spanB.append((np.max(high[i-n3:i]) + np.min(low[i-n3:i]))/2)
 
+    leading_spanB = np.array(leading_spanB)
+
+    # Tokens
+    info = []
+    # if leading_spanA[-1] < close[-1] < leading_spanB[-1]:
+    #     info.append('IN_CLOUD_UP')
+    # elif leading_spanA[-1] > close[-1] > leading_spanB[-1]:
+    #     info.append('IN_CLOUD_DOWN')
+
+    # width = np.abs(leading_spanA - leading_spanB)
+    # p1 = np.percentile(width, .75)
+    # p2 = np.percentile(width, .25)
+    # if width[-1] >= p1:
+    #     info.append('WIDE')
+    # elif width[-1] <= p2:
+    #     info.append('THIN')
+
     return {'conversion line': [],
             'base line': [],
             'leading span A': leading_spanA.tolist()[start-n2:],
-            'leading span B': leading_spanB[start-n2:],
-            'lagging span': []}
+            'leading span B': leading_spanB.tolist()[start-n2:],
+            'lagging span': [],
+            'info': info}
 
 # Ichimoku Cloud FULL:
 def ICMF(data):

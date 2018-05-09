@@ -85,7 +85,10 @@ class TextGenerator
       CROSS_BULLISH: ['There was a bullish cross on EMA.', 'We have observed a bullish cross recently.', 'The bullish cross signals possible downtrend.', 'Fast EMA crossed up what means a bullish cross.']
     },
     ICM: {
-
+      IN_CLOUD_UP: ['Price is moving into cloud from above.'],
+      IN_CLOUD_DOWN: ['Price is moving into cloud from below.'],
+      WIDE: ['Cloud is wide.'],
+      THIN: ['Cloud is thin.']
     },
     MACD: {
 
