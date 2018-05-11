@@ -42,8 +42,8 @@ class TextGenerator
       DIRECTION_UP: ['The channel is steady moving up.', 'Channel is pointing up, will the price stay within it?'],
       DIRECTION_DOWN: ['The channel is steady moving down.', 'Channel is pointing down, will the price stay within it?'],
       DIRECTION_HORIZONTAL: ['The channel moves roughly horizontally.'],
-      PRICE_PULLBACK: ['Price pullbacks after moving above the channel.'],
-      PRICE_THROWBACK: ['Price makes a throwback after moving below the channel.']
+      FALSE_BREAK_UP: ['Price made a false break of the upper band.'],
+      FALSE_BREAK_DOWN: ['Price made a false break of the lower band.']
     },
     TDS: {
 
