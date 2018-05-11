@@ -9,91 +9,87 @@ import config
 
 time_now =dt.now().strftime("%Y-%m-%dT%H:%M:%SZ")
 
-# Database Bitfinex fill
-def bitfinex_fill(app, client, pair, timeframe, limit):
-    name = pair + timeframe
-    try:
-        # Map timeframes for Bitfinex
-        timeframeR = timeframe
-        if timeframe == '24h':
-            timeframeR = '1D'
-        elif timeframe == '168h':
-            timeframeR = '7D'
-        elif timeframe == '2h':
-            timeframeR = '1h'
+def bitfinex_fill(app, client, pair):
+    status = False
 
-        url = 'https://api.bitfinex.com/v2/candles/trade:{}:t{}/hist?limit={}&start=946684800000'.format(timeframeR, pair, limit)
-        request = requests.get(url)
-        candle_list = request.json()
+    timeframes = ['1h', '3h', '6h', '12h', '24h', '168h']
+    tf_distance = [3600, 3*3600, 6*3600, 12*3600, 24*3600, 168*3600 ]
 
+    for timeframe, dist in zip(timeframes, tf_distance):
+        # Check last available record
+        try:
+            startTime = internal.import_numpy(pair, '24h', 1)
+            startTime = startTime['date'][0] - 1
+        except:
+            h_number = 168*8
+            startTime = int(time.time() - h_number)
 
-        # check if any response and if not error then write candles to influx
-        l = len(candle_list)
+        now = int(time.time())
+        limit = (now - startTime) / dist
+        if limit >= 1.0:
+            name = pair + timeframe
+            # Map timeframes for Bitfinex
+            timeframeR = timeframe
+            if timeframe == '24h':
+                timeframeR = '1D'
+            elif timeframe == '168h':
+                timeframeR = '7D'
 
-        if l > 0 and candle_list[0] != 'error':
-            try:
-                for i in range(l):
+            url = 'https://api.bitfinex.com/v2/candles/trade:{}:t{}/hist?limit={}'.format(timeframeR, pair, limit)
+            request = requests.get(url)
+            response = request.json()
+
+            if isinstance(response, list) and response[0] != 'error':
+                count = 0 
+                for row in response:
                     try:
                         json_body = [
                             {
                                 "measurement": name,
-                                "time": int(1000000 * candle_list[i][0]),
+                                "time": int(1000000 * row[0]),
                                 "fields": {
-                                    "open": float(candle_list[i][1]),
-                                    "close": float(candle_list[i][2]),
-                                    "high": float(candle_list[i][3]),
-                                    "low": float(candle_list[i][4]),
-                                    "volume": float(candle_list[i][5]),
+                                    "open": float(row[1]),
+                                    "close": float(row[2]),
+                                    "high": float(row[3]),
+                                    "low": float(row[4]),
+                                    "volume": float(row[5]),
                                 }
                             }
                         ]
                         client.write_points(json_body, retention_policy = 'autogen')
-                    except Exception as e:
-                        #m = 'FAILED ticker write {} error: \n  {}'.format(name, traceback.format_exc().splitlines()[-2])
-                        #app.logger.warning(m)
+                        count += 1
+                    except:
                         pass
 
-                m = 'SUCCEDED write {} records for {}'.format(l, name)
+                m = 'SUCCEDED write {} / {} records for {}'.format(count, len(response), name)
                 app.logger.info(m)
+                status = True
 
-            except Exception as e:
-                m = 'FAILED write {}'.format(name)
+                if timeframeR == '1h':
+                    tf = '2h'
+                    #TIMEFRAME DOWNSAMPLING
+                    try:
+                        query = "SELECT " \
+                                "first(open) AS open, " \
+                                "max(high) AS high, " \
+                                "min(low) AS low, " \
+                                "last(close) AS close, " \
+                                "sum(volume) AS volume " \
+                                "INTO {} FROM {}1h WHERE time <= '{}' GROUP BY time({})".format(pair+tf, pair, time_now,  tf)
+                        client.query(query)
+                    except Exception as e:
+                        m = 'FAILED {} downsample {} error: \n {}'.format(tf, pair, traceback.format_exc())
+                        app.logger.warning(m)
+                        pass
+
+            else:
+                m = 'FAILED {} Bitfinex response: {}'.format(name, response[-1])
                 app.logger.warning(m)
-                pass
-        else:
-            m = 'FAILED {} Bitfinex response'.format(name)
-            app.logger.warning(m)
-
-        if timeframeR == '1h':
-            for tf in ['2h']:
-                #TIMEFRAME DOWNSAMPLING
-                try:
-
-                    query = "SELECT " \
-                            "first(open) AS open, " \
-                            "max(high) AS high, " \
-                            "min(low) AS low, " \
-                            "last(close) AS close, " \
-                            "sum(volume) AS volume " \
-                            "INTO {} FROM {}1h WHERE time <= '{}' GROUP BY time({})".format(pair+tf, pair, time_now,  tf)
-                    client.query(query)
-                except Exception as e:
-                    m = 'FAILED {} downsample {} error: \n {}'.format( tf, pair, traceback.format_exc())
-                    app.logger.warning(m)
-                    pass
-
-        status = True
-
-    except Exception as e:
-        m = 'FAILED Bitfinex api request for {}'.format(name)
-        app.logger.warning(m)
-        app.logger.error(traceback.format_exc())
-        status = False
 
     return status
 
 
-def bittrex_fill(app, client, pair, timeframe, limit):
+def bittrex_fill(app, client, pair):
     status = False
     downsamples = {
         '1h': ['2h', '3h', '6h', '12h'],
@@ -117,9 +113,10 @@ def bittrex_fill(app, client, pair, timeframe, limit):
             response = request.json()
 
             # check if any response and if not error then write candles to influx
-            if response['success']:
-                candle_list = response['result']
-                try:
+            if response.get('success', False):
+                candle_list = response.get('result', [])
+                if candle_list != []:
+                    count = 0 
                     # Write ticker
                     for row in candle_list:
                         try:
@@ -137,17 +134,16 @@ def bittrex_fill(app, client, pair, timeframe, limit):
                                 }
                             ]
                             client.write_points(json_body, retention_policy = 'autogen')
-                        except Exception as e:
-                            #m = 'FAILED ticker write {} error: \n  {}'.format(name, traceback.format_exc().splitlines()[-2])
-                            #app.logger.warning(m)
+                            count +=1
+                        except:
                             pass
-                    m = 'SUCCEDED write {} records for {}'.format(len(candle_list), name)
+
+                    m = 'SUCCEDED write {} / {} records for {}'.format(count, len(candle_list), name)
                     app.logger.info(m)
                     status = True
 
-
                     # Data downsample
-                    for tf_sample in downsamples[tf]:
+                    for tf_sample in downsamples.get(tf):
                         try:
                             query = "SELECT first(open) AS open, " \
                                     "max(high) AS high," \
@@ -161,14 +157,13 @@ def bittrex_fill(app, client, pair, timeframe, limit):
                             m = 'FAILED {} downsample {} error: \n {}'.format( tf, pair, traceback.format_exc())
                             app.logger.warning(m)
                             pass
-
-                except Exception as e:
+                else:
                     m = 'FAILED write {}'.format(name)
                     app.logger.warning(m)
                     pass
 
             else:
-                m = 'FAILED {} Bitrex response: {}'.format(name, response['message'])
+                m = 'FAILED {} Bitrex response: {}'.format(name, response.get('message','no message'))
                 app.logger.warning(m)
 
         except Exception as e:
@@ -178,68 +173,73 @@ def bittrex_fill(app, client, pair, timeframe, limit):
     return status
 
 
-def binance_fill(app, client, pair, timeframe, limit):
-    
-    #Prepare pair for request
-    end_pair = pair[-3:]
-    start_pair = pair[:-3]
-    if end_pair == 'USD':
-        end_pair = end_pair + 'T'
-    req_pair = start_pair + end_pair
-    name = pair+timeframe
+def binance_fill(app, client, pair):
     status = False
+    timeframes = ['1h', '2h', '6h', '12h', '24h', '168h']
+    tf_distance = [3600, 2*3600, 6*3600, 12*3600, 24*3600, 168*3600 ]
 
-    try:
-        timeframeR=timeframe
-        # Map timeframes for Binance
-        if timeframe == '24h':
-            timeframeR = '1d'
-        elif timeframe == '168h':
-            timeframeR = '1w'
+    for timeframe, dist in zip(timeframes, tf_distance):
+        # Check last available record
+        try:
+            startTime = internal.import_numpy(pair, '24h', 1)
+            startTime = startTime['date'][0] - 1
+        except:
+            h_number = 168*8
+            startTime = int(time.time() - h_number)
 
-        # defualt last 500 candles
-        url = 'https://api.binance.com/api/v1/klines?symbol={}&interval={}'.format(req_pair, timeframeR)
-        request = requests.get(url)
-        candle_list = request.json()
+        now = int(time.time())
+        limit = (now - startTime) / dist
+        if limit >= 1.0:
+            #Prepare pair for requests
+            end_pair = pair[-3:]
+            start_pair = pair[:-3]
+            if end_pair == 'USD':
+                end_pair = end_pair + 'T'
+            req_pair = start_pair + end_pair
+            name = pair+timeframe
 
-        # check if any response and if not error then write candles to influx
-        if isinstance(candle_list,list) == True:
-            try:
-                l = len(candle_list)
-                for i in range(l):
+            # Map timeframes for Binance
+            timeframeR = timeframe
+            if timeframe == '24h':
+                timeframeR = '1d'
+            elif timeframe == '168h':
+                timeframeR = '1w'
+
+            # max last 500 candles
+            url = 'https://api.binance.com/api/v1/klines?symbol={}&interval={}&limit={}'.format(req_pair, timeframeR, min(int(limit)+1, 500))
+            request = requests.get(url)
+            response = request.json()
+
+            # check if any response and if not error then write candles to influx
+            if isinstance(response,list):
+                count = 0
+                for row in response:
                     try:
                         json_body = [
                             {
                                 "measurement": name,
-                                "time": int(1000000 * candle_list[i][0]),
+                                "time": int(1000000 * row[0]),
                                 "fields": {
-                                    "open": float(candle_list[i][1]),
-                                    "close": float(candle_list[i][4]),
-                                    "high": float(candle_list[i][2]),
-                                    "low": float(candle_list[i][3]),
-                                    "volume": float(candle_list[i][5]),
+                                    "open": float(row[1]),
+                                    "close": float(row[4]),
+                                    "high": float(row[2]),
+                                    "low": float(row[3]),
+                                    "volume": float(row[5]),
                                 }
                             }
                         ]
                         client.write_points(json_body, retention_policy = 'autogen')
-                    except Exception as e:
-                        #m = 'FAILED ticker write {} error: \n  {}'.format(name, traceback.format_exc().splitlines()[-2])
-                        #app.logger.warning(m)
+                        count += 1
+                    except:
                         pass
 
-                status = True
-                m = 'SUCCEDED write {} records for {}'.format( l, name)
+                m = 'SUCCEDED write {} / {} records for {}'.format(count, len(response), name)
                 app.logger.info(m)
+                status = True
 
-
-            except Exception as e:
-                m = 'FAILED write {}'.format( name)
-                app.logger.warning(m)
-                pass
-
-            # Downsampling
-            if timeframeR == '1h':
-                for tf in ['3h']:
+                # Downsampling
+                if timeframe == '1h':
+                    tf = '3h'
                     try:
                         query = "SELECT " \
                                 "first(open) AS open, " \
@@ -247,28 +247,20 @@ def binance_fill(app, client, pair, timeframe, limit):
                                 "min(low) AS low, " \
                                 "last(close) AS close, " \
                                 "sum(volume) AS volume " \
-                                "INTO {} FROM {}1h WHERE time <= '{}' GROUP BY time({})".format(pair + tf,
-                                                                                                  pair, time_now,  tf)
+                                "INTO {} FROM {}1h WHERE time <= '{}' GROUP BY time({})".format(pair + tf, pair, time_now,  tf)
                         client.query(query)
                     except Exception as e:
                         m = 'FAILED {} downsample {} error: \n {}'.format( tf, pair, traceback.format_exc())
                         app.logger.warning(m)
                         pass
-        else:
-            m = 'FAILED {} Binance response'.format( name)
-            app.logger.warning(m)
-
-
-    except Exception as e:
-        m = 'FAILED Binance api request for {}'.format( name)
-        app.logger.warning(m)
-        app.logger.error(traceback.format_exc())
-        pass
+            else:
+                m = 'FAILED {} Binance response: {}'.format(name, response.get('msg', 'no error'))
+                app.logger.warning(m)
 
     return status
 
 
-def poloniex_fill(app, client, pair, timeframe,limit):
+def poloniex_fill(app, client, pair, startTime=0):
     #Returns candlestick chart data. Required GET parameters are "currencyPair", "period"
     # (candlestick period in seconds; valid values are 300, 900, 1800, 7200, 14400, and 86400),
     # "start", and "end". "Start" and "end" are given in UNIX timestamp format and used to specify
@@ -276,172 +268,117 @@ def poloniex_fill(app, client, pair, timeframe,limit):
     status = False
     now = int(time.time())
     request_types = {
-        '30m': {'name': '30m', 'start': now - 6 * limit * 60 * 30, 'downsamples': ['1h', '3h'], 'value': 1800},
-        '2h': {'name': '2h', 'start': now - 6 * limit * 60 * 60 * 2, 'downsamples': ['6h', '12h'], 'value': 7200},
-        '24h': {'name': '24h', 'start': now - 7 * limit * 60 * 60 * 24, 'downsamples': ['168h'], 'value': 86400}
+        '30m': {'downsamples': ['1h', '3h'], 'value': 1800},
+        '2h': { 'downsamples': ['6h', '12h'], 'value': 7200},
+        '24h': {'downsamples': ['168h'], 'value': 86400}
     }
-    name_map = {'30m': '30m',
-                '1h': '30m',
-                '2h': '2h',
-                '3h': '30m',
-                '6h': '2h',
-                '12h': '2h',
-                '24h': '24h',
-                '168h': '24h',
-                }
 
-    end_pair = pair[-3:]
-    start_pair = pair[:-3]
-    if end_pair == 'USD':
-        end_pair = end_pair + 'T'
-    req_pair = end_pair + '_' + start_pair
-    name = pair + timeframe
+    timeframes = ['30m', '2h', '24h']
+    tf_distance = [1800, 2*3600, 24*3600]
 
-    try:
-        r = request_types[name_map[timeframe]]
-        url = 'https://poloniex.com/public?command=returnChartData&currencyPair={}&start={}&end={}&period={}'.format(req_pair, r['start'], now, r['value'])
-        request = requests.get(url)
-        candle_list = request.json()
-        # check if any response and if not error then write candles to influx
-        if isinstance(candle_list, list):
-            try:
-                l = len(candle_list)
-                for i in range(l):
+    for timeframe, dist in zip(timeframes, tf_distance):
+        # Check last available record
+        try:
+            startTime = internal.import_numpy(pair, '24h', 1)
+            startTime = startTime['date'][0] - 1
+        except:
+            h_number = 168*8
+            startTime = int(time.time() - h_number)
+
+        now = int(time.time())
+        limit = (now - startTime) / dist
+        if limit >=1:
+            # Prepare pair for request
+            end_pair = pair[-3:]
+            start_pair = pair[:-3]
+            if end_pair == 'USD':
+                end_pair = end_pair + 'T'
+            req_pair = end_pair + '_' + start_pair
+            name = pair + timeframe
+
+            r = request_types.get(timeframe)
+            url = 'https://poloniex.com/public?command=returnChartData&currencyPair={}&start={}&period={}'.format(req_pair, startTime, r['value'])
+            request = requests.get(url)
+            response = request.json()
+            # check if any response and if not error then write candles to influx
+            if isinstance(response, list):
+                count = 0
+                for row in response:
                     try:
                         json_body = [
                             {
-                                "measurement": pair + r['name'],
-                                "time": int(1000000000 * candle_list[i]['date']),
+                                "measurement": pair + timeframe,
+                                "time": int(1000000000 * row['date']),
                                 "fields": {
-                                    "open": float(candle_list[i]['open']),
-                                    "close": float(candle_list[i]['close']),
-                                    "high": float(candle_list[i]['high']),
-                                    "low": float(candle_list[i]['low']),
-                                    "volume": float(candle_list[i]['volume']),
+                                    "open": float(row['open']),
+                                    "close": float(row['close']),
+                                    "high": float(row['high']),
+                                    "low": float(row['low']),
+                                    "volume": float(row['volume']),
                                 }
                             }
                         ]
                         client.write_points(json_body, retention_policy = 'autogen')
-                    except Exception as e:
-                        #m = 'FAILED ticker write {} error: \n  {}'.format(name, traceback.format_exc().splitlines()[-2])
-                        #app.logger.warning(m)
+                        count += 1
+                    except:
                         pass
-                status = True
-                m = 'SUCCEDED write {} records for {}'.format(l, name)
-                app.logger.info(m)
 
+                m = 'SUCCEDED write {} / {} records for {}'.format(count, len(response), name)
+                app.logger.info(m)
+                status = True
 
                 # Downsampling
-                for tf in r['downsamples']:
-                    # 1h TIMEFRAME DOWNSAMPLING
+                for tf in r.get('downsamples'):
                     try:
                         query = "SELECT first(open) AS open, " \
                                 "max(high) AS high, " \
                                 "min(low) AS low, " \
                                 "last(close) AS close, " \
                                 "sum(volume) AS volume " \
-                                "INTO {} FROM {} WHERE time <= '{}' GROUP BY time({})" .format(pair+tf, pair+r['name'], time_now,  tf)
+                                "INTO {} FROM {} WHERE time <= '{}' GROUP BY time({})" .format(pair+tf, pair+timeframe, time_now,  tf)
                         client.query(query)
                     except Exception as e:
                         m = 'FAILED {} downsample {} error: \n {}'.format( tf, pair, traceback.format_exc())
                         app.logger.warning(m)
                         pass
-
-            except Exception as e:
-                m = 'FAILED write {}'.format( name)
+            else:
+                m = 'FAILED {} Poloniex response: {}'.format(name, response.get('error', 'no error'))
                 app.logger.warning(m)
-                pass
-        else:
-            m = 'FAILED {} Poloniex response'.format( name)
-            app.logger.warning(m)
-    except Exception as e:
-        m = 'FAILED Poloniex api request for {}'.format( name)
-        app.logger.warning(m)
-        app.logger.error(traceback.format_exc())
-        status = False
+                status = False
 
     return status
 
 
-def pair_fill(app, pair, exchange, last):
+def pair_fill(app, pair, exchange):
     tic = time.time()
-
     conf = config.BaseConfig()
     db = conf.DBNAME
     host = conf.HOST
     port = conf.PORT
     client = InfluxDBClient(host, port, 'root', 'root', db)
-
-    if last == None:
-        try:
-            last = internal.import_numpy(pair, '1h', 1)
-            last = last['date'][0]
-            h_number = 168*2
-        except:
-            h_number = 168*2
-            last = int(time.time() - h_number)
-    else:
-        h_number = int((time.time() - last) / 3600)+2
-
+    result = False
 
     if exchange == 'bitfinex':
-        timeframes = ['1h', '3h', '6h', '12h', '24h', '168h']
-        fill_type = exchange + '_fill'
-        filler = globals()[fill_type]
-
-        for tf in timeframes:
-            limit = min(int(h_number / int(tf[:-1])) + 2, 700)
-
-            start = time.time()
-            filler(app, client, pair, tf, limit)
-            dt = time.time() - start
-            time.sleep(max(0, 2-dt))
+        result = bitfinex_fill(app, client, pair)
 
     elif exchange == 'bittrex':
-        fill_type = exchange+'_fill'
-        filler = globals()[fill_type]
-
-        # bittrex has only 1h and 24h so loop is in the function
-        limit = int(h_number) + 2
-        filler(app, client, pair, 'tf', limit)
+        result = bittrex_fill(app, client, pair)
 
     elif exchange == 'binance':
-
-        timeframes = ['1h', '2h', '6h', '12h', '24h', '168h']
-
-        fill_type = exchange + '_fill'
-        filler = globals()[fill_type]
-
-        for tf in timeframes:
-            limit = int(h_number / int(tf[:-1])) + 2
-
-            start = time.time()
-            filler(app, client, pair, tf, limit)
-            dt = time.time() - start
-            time.sleep(max(0, 2 - dt))
+        result = binance_fill(app, client, pair)
 
     elif exchange == 'poloniex':
-
-        timeframes = ['1h', '2h', '24h']
-
-        fill_type = exchange + '_fill'
-        filler = globals()[fill_type]
-
-        for tf in timeframes:
-            limit = int(h_number / int(tf[:-1])) + 2
-            start = time.time()
-
-            filler(app, client, pair, tf, limit)
-            dt = time.time() - start
-            time.sleep(max(0, 1 - dt))
+        result = poloniex_fill(app, client, pair)
 
     else:
         m = '{} exchange does not exist'.format(exchange)
         app.logger.warning(m)
         return 'Failed', 500
 
-    toc = time.time()
-    m = '{} filled from {} fill time: {:.2f} ms'.format( pair, exchange, (toc-tic)*1000)
-    app.logger.warning(m)
-
-    return 'Success', 200
+    if result:
+        toc = time.time()
+        m = '{} filled from {} fill time: {:.2f} ms'.format( pair, exchange, (toc-tic)*1000)
+        app.logger.warning(m)
+        return 'Success', 200
+    else:
+        return 'Pair not filled', 500
