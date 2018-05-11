@@ -48,9 +48,9 @@ def channel(data: dict, percent: int = 80):
 
     n_last_points = 10
     if np.sum(close[-n_last_points:] > up_channel[-n_last_points-margin : -margin]) > 0 and close[-1] < up_channel[-1]:
-        info.append('PRICE_PULLBACK')
+        info.append('FALSE_BREAK_UP')
     elif np.sum(close[-n_last_points:] < bottom_channel[-n_last_points-margin : -margin]) > 0 and close[-1] > bottom_channel[-1]:
-        info.append('PRICE_THROWBACK')
+        info.append('FLASE_BREAK_DOWN')
 
     # Drirection Tokens
     if a < -0.1:
