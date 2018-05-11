@@ -4,7 +4,6 @@ import numpy as np
 from decimal import Decimal as dec
 import datetime
 import math
-#from sklearn.linear_model import LogisticRegression
 from sklearn.externals import joblib
 import os
 

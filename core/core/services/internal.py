@@ -43,8 +43,8 @@ def import_numpy_untill(pair, timeframe, limit, untill):
     # Perform query and return JSON data
     query = 'SELECT * FROM {} WHERE time<={} ORDER BY time DESC LIMIT {};'.format(pair+timeframe, 1000000000*untill, limit)
     params = 'db={}&q={}&epoch=s'.format(db, query)
-    r = client.request('query', params=params).json()['results'][0]['series'][0]
     try:
+        r = client.request('query', params=params).json()['results'][0]['series'][0]
         candle_list = r['values']
         candle_list.reverse()
         df = pd.DataFrame(candle_list, columns=r['columns'])
@@ -76,7 +76,7 @@ def generate_dates(data, timeframe, margin):
     elif period == 'W':
         d = 60 * 60 * 168 * t
 
-    for i in range(0, margin):
+    for i in range(margin):
         date.append(int(date[-1]) + d)
 
     return date
