@@ -56,7 +56,8 @@ def data_service(pair: str):
         app.logger.info('Request for {} {} limit {} untill {}'.format(pair, timeframe, limit, untill))
         tic = time.time()
         ############################### DATA REQUEST #####################################
-        output = {}
+        output = dict()
+
         if isinstance(untill, int):
             data = internal.import_numpy_untill(pair, timeframe, limit + magic_limit, untill)
         else:
@@ -71,23 +72,26 @@ def data_service(pair: str):
 
         # Generate timestamps for future
         dates = internal.generate_dates(data, timeframe, margin)
-        output['dates'] = dates[magic_limit:]
+        output.update(dates = dates[magic_limit:])
 
-        output['candles'] = {'open': data['open'].tolist()[magic_limit:],
-                             'high': data['high'].tolist()[magic_limit:],
-                             'close': data['close'].tolist()[magic_limit:],
-                             'low': data['low'].tolist()[magic_limit:],
-                             'volume': data['volume'].tolist()[magic_limit:]
-                             }
+        candles = dict(open = data['open'].tolist()[magic_limit:],
+                                high = data['high'].tolist()[magic_limit:],
+                                close =  data['close'].tolist()[magic_limit:],
+                                low = data['low'].tolist()[magic_limit:],
+                                volume = data['volume'].tolist()[magic_limit:]
+                             )
+        output.update(candles = candles)
+
         ################################ INDICATORS ######################################
 
         indicators_list = internal.get_function_list(indicators)
-        indidict = {}
-        for indic in indicators_list:
+        indicators_dict = dict()
+
+        for ind in indicators_list:
             try:
-                indidict[indic.__qualname__] = indic(data)
+                indicators_dict[ind.__qualname__] = ind(data)
             except Exception as e:
-                app.logger.warning('Indicator {}, error: /n {}'.format(indic, traceback.format_exc()))
+                app.logger.warning('Indicator {}, error: /n {}'.format(ind, traceback.format_exc()))
                 pass
 
         ################################ CHANNELS #########################################
@@ -96,15 +100,15 @@ def data_service(pair: str):
         channels_list = internal.get_function_list(channels)
         for ch in channels_list:
             try:
-                indidict[ch.__qualname__] = ch(data)
+                indicators_dict[ch.__qualname__]= ch(data)
             except Exception as e:
                 app.logger.warning('Indicator {}, error: /n {}'.format(ch, traceback.format_exc()))
                 pass
 
-        output['indicators'] = indidict
+        output.update(indicators = indicators_dict)
 
         ################################ PATTERNS ########################################
-        output['patterns'] = []
+        output.update(patterns = [])
         # # Short data for patterns
         # if isinstance(untill, int):
         #     pat_data = internal.import_numpy_untill(pair, timeframe, limit + magic_limit, untill)
@@ -120,26 +124,26 @@ def data_service(pair: str):
 
         ################################ LEVELS ##########################################
         try:
-            output['levels'] = levels.srlevels(data)
+            output.update(levels = levels.levels(data))
         except Exception as e:
             app.logger.warning(traceback.format_exc())
-            output['levels'] = []
+            output.update(levels=[])
             pass
 
         ################################ INFO ##########################################
         info = {}
 
         # Volume tokens
-        info['volume'] = []
+        price_info = []
         threshold = np.percentile(data['volume'], 80)
         if data['volume'][-2] > threshold or data['volume'][-1] > threshold:
-            info['volume'].append('VOLUME_SPIKE')
+            price_info.append('VOLUME_SPIKE')
         
         slope, i, r, p, std = stats.linregress(np.arange(data['volume'][-10:].size), data['volume'][-10:])
         if slope < 0.0:
-            info['volume'].append('DIRECTION_DOWN')
+            price_info.append('DIRECTION_DOWN')
         else:
-            info['volume'].append('DIRECTION_UP')
+            price_info.append('DIRECTION_UP')
 
         # Price tokens
         info['price'] = []
@@ -155,10 +159,11 @@ def data_service(pair: str):
                     info['price'].append('ATL_{}'.format(n))
 
 
-        output['info'] = info
+        output.update(info = price_info)
 
         toc = time.time()
-        output['response_time'] = '{0:.2f} ms'.format(1000*(toc - tic))
+        response_time = '{0:.2f} ms'.format(1000*(toc - tic))
+        output.update(response_time = response_time)
         return jsonify(output), 200
 
 
@@ -177,14 +182,14 @@ def fill_service():
         exchange = internal.check_exchange(pair)
         if exchange != None:
             try:
-                return dbservice.pair_fill(app, pair, exchange, last)
+                return dbservice.pair_fill(app, pair, exchange)
             except:
                 app.logger.warning(traceback.format_exc())
                 return 'Request failed', 500
         else:
-            return 'Pair not added', 500
+            return 'Pair not added', 400
     else:
-        return 'Pair not provided', 500
+        return 'Pair not provided', 400
 
 
 @app.route('/pairs', methods=['GET', 'POST', 'VIEW'])
@@ -212,5 +217,4 @@ def pair_service():
         action = request.args.get('action',default='view', type=str)
         if action == 'view':
             return jsonify(internal.show_pairs_exchanges())
-
 
