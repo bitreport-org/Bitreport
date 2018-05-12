@@ -5,32 +5,44 @@ import config
 config = config.BaseConfig()
 
 
-
-def channel(data: dict, percent: int = 80):
+def channel(data: dict, sma_type: int = 50):
     margin = config.MARGIN
     start = config.MAGIC_LIMIT
+    close = data.get('close')[start:]
+    limit = close.size
+    
+    sma = talib.SMA(data.get('close'), timeperiod = sma_type)
+    sma = (close - sma[start:]) / sma[start:]
+    sma = np.where(sma >=0, 1., -1.)
+    filter_value =5
+    f1 = np.where(talib.SMA(sma, timeperiod = filter_value)[filter_value:] >= 0.0, 1., -1.)
+    f2 = np.where(talib.SMA(f1, timeperiod = 2) == 0.0 , 1., 0.)
+    points, = np.where(f2>0)
+    ch_points = np.array([0] + (points+filter_value).tolist())
 
-    close, open, high, low = data['close'], data['open'], data['high'], data['low']
-    avg = (high+low)/2 #(close+open)/2
-
-    length = int(percent/100 * close.size)
-
-    probe_data = avg[:length]
-    a = talib.LINEARREG_SLOPE(probe_data, length)[-1]
-    b = talib.LINEARREG_INTERCEPT(probe_data, length)[-1]
-
-    # To increase precision for small values
-    std = talib.STDDEV(10000 * avg, timeperiod=close.size, nbdev=1)[-1] / 10000
-
-    up_channel = a * np.arange(close.size+margin) + b + std
-    bottom_channel = a * np.arange(close.size+margin) + b - std
-    channel = a * np.arange(close.size+margin) + b 
-
-    # parameters for channel extrapolation
-    x0 = data['date'][0]
-    dx = int(data['date'][1] - data['date'][0])
-
-    # TOKENS
+    def _make(start, end, close):
+        x = np.arange(start, end)
+        y = close[start:end]
+        lm = np.poly1d(np.polyfit(x,y, 1))
+        std = np.std(close[start:end])     
+        return lm, std
+    
+    
+    # find longest channel
+    lenghts = ch_points[1:] - ch_points[:-1]
+    s_position, = np.where(lenghts == np.max(lenghts))[0]
+    s, e = ch_points[s_position], ch_points[s_position+1]
+    
+    # calculate channel and slope
+    lm, std =  _make(s,e, close)
+    slope = lm[1]
+    
+    # prepare channel
+    x = np.arange(close.size + margin)
+    up_channel= lm(x) + 2 * std
+    bottom_channel = lm(x) - 2 * std
+    
+     # TOKENS
     info = []
     p = ( close[-1] - up_channel[-1-margin] ) / (up_channel[-1-margin]-bottom_channel[-1-margin]) 
 
@@ -53,63 +65,47 @@ def channel(data: dict, percent: int = 80):
         info.append('FLASE_BREAK_DOWN')
 
     # Drirection Tokens
-    if a < -0.1:
+    if slope < -0.1:
         info.append('DIRECTION_DOWN')
-    elif a > 0.1:
+    elif slope > 0.1:
         info.append('DIRECTION_UP')
     else:
         info.append('DIRECTION_HORIZONTAL')
 
-    return {'upperband': up_channel.tolist()[start:],
-            'middleband': channel.tolist()[start:],
-            'lowerband': bottom_channel.tolist()[start:],
-            'info': info,
-            'params': {
-                'x0': x0,
-                'dx': dx,
-                'vector': (a, b, std)
-            }
-        }
+    return {'upperband': up_channel.tolist(), 'lowerband': bottom_channel.tolist(), 'middleband':[], 'info': info}
+    
 
-
-def parabola(data: dict, percent: int =100):
+def parabola(data: dict):
     margin = config.MARGIN
     start = config.MAGIC_LIMIT
 
-    open = data['open']
-    close = data['close']
-    avg = (open+close)/2
+    close = data.get('close')[start:]
+    open = data.get('open')[start:]
+    avg = (close + open)/2
 
-    end = int(percent/100*close.size)
-    x = np.arange(start, end)
-    y = avg[start : end]
-    longer_x = np.arange(close.size+margin) # to plot channel in future
+    M = np.max(avg)
+    dist = M-avg
+    index1, = np.where(avg == M)
+    index2, = np.where(dist == np.max(dist))
+    l = [index1[0], index2[0]]
+    l.sort()
+    point1, point2 = l
+    
+    # fit parabola
+    x = np.arange(point1, point2)
+    y = avg[point1: point2]
+    parabola = np.poly1d(np.polyfit(x,y,2))
+    std = np.std(y)
+    
+    # prepare channel
+    x = np.arange(avg.size)
+    upperband = parabola(x) + std
+    lowerband = parabola(x) - std
 
-    # creates parabola polynomial
-    poly = np.poly1d(np.polyfit(x, y, 2))
-
-    # To increase precision for small values
-    std = talib.STDDEV(10000 * y, timeperiod=y.size, nbdev=1)[-1] / 10000
-
-    y =  poly(longer_x)
-    yup = y + std
-    ydown = y - std 
-
-    # parameters for channel extrapolation
-    x0 = data['date'][0]
-    dx = int(data['date'][1] - data['date'][0])
-
-    return {'middleband': y.tolist()[start:],
-            'upperband': yup.tolist()[start:],
-            'lowerband':ydown.tolist()[start:],
-            'params':{
-                'x0': x0,
-                'dx': dx,
-                'poly': (poly[0],poly[1], poly[2]),
-                'std': std,
-            }
-            }
-
+    return {'middleband': [],
+            'upperband': upperband.tolist(),
+            'lowerband': lowerband.tolist()}
+            
 
 def wedge(data: dict):
     margin = config.MARGIN
