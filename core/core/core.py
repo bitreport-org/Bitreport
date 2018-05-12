@@ -141,6 +141,20 @@ def data_service(pair: str):
         else:
             info['volume'].append('DIRECTION_UP')
 
+        # Price tokens
+        info['price'] = []
+        ath = [24, 168, 4*168]
+        ath_names = ['DAY', 'WEEK', 'MONTH']
+
+        for a, n in zip(ath, ath_names):
+            points2check = int(a / int(timeframe[:-1]))
+            if points2check < limit + magic_limit:
+                if max(data['high'][-15:])  >= max(data['high'][-points2check:]):
+                    info['price'].append('ATH_{}'.format(n))
+                elif max(data['low'][-15:])  >= max(data['low'][-points2check:]):
+                    info['price'].append('ATL_{}'.format(n))
+
+
         output['info'] = info
 
         toc = time.time()
