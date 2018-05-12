@@ -7,7 +7,7 @@ import requests
 from core.services import internal
 import config
 
-time_now =dt.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+time_now = dt.now().strftime("%Y-%m-%dT%H:%M:%SZ")
 
 def bitfinex_fill(app, client, pair):
     status = False
@@ -85,6 +85,7 @@ def bitfinex_fill(app, client, pair):
             else:
                 m = 'FAILED {} Bitfinex response: {}'.format(name, response[-1])
                 app.logger.warning(m)
+                status = False
 
     return status
 
@@ -169,6 +170,7 @@ def bittrex_fill(app, client, pair):
         except Exception as e:
             m = 'FAILED Bitrex api request for {}'.format(name)
             app.logger.warning(m)
+            status = False
 
     return status
 
@@ -260,7 +262,7 @@ def binance_fill(app, client, pair):
     return status
 
 
-def poloniex_fill(app, client, pair, startTime=0):
+def poloniex_fill(app, client, pair):
     #Returns candlestick chart data. Required GET parameters are "currencyPair", "period"
     # (candlestick period in seconds; valid values are 300, 900, 1800, 7200, 14400, and 86400),
     # "start", and "end". "Start" and "end" are given in UNIX timestamp format and used to specify
@@ -352,33 +354,36 @@ def poloniex_fill(app, client, pair, startTime=0):
 def pair_fill(app, pair, exchange):
     tic = time.time()
     conf = config.BaseConfig()
-    db = conf.DBNAME
-    host = conf.HOST
-    port = conf.PORT
-    client = InfluxDBClient(host, port, 'root', 'root', db)
     result = False
 
-    if exchange == 'bitfinex':
-        result = bitfinex_fill(app, client, pair)
+    # connect database
+    client = InfluxDBClient(conf.HOST, conf.PORT, 'root', 'root', conf.DBNAME)
 
-    elif exchange == 'bittrex':
-        result = bittrex_fill(app, client, pair)
+    # Fillers
+    fillers = dict(
+            bitfinex = bitfinex_fill,
+            bittrex = bittrex_fill,
+            binance = binance_fill,
+            poloniex = poloniex_fill
+            )
+            
 
-    elif exchange == 'binance':
-        result = binance_fill(app, client, pair)
+    filler = fillers.get(exchange, False)
 
-    elif exchange == 'poloniex':
-        result = poloniex_fill(app, client, pair)
-
-    else:
+    # Check if filler exists
+    if not filler:
         m = '{} exchange does not exist'.format(exchange)
         app.logger.warning(m)
         return 'Failed', 500
 
+    # Fill database
+    result = filler(app, client, pair)
+        
     if result:
         toc = time.time()
         m = '{} filled from {} fill time: {:.2f} ms'.format( pair, exchange, (toc-tic)*1000)
         app.logger.warning(m)
         return 'Success', 200
+
     else:
         return 'Pair not filled', 500
