@@ -10,6 +10,7 @@ WORKDIR /tmp
 # Install any needed packages specified in requirements.txt
 RUN pip install -U setuptools
 RUN python -m pip install --upgrade pip
+RUN pip install cffi
 RUN pip install -t packages -r requirements.txt
 
 COPY src/ /core
