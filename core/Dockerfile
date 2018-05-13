@@ -10,8 +10,8 @@ WORKDIR /tmp
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY src/ /app
-WORKDIR /app
+COPY src/ /core
+WORKDIR /core
 
 # Run core.py when the container launches
 CMD ["gunicorn", "-w 4", "main:core"]
