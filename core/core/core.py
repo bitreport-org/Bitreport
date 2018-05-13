@@ -124,7 +124,7 @@ def data_service(pair: str):
 
         ################################ LEVELS ##########################################
         try:
-            output.update(levels = levels.levels(data))
+            output.update(levels = levels.prepareLevels(data))
         except Exception as e:
             app.logger.warning(traceback.format_exc())
             output.update(levels=[])

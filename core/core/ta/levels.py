@@ -5,10 +5,7 @@ import config
 import config
 config = config.BaseConfig()
 
-def levels(data: dict, check_number: int = 4, similarity: float = 0.02):
-    start = config.MAGIC_LIMIT
-    close = data.get('close')[start:]
-    
+def _srLevels(close, threshold: float = .95, check_number: int = 4, similarity: float = 0.02):
     df = []
     data_size = close.size
     
@@ -23,7 +20,7 @@ def levels(data: dict, check_number: int = 4, similarity: float = 0.02):
     
     # Resistances
     resistance = []
-    res = df[df.resistance == 1.0][['position','level']].values
+    res = df[df.resistance >= threshold][['position','level']].values
     for row in res:
         index, lvl = row
         index = int(index)
@@ -33,7 +30,7 @@ def levels(data: dict, check_number: int = 4, similarity: float = 0.02):
     
     # Supports
     support = []
-    sup = df[df.support == 1.0][['position','level']].values
+    sup = df[df.support >= threshold][['position','level']].values
     for row in sup:
         index, lvl = row
         index = int(index)
@@ -59,5 +56,45 @@ def levels(data: dict, check_number: int = 4, similarity: float = 0.02):
                 resistance = resistance,
                 support = support
                 )
+
+    return levels
+
+def _fibLevels(close, top: float, bottom: float):
+    top_index, = np.where(close==top)
+    bottom_index, = np.where(close==bottom)
+    
+    height = top - bottom
+    fib_lvls = [0.00, .236, .382, .500, .618, 1.00]
+    
+    levels = dict()
+    if top_index < bottom_index:
+        for lvl in fib_lvls:
+            value = bottom + lvl * height
+            lvl_name = 'Fib {0:.1f}%'.format(lvl*100)
+            levels[lvl_name] = [value]
+    else:
+        for lvl in fib_lvls:
+            value = top - lvl * height
+            lvl_name = 'Fib {}'.format(lvl)
+            levels[lvl_name] = [value]
+    
+    return levels
+
+def prepareLevels(data: dict):
+    start = config.MAGIC_LIMIT
+    close = data.get('close')[start:]
+    
+    # Find levels
+    levels = _srLevels(close)
+
+    # Highest resistance and lowest support
+    top = np.max(levels['resistance'])
+    bottom = np.min(levels['support'])
+
+    # Calculate fib levels
+    fib = _fibLevels(close, top, bottom)
+
+    # Add fibs
+    levels.update(fib)
 
     return levels
