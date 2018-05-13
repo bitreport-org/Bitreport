@@ -8,6 +8,7 @@ COPY requirements.txt /tmp
 WORKDIR /tmp
 
 # Install any needed packages specified in requirements.txt
+RUN pip install cython && pyp install --no-build-isolation pandas
 RUN pip install -t packages -r requirements.txt
 
 COPY src/ /core
