@@ -7,7 +7,7 @@ WORKDIR /core
 COPY requirements.txt /
 
 # Install any needed packages specified in requirements.txt
-RUN pip install --trusted-host pypi.python.org -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY src/ /app
 WORKDIR /app
