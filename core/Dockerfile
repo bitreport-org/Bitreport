@@ -9,7 +9,7 @@ COPY requirementsDocker.txt /tmp
 WORKDIR /tmp
 
 # Install any needed packages specified in requirements.txt
-RUN apk add --no-cache g++
+RUN apt-get install g++
 RUN pip install -r requirementsDocker.txt
 
 COPY src/ /core
