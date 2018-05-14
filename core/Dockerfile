@@ -1,21 +1,15 @@
-# Use an official Python runtime as a parent image
-FROM tailordev/pandas
+FROM python:3.5-alpine
 
-
-# Set the working directory to /core
-WORKDIR /core
-
-COPY requirementsDocker.txt /tmp
-WORKDIR /tmp
-
-# Install any needed packages specified in requirements.txt
-RUN apk add --update curl gcc g++ && rm -rf /var/cache/apk/*
+RUN apk add --update curl gcc g++ \
+    && rm -rf /var/cache/apk/*
 
 RUN ln -s /usr/include/locale.h /usr/include/xlocale.h
 
 RUN pip install bottle numpy cython pandas ta-lib
 
-RUN pip install -r requirementsDocker.txt
+CMD tail -f /dev/null
+
+RUN pip install -r requirements.txt
 
 COPY src/ /core
 WORKDIR /core
