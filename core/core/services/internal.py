@@ -21,7 +21,6 @@ def import_numpy(pair, timeframe, limit):
         candle_list = r['values']
         candle_list.reverse()
         df = pd.DataFrame(candle_list, columns=r['columns'])
-
         candles_dict = {'date': list(df.time),
                         'open': np.array(df.open, dtype='float'),
                         'close': np.array(df.close, dtype='float'),
@@ -29,7 +28,10 @@ def import_numpy(pair, timeframe, limit):
                         'low': np.array(df.low, dtype='float'),
                         'volume': np.array(df.volume, dtype='float')
                         }
-        return candles_dict
+        if list(df.time) != []:
+            return candles_dict
+        else:
+            return False
     except:
         return False
 
@@ -56,8 +58,10 @@ def import_numpy_untill(pair, timeframe, limit, untill):
                         'low': np.array(df.low, dtype='float'),
                         'volume': np.array(df.volume, dtype='float')
                         }
-
-        return candles_dict
+        if list(df.time) != []:
+            return candles_dict
+        else:
+            return False
     except:
         return False
 

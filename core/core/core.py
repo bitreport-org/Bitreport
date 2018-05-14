@@ -53,7 +53,7 @@ def data_service(pair: str):
         if limit <11:
             limit=11
 
-        app.logger.info('Request for {} {} limit {} untill {}'.format(pair, timeframe, limit, untill))
+        app.logger.warning('Request for {} {} limit {} untill {}'.format(pair, timeframe, limit, untill))
         tic = time.time()
         ############################### DATA REQUEST #####################################
         output = dict()

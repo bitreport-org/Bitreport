@@ -21,11 +21,12 @@ def bitfinex_fill(app, client, pair):
             startTime = internal.import_numpy(pair, '24h', 1)
             startTime = startTime['date'][0] - 1
         except:
-            h_number = 168*8
+            h_number = 168*8*3600
             startTime = int(time.time() - h_number)
+            pass
 
         now = int(time.time())
-        limit = (now - startTime) / dist
+        limit = min((now - startTime) / dist, 500)
         if limit >= 1.0:
             name = pair + timeframe
             # Map timeframes for Bitfinex
@@ -62,7 +63,7 @@ def bitfinex_fill(app, client, pair):
                         pass
 
                 m = 'SUCCEDED write {} / {} records for {}'.format(count, len(response), name)
-                app.logger.info(m)
+                app.logger.warning(m)
                 status = True
 
                 if timeframeR == '1h':
@@ -140,7 +141,7 @@ def bittrex_fill(app, client, pair):
                             pass
 
                     m = 'SUCCEDED write {} / {} records for {}'.format(count, len(candle_list), name)
-                    app.logger.info(m)
+                    app.logger.warning(m)
                     status = True
 
                     # Data downsample
@@ -186,8 +187,9 @@ def binance_fill(app, client, pair):
             startTime = internal.import_numpy(pair, '24h', 1)
             startTime = startTime['date'][0] - 1
         except:
-            h_number = 168*8
+            h_number = 168*8*3600
             startTime = int(time.time() - h_number)
+            pass
 
         now = int(time.time())
         limit = (now - startTime) / dist
@@ -236,7 +238,7 @@ def binance_fill(app, client, pair):
                         pass
 
                 m = 'SUCCEDED write {} / {} records for {}'.format(count, len(response), name)
-                app.logger.info(m)
+                app.logger.warning(m)
                 status = True
 
                 # Downsampling
@@ -284,8 +286,9 @@ def poloniex_fill(app, client, pair):
             startTime = internal.import_numpy(pair, '24h', 1)
             startTime = startTime['date'][0] - 1
         except:
-            h_number = 168*8
+            h_number = 168*8*3600
             startTime = int(time.time() - h_number)
+            pass
 
         now = int(time.time())
         limit = (now - startTime) / dist
@@ -326,7 +329,7 @@ def poloniex_fill(app, client, pair):
                         pass
 
                 m = 'SUCCEDED write {} / {} records for {}'.format(count, len(response), name)
-                app.logger.info(m)
+                app.logger.warning(m)
                 status = True
 
                 # Downsampling
@@ -386,4 +389,4 @@ def pair_fill(app, pair, exchange):
         return 'Success', 200
 
     else:
-        return 'Pair not filled', 500
+        return 'Pair not filled.', 500
