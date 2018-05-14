@@ -1,5 +1,5 @@
 # Use an official Python runtime as a parent image
-FROM python:3.5-alpine
+FROM tailordev/pandas
 
 
 # Set the working directory to /core
