@@ -5,7 +5,7 @@ RUN apk add --update curl gcc g++ \
 RUN ln -s /usr/include/locale.h /usr/include/xlocale.h
 
 # Talib
-ADD http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz
+ADD http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz /core
 RUN tar -zxvf ta-lib-0.4.0-src.tar.gz
 RUN cd/ta-lib
 RUN ./configure --prefix=/usr
