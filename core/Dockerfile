@@ -5,12 +5,12 @@ RUN apk add --update curl gcc g++ \
 RUN ln -s /usr/include/locale.h /usr/include/xlocale.h
 
 # Talib
-#RUN tar -zxvf ta-lib-0.4.0-src.tar.gz
-#RUN cd/ta-lib
-#RUN ./configure --prefix=/usr
-#RUN make
-#RUN sudo make
-#RUN cd ..
+RUN tar -zxvf ta-lib-0.4.0-src.tar.gz
+RUN cd/ta-lib
+RUN ./configure --prefix=/usr
+RUN make
+RUN sudo make
+RUN cd ..
 
 RUN PIP_NO_BUILD_ISOLATION=false pip install Cython
 RUN PIP_NO_BUILD_ISOLATION=false pip install numpy
