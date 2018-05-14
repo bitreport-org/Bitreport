@@ -7,8 +7,9 @@ RUN ln -s /usr/include/locale.h /usr/include/xlocale.h
 
 
 RUN PIP_NO_BUILD_ISOLATION=false pip install Cython
-
-RUN PIP_NO_BUILD_ISOLATION=false pip install bottle numpy pandas ta-lib
+RUN PIP_NO_BUILD_ISOLATION=false pip install numpy
+RUN PIP_NO_BUILD_ISOLATION=false pip install pandas
+RUN PIP_NO_BUILD_ISOLATION=false pip install ta-lib
 
 RUN PIP_NO_BUILD_ISOLATION=false pip install -r requirements.txt
 
