@@ -5,7 +5,9 @@ RUN apk add --update curl gcc g++ \
 
 RUN ln -s /usr/include/locale.h /usr/include/xlocale.h
 
-RUN pip install bottle numpy cython pandas ta-lib
+RUN pip install cython
+
+RUN pip install bottle numpy pandas ta-lib
 
 CMD tail -f /dev/null
 
