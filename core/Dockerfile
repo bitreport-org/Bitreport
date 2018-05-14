@@ -10,6 +10,7 @@ WORKDIR /tmp
 
 # Install any needed packages specified in requirements.txt
 RUN apt-get install g++
+RUN apt-get install gcc
 RUN pip install -r requirementsDocker.txt
 
 COPY src/ /core
