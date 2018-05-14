@@ -99,6 +99,7 @@ venv.bak/
 
 # mkdocs documentation
 /site
+/ta-lib
 
 # mypy
 .mypy_cache/
