@@ -10,7 +10,7 @@ class BaseConfig(object):
 
 class DevelopmentConfig(BaseConfig):
     DBNAME = 'test'
-    HOST = '0.0.0.0'
+    HOST = 'localhost'
     PORT = 8086
     MAGIC_LIMIT = 79
     EVENT_LIMIT = 3

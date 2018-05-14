@@ -218,3 +218,14 @@ def pair_service():
         if action == 'view':
             return jsonify(internal.show_pairs_exchanges())
 
+@app.route('/log', methods=['GET'])
+def log_service():
+    if request.method == 'GET':
+        try:
+            with open('app.log') as log:
+                text = dict()
+                for i, line in enumerate(log):
+                    text[i] = line 
+            return jsonify(text)
+        except:
+            return 'No logfile', 500
