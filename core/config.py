@@ -1,6 +1,6 @@
 class BaseConfig(object):
-    DBNAME = 'test'
-    HOST = 'localhost'
+    DBNAME = 'pairs'
+    HOST = 'influx'
     PORT = 8086
     MAGIC_LIMIT = 79
     EVENT_LIMIT = 3
@@ -10,7 +10,7 @@ class BaseConfig(object):
 
 class DevelopmentConfig(BaseConfig):
     DBNAME = 'test'
-    HOST = 'localhost'
+    HOST = '0.0.0.0'
     PORT = 8086
     MAGIC_LIMIT = 79
     EVENT_LIMIT = 3
@@ -19,7 +19,7 @@ class DevelopmentConfig(BaseConfig):
 
 class TestingConfig(BaseConfig):
     DBNAME = 'test'
-    HOST = 'localhost'
+    HOST = '0.0.0.0'
     PORT = 8086
     MAGIC_LIMIT = 79
     EVENT_LIMIT = 3

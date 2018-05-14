@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+    core:
+        build: ./core
+        volumes:
+            - ./core:/app
+        ports:
+            - 5001:80
+        depends_on:
+            - influx
+    influx:
+        image: influxdb:1.5.2
+        ports: 
+            - 5002:8086
+
+        

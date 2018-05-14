@@ -1,30 +1,34 @@
-FROM python:3.5-alpine
+FROM python:3.6
 
-RUN apk add --update curl gcc g++ \
-    && rm -rf /var/cache/apk/*
-RUN ln -s /usr/include/locale.h /usr/include/xlocale.h
+RUN mkdir app
+WORKDIR /app
+ADD . /app
 
-# Talib
-ADD http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz /core
-RUN tar -zxvf ta-lib-0.4.0-src.tar.gz
-RUN cd/ta-lib
+# TA-lib dependencies
+RUN wget "http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz"
+RUN tar xf ta-lib-0.4.0-src.tar.gz
+WORKDIR ta-lib
 RUN ./configure --prefix=/usr
 RUN make
-RUN cd ..
+RUN make install
 
-RUN PIP_NO_BUILD_ISOLATION=false pip install Cython
-RUN PIP_NO_BUILD_ISOLATION=false pip install numpy
-RUN PIP_NO_BUILD_ISOLATION=false pip install pandas
-RUN PIP_NO_BUILD_ISOLATION=false pip install ta-lib
-
-COPY requirements.txt /tmp
 WORKDIR /tmp
 
-RUN PIP_NO_BUILD_ISOLATION=false pip install -r requirements.txt
+# Some crazy modules from python
+RUN pip install Cython
+RUN pip install numpy
+RUN pip install pandas
+RUN pip install ta-lib
 
-COPY src/ /core
-WORKDIR /core
+# Install requirements
+COPY requirements.txt /tmp
+WORKDIR /tmp
+RUN pip install -r requirements.txt
+
+WORKDIR /app
+
+EXPOSE 4000
 
 # Run core.py when the container launches
-CMD ["gunicorn", "-w 4", "core:app"]
-
+#CMD ["gunicorn", "-w 4", "core:app"]
+CMD ["python", "run.py"]
