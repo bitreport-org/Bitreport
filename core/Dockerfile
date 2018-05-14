@@ -5,11 +5,11 @@ RUN apk add --update curl gcc g++ \
 
 RUN ln -s /usr/include/locale.h /usr/include/xlocale.h
 
-RUN pip install cython
+PIP_NO_BUILD_ISOLATION=false
+
+RUN pip install Cython
 
 RUN pip install bottle numpy pandas ta-lib
-
-CMD tail -f /dev/null
 
 RUN pip install -r requirements.txt
 
