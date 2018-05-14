@@ -27,8 +27,7 @@ RUN pip install -r requirements.txt
 
 WORKDIR /app
 
-EXPOSE 4000
+EXPOSE 80
 
 # Run core.py when the container launches
-#CMD ["gunicorn", "-w 4", "core:app"]
-CMD ["python", "run.py"]
+CMD ["gunicorn", "-b 0.0.0.0:80", "-w 4", "core:app"]
