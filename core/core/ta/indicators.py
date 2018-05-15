@@ -349,10 +349,10 @@ def ICM(data):
 
     # Tokens
     info = []
-    # if leading_spanA[-1] < close[-1] < leading_spanB[-1]:
-    #     info.append('IN_CLOUD_UP')
-    # elif leading_spanA[-1] > close[-1] > leading_spanB[-1]:
-    #     info.append('IN_CLOUD_DOWN')
+    if leading_spanA[-1] < close[-1] < leading_spanB[-1]:
+        info.append('IN_CLOUD_UP')
+    elif leading_spanA[-1] > close[-1] > leading_spanB[-1]:
+        info.append('IN_CLOUD_DOWN')
 
     # width = np.abs(leading_spanA - leading_spanB)
     # p1 = np.percentile(width, .75)
