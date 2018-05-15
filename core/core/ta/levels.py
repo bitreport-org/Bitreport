@@ -88,13 +88,15 @@ def prepareLevels(data: dict):
     levels = _srLevels(close)
 
     # Highest resistance and lowest support
-    top = np.max(levels['resistance'])
-    bottom = np.min(levels['support'])
+    r, s  = levels.values()
+    if r!=[] and s!=[]:
+        top = np.max(r)
+        bottom = np.min(levels['support'])
 
-    # Calculate fib levels
-    fib = _fibLevels(close, top, bottom)
+        # Calculate fib levels
+        fib = _fibLevels(close, top, bottom)
 
-    # Add fibs
-    levels.update(fib)
+        # Add fibs
+        levels.update(fib)
 
     return levels
