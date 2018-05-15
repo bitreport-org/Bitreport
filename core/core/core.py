@@ -19,11 +19,8 @@ app = Flask(__name__)
 
 # Config
 conf = config.BaseConfig()
-db_name = conf.DBNAME
-host = conf.HOST
-port = conf.PORT
-client = InfluxDBClient(host, port, 'root', 'root', db_name)
-client.create_database(db_name)
+client = InfluxDBClient(conf.HOST, conf.PORT, 'root', 'root', conf.DBNAME)
+client.create_database(conf.DBNAME)
 
 # Logger
 handler = logging.FileHandler('app.log')
@@ -32,139 +29,161 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 app.logger.addHandler(handler)
 
-@app.route("/")
-def hello():
-    return "Wrong place, is it?"
+# Data class
+class PairData:
+    def __init__(self, app, pair, timeframe, limit, untill=None):
+        # to post data without NaN values indicators are calculated on period of length: limit + magic_limit
+        # returned data has length = limit
+        self.magic_limit = 76
+        self.margin = 26
 
-#### API ####
+        self.pair = pair
+        self.timeframe = timeframe
 
-# to post data without NaN values indicators are calculated on period of length: limit + magic_limit
-# returned data has length = limit
-magic_limit = conf.MAGIC_LIMIT
+        if limit <15:
+            self.limit=15
+        else:
+            self.limit = limit
+
+        self.untill = untill
+        self.output = dict()
+
+    def prepare(self):
+        for maker in [self._makeCandles, self._makeIndicatorsChannels, self._makeLevels, self._makeInfo]:
+            status, message, code = maker(app)
+            if not status:
+                return message, code
+        return self.output, 200
+    
+    def _makeCandles(self, app):
+        # Minimum response is 11 candles:
+        if self.limit <11:
+            self.limit=11
+        
+        # Data request
+        if isinstance(self.untill, int):
+            data = internal.import_numpy_untill(self.pair, self.timeframe, self.limit + self.magic_limit, self.untill)
+        else:
+            data = internal.import_numpy(self.pair, self.timeframe, self.limit + self.magic_limit)
+
+        if not data:
+            app.logger.warning('Empty database response {}'.format(self.pair+self.timeframe))
+            return False, 'Empty databse response', 500
+
+        # Add data
+        self.data = data
+
+        # Generate timestamps for future
+        dates = internal.generate_dates(data, self.timeframe, self.margin)
+        self.output.update(dates = dates[self.magic_limit:])
+
+        # Candles
+        candles = dict(open = data['open'].tolist()[self.magic_limit:],
+                        high = data['high'].tolist()[self.magic_limit:],
+                        close =  data['close'].tolist()[self.magic_limit:],
+                        low = data['low'].tolist()[self.magic_limit:],
+                        volume = data['volume'].tolist()[self.magic_limit:]
+                        )
+        self.output.update(candles = candles)
+
+        return True, 'Candles and dates created', 200 
+
+    def _makeIndicatorsChannels(self, app):
+        indicators_list = internal.get_function_list(indicators)
+        indicators_values = dict()
+
+        for indicator in indicators_list:
+            try:
+                indicators_values[indicator.__qualname__] = indicator(self.data)
+            except Exception as e:
+                app.logger.warning('Indicator {}, error: /n {}'.format(indicator, traceback.format_exc()))
+                pass
+
+        channels_list = internal.get_function_list(channels)
+        for ch in channels_list:
+            try:
+                indicators_values[ch.__qualname__]= ch(self.data)
+            except Exception as e:
+                app.logger.warning('Indicator {}, error: /n {}'.format(ch, traceback.format_exc()))
+                pass
+
+        self.output.update(indicators = indicators_values)
+        return True, 'Indicators and channels created', 200
+
+    def _makeLevels(self, app):
+        try:
+            self.output.update(levels = levels.prepareLevels(self.data))
+        except Exception as e:
+            app.logger.warning(traceback.format_exc())
+            self.output.update(levels = {'support':[], 'resistance':[]})
+            pass
+        return True, 'Levels created', 200
+
+    def _makePatterns(self, app):
+        # Short data for patterns
+        data = self.output.get(candles, [])
+
+        try:
+            self.output.update(patterns = patterns.CheckAllPatterns(data))
+        except Exception as e:
+            app.logger.warning(traceback.format_exc())
+            self.output.update(patterns = [])
+            pass
+
+        return True, 'Patterns created', 200
+
+    def _makeInfo(self, app):
+        info = dict()
+        check_period = -10
+
+        # Volume tokens
+        volume_info = []
+        threshold = np.percentile(self.data['volume'], 80)
+        if self.data['volume'][-2] > threshold or self.data['volume'][-1] > threshold:
+            volume_info.append('VOLUME_SPIKE')
+        
+        slope, i, r, p, std = stats.linregress(np.arange(self.data['volume'][check_period:].size), self.data['volume'][check_period:])
+        if slope < 0.0:
+            volume_info.append('DIRECTION_DOWN')
+        else:
+            volume_info.append('DIRECTION_UP')
+
+        info.update(volume = volume_info)
+
+        # Price tokens
+        price_info = []
+        ath = [24, 168, 4*168]
+        ath_names = ['DAY', 'WEEK', 'MONTH']
+
+        for a, n in zip(ath, ath_names):
+            points2check = int(a / int(self.timeframe[:-1]))
+            if points2check < self.limit + self.magic_limit:
+                if max(self.data['high'][check_period:])  >= max(self.data['high'][-points2check:]):
+                    price_info.append('ATH_{}'.format(n))
+                elif max(self.data['low'][check_period:])  >= max(self.data['low'][-points2check:]):
+                    price_info.append('ATL_{}'.format(n))
+
+        info.update(price =price_info)
+
+        # Update output info
+        self.output.update(info = info)
+        return True, 'Info created', 200
+
+# API
 
 @app.route('/<pair>', methods=['GET'])
 def data_service(pair: str):
     if request.method == 'GET':
         timeframe = request.args.get('timeframe', default='1h', type=str)
-        limit = request.args.get('limit', default=11, type=int)
+        limit = request.args.get('limit', default=15, type=int)
         untill = request.args.get('untill', default=None, type=int)
 
-        # Minimum response is 11 candles:
-        if limit <11:
-            limit=11
-
         app.logger.warning('Request for {} {} limit {} untill {}'.format(pair, timeframe, limit, untill))
-        tic = time.time()
-        ############################### DATA REQUEST #####################################
-        output = dict()
 
-        if isinstance(untill, int):
-            data = internal.import_numpy_untill(pair, timeframe, limit + magic_limit, untill)
-        else:
-            data = internal.import_numpy(pair, timeframe, limit + magic_limit)
+        data = PairData(app, pair, timeframe, limit, untill)
+        output, code = data.prepare()
 
-        if data == False:
-            app.logger.warning('Empty database response {}'.format(pair+timeframe))
-            return 'Error', 500
-
-        # SET margin
-        margin = 26  # timestamps
-
-        # Generate timestamps for future
-        dates = internal.generate_dates(data, timeframe, margin)
-        output.update(dates = dates[magic_limit:])
-
-        candles = dict(open = data['open'].tolist()[magic_limit:],
-                                high = data['high'].tolist()[magic_limit:],
-                                close =  data['close'].tolist()[magic_limit:],
-                                low = data['low'].tolist()[magic_limit:],
-                                volume = data['volume'].tolist()[magic_limit:]
-                             )
-        output.update(candles = candles)
-
-        ################################ INDICATORS ######################################
-
-        indicators_list = internal.get_function_list(indicators)
-        indicators_dict = dict()
-
-        for ind in indicators_list:
-            try:
-                indicators_dict[ind.__qualname__] = ind(data)
-            except Exception as e:
-                app.logger.warning('Indicator {}, error: /n {}'.format(ind, traceback.format_exc()))
-                pass
-
-        ################################ CHANNELS #########################################
-        # Basic channels
-
-        channels_list = internal.get_function_list(channels)
-        for ch in channels_list:
-            try:
-                indicators_dict[ch.__qualname__]= ch(data)
-            except Exception as e:
-                app.logger.warning('Indicator {}, error: /n {}'.format(ch, traceback.format_exc()))
-                pass
-
-        output.update(indicators = indicators_dict)
-
-        ################################ PATTERNS ########################################
-        output.update(patterns = [])
-        # # Short data for patterns
-        # if isinstance(untill, int):
-        #     pat_data = internal.import_numpy_untill(pair, timeframe, limit + magic_limit, untill)
-        # else:
-        #     pat_data = internal.import_numpy(pair, timeframe, limit + magic_limit)
-
-        # try:
-        #     output['patterns'] = patterns.CheckAllPatterns(pat_data)
-        # except Exception as e:
-        #     app.logger.warning(traceback.format_exc())
-        #     output['patterns'] = []
-        #     pass
-
-        ################################ LEVELS ##########################################
-        try:
-            output.update(levels = levels.prepareLevels(data))
-        except Exception as e:
-            app.logger.warning(traceback.format_exc())
-            output.update(levels=[])
-            pass
-
-        ################################ INFO ##########################################
-        info = {}
-
-        # Volume tokens
-        price_info = []
-        threshold = np.percentile(data['volume'], 80)
-        if data['volume'][-2] > threshold or data['volume'][-1] > threshold:
-            price_info.append('VOLUME_SPIKE')
-        
-        slope, i, r, p, std = stats.linregress(np.arange(data['volume'][-10:].size), data['volume'][-10:])
-        if slope < 0.0:
-            price_info.append('DIRECTION_DOWN')
-        else:
-            price_info.append('DIRECTION_UP')
-
-        # Price tokens
-        info['price'] = []
-        ath = [24, 168, 4*168]
-        ath_names = ['DAY', 'WEEK', 'MONTH']
-
-        for a, n in zip(ath, ath_names):
-            points2check = int(a / int(timeframe[:-1]))
-            if points2check < limit + magic_limit:
-                if max(data['high'][-15:])  >= max(data['high'][-points2check:]):
-                    info['price'].append('ATH_{}'.format(n))
-                elif max(data['low'][-15:])  >= max(data['low'][-points2check:]):
-                    info['price'].append('ATL_{}'.format(n))
-
-
-        output.update(info = price_info)
-
-        toc = time.time()
-        response_time = '{0:.2f} ms'.format(1000*(toc - tic))
-        output.update(response_time = response_time)
-        return jsonify(output), 200
+        return jsonify(output), code
 
 
 events_list = []
@@ -218,6 +237,7 @@ def pair_service():
         if action == 'view':
             return jsonify(internal.show_pairs_exchanges())
 
+
 @app.route('/log', methods=['GET'])
 def log_service():
     if request.method == 'GET':
@@ -229,3 +249,7 @@ def log_service():
             return jsonify(text)
         except:
             return 'No logfile', 500
+
+@app.route("/")
+def hello():
+    return "Wrong place, is it?"
