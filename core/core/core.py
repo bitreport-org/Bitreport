@@ -50,9 +50,9 @@ class PairData:
 
     def prepare(self):
         for maker in [self._makeCandles, self._makeIndicatorsChannels, self._makeLevels, self._makeInfo]:
-            status, message, code = maker(app)
+            status, message = maker(app)
             if not status:
-                return message, code
+                return message, 500
         return self.output, 200
     
     def _makeCandles(self, app):
@@ -86,7 +86,7 @@ class PairData:
                         )
         self.output.update(candles = candles)
 
-        return True, 'Candles and dates created', 200 
+        return True, 'Candles and dates created'
 
     def _makeIndicatorsChannels(self, app):
         indicators_list = internal.get_function_list(indicators)
@@ -108,7 +108,7 @@ class PairData:
                 pass
 
         self.output.update(indicators = indicators_values)
-        return True, 'Indicators and channels created', 200
+        return True, 'Indicators and channels created'
 
     def _makeLevels(self, app):
         try:
@@ -117,7 +117,7 @@ class PairData:
             app.logger.warning(traceback.format_exc())
             self.output.update(levels = {'support':[], 'resistance':[]})
             pass
-        return True, 'Levels created', 200
+        return True, 'Levels created'
 
     def _makePatterns(self, app):
         # Short data for patterns
@@ -130,7 +130,7 @@ class PairData:
             self.output.update(patterns = [])
             pass
 
-        return True, 'Patterns created', 200
+        return True, 'Patterns created'
 
     def _makeInfo(self, app):
         info = dict()
@@ -167,7 +167,7 @@ class PairData:
 
         # Update output info
         self.output.update(info = info)
-        return True, 'Info created', 200
+        return True, 'Info created'
 
 # API
 
@@ -197,9 +197,9 @@ def event_service():
 def fill_service():
     pair = request.args.get('pair',default=None, type=str)
     last = request.args.get('last',default=None, type=int)
-    if pair != None:
+    if pair is not None:
         exchange = internal.check_exchange(pair)
-        if exchange != None:
+        if exchange is not None:
             try:
                 return dbservice.pair_fill(app, pair, exchange)
             except:
@@ -245,7 +245,7 @@ def log_service():
             with open('app.log') as log:
                 text = dict()
                 for i, line in enumerate(log):
-                    text[i] = line 
+                    text[i] = line
             return jsonify(text)
         except:
             return 'No logfile', 500
