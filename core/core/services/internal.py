@@ -6,8 +6,9 @@ import pandas as pd
 import config
 import types
 
+conf = config.BaseConfig()
+
 def import_numpy(pair, timeframe, limit):
-    conf = config.BaseConfig()
     db = conf.DBNAME
     host = conf.HOST
     port = conf.PORT
@@ -37,7 +38,6 @@ def import_numpy(pair, timeframe, limit):
 
 
 def import_numpy_untill(pair, timeframe, limit, untill):
-    conf = config.BaseConfig()
     db = conf.DBNAME
     host = conf.HOST
     port = conf.PORT
@@ -91,19 +91,17 @@ def get_function_list(module):
 
 
 def show_pairs():
-    conf = config.BaseConfig()
     file = conf.EXCHANGES
-    with np.load('exchanges.npz') as data:
+    with np.load(file) as data:
         pairs = data['pairs']
 
     return pairs.tolist()
 
 
 def add_pair(pair, exchange):
-    conf = config.BaseConfig()
     file = conf.EXCHANGES
 
-    with np.load('exchanges.npz') as data:
+    with np.load(file) as data:
         pairs = data['pairs']
         exchanges = data['exchanges']
     
@@ -120,10 +118,9 @@ def add_pair(pair, exchange):
 
 
 def check_exchange(pair):
-    conf = config.BaseConfig()
     file = conf.EXCHANGES
 
-    with np.load('exchanges.npz') as data:
+    with np.load(file) as data:
         pairs = data['pairs']
         exchanges = data['exchanges']
 
@@ -134,9 +131,8 @@ def check_exchange(pair):
         return None
 
 def show_pairs_exchanges():
-    conf = config.BaseConfig()
     file = conf.EXCHANGES
-    with np.load('exchanges.npz') as data:
+    with np.load(file) as data:
         pairs = data['pairs']
         exchanges = data['exchanges']
         

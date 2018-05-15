@@ -4,7 +4,7 @@ class BaseConfig(object):
     PORT = 8086
     MAGIC_LIMIT = 79
     EVENT_LIMIT = 3
-    EXCHANGES = 'core/services/exchanges.npy'
+    EXCHANGES = 'exchanges.npz'
     MARGIN=26
 
 
@@ -14,7 +14,7 @@ class DevelopmentConfig(BaseConfig):
     PORT = 8086
     MAGIC_LIMIT = 79
     EVENT_LIMIT = 3
-    EXCHANGES = 'core/services/exchanges.npy'
+    EXCHANGES = 'core/services/exchanges.npz'
 
 
 class TestingConfig(BaseConfig):
@@ -23,4 +23,4 @@ class TestingConfig(BaseConfig):
     PORT = 8086
     MAGIC_LIMIT = 79
     EVENT_LIMIT = 3
-    EXCHANGES = 'core/services/exchanges.npy'
+    EXCHANGES = 'core/services/exchanges.npz'
