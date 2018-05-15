@@ -28,16 +28,26 @@ def channel(data: dict, sma_type: int = 50):
         return lm, std
     
     
-    # find longest channel
-    lenghts = ch_points[1:] - ch_points[:-1]
-    s_position, = np.where(lenghts == np.max(lenghts))[0]
-    s, e = ch_points[s_position], ch_points[s_position+1]
+    # If price was below / above the SMA then ch_points could contain only 1 point
+    if len(ch_points) < 2:
+        if ch_points == []:
+            s, e = 0, limit
+        elif ch_points[0] < limit/2.0:
+            s, e = ch_points[0], limit
+        else:
+            s, e = 0, ch_points[0]
+
+    else:
+        # Find longest channel
+        lenghts = ch_points[1:] - ch_points[:-1]
+        s_position, = np.where(lenghts == np.max(lenghts))[0]
+        s, e = ch_points[s_position], ch_points[s_position+1]
     
-    # calculate channel and slope
+    # Calculate channel and slope
     lm, std =  _make(s,e, close)
     slope = lm[1]
     
-    # prepare channel
+    # Prepare channel
     x = np.arange(close.size + margin)
     up_channel= lm(x) + 2 * std
     bottom_channel = lm(x) - 2 * std
