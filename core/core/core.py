@@ -68,7 +68,7 @@ class PairData:
 
         if not data:
             app.logger.warning('Empty database response {}'.format(self.pair+self.timeframe))
-            return False, 'Empty databse response', 500
+            return False, 'Empty databse response'
 
         # Add data
         self.data = data
@@ -196,7 +196,6 @@ def event_service():
 @app.route('/fill', methods=['POST'])
 def fill_service():
     pair = request.args.get('pair',default=None, type=str)
-    last = request.args.get('last',default=None, type=int)
     if pair is not None:
         exchange = internal.check_exchange(pair)
         if exchange is not None:
