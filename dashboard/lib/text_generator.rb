@@ -36,11 +36,11 @@ class TextGenerator
     channel: {
       PRICE_BREAK_UP: ['Price has broke out of the channel.', 'Price is now above the channel.'],
       PRICE_BREAK_DOWN: ['Price has broke out of the channel.', 'Price is now below the channel.'],
-      PRICE_BETWEEN: ['Prices stays whithin channel.', 'Price is still moving whithin the channel.'],
+      PRICE_BETWEEN: ['Prices stays whithin channel.', 'Price is still moving whithin the channel.', 'Will the price stay within the channel?'],
       PRICE_ONBAND_UP: ['We are close to the upper band of the channel.', 'Price is close to the upper band of the channel.'],
       PRICE_ONBAND_DOWN:['We are close to the lower band of the channel.', 'Price is close to the lower band of the channel.'],
-      DIRECTION_UP: ['The channel is steady moving up.', 'Channel is pointing up, will the price stay within it?'],
-      DIRECTION_DOWN: ['The channel is steady moving down.', 'Channel is pointing down, will the price stay within it?'],
+      DIRECTION_UP: ['The channel is steady moving up.', 'Channel is pointing up.'],
+      DIRECTION_DOWN: ['The channel is steady moving down.', 'Channel is pointing down.'],
       DIRECTION_HORIZONTAL: ['The channel moves roughly horizontally.'],
       FALSE_BREAK_UP: ['Price made a false break of the upper band.'],
       FALSE_BREAK_DOWN: ['Price made a false break of the lower band.']

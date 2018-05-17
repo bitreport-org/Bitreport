@@ -34,7 +34,7 @@ class PairData:
     def __init__(self, app, pair, timeframe, limit, untill=None):
         # to post data without NaN values indicators are calculated on period of length: limit + magic_limit
         # returned data has length = limit
-        self.magic_limit = 76
+        self.magic_limit = 79
         self.margin = 26
 
         self.pair = pair
@@ -184,6 +184,8 @@ def data_service(pair: str):
         output, code = data.prepare()
 
         return jsonify(output), code
+    else:
+        return 404
 
 
 events_list = []
@@ -191,23 +193,28 @@ events_list = []
 def event_service():
     if request.method == 'GET':
         return jsonify(events_list)
+    else:
+        return 404
 
 
 @app.route('/fill', methods=['POST'])
 def fill_service():
-    pair = request.args.get('pair',default=None, type=str)
-    if pair is not None:
-        exchange = internal.check_exchange(pair)
-        if exchange is not None:
-            try:
-                return dbservice.pair_fill(app, pair, exchange)
-            except:
-                app.logger.warning(traceback.format_exc())
-                return 'Request failed', 500
+    if request.method == 'POST':
+        pair = request.args.get('pair',default=None, type=str)
+        if pair is not None:
+            exchange = internal.check_exchange(pair)
+            if exchange is not None:
+                try:
+                    return dbservice.pair_fill(app, pair, exchange)
+                except:
+                    app.logger.warning(traceback.format_exc())
+                    return 'Request failed', 500
+            else:
+                return 'Pair not added', 500
         else:
-            return 'Pair not added', 400
+            return 'Pair not provided', 500
     else:
-        return 'Pair not provided', 400
+        return 404
 
 
 @app.route('/pairs', methods=['GET', 'POST', 'VIEW'])
@@ -235,6 +242,9 @@ def pair_service():
         action = request.args.get('action',default='view', type=str)
         if action == 'view':
             return jsonify(internal.show_pairs_exchanges())
+    else:
+        return 404
+
 
 
 @app.route('/log', methods=['GET'])
@@ -248,6 +258,7 @@ def log_service():
             return jsonify(text)
         except:
             return 'No logfile', 500
+
 
 @app.route("/")
 def hello():

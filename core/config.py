@@ -8,19 +8,11 @@ class BaseConfig(object):
     MARGIN=26
 
 
-class DevelopmentConfig(BaseConfig):
-    DBNAME = 'test'
-    HOST = 'localhost'
-    PORT = 8086
-    MAGIC_LIMIT = 79
-    EVENT_LIMIT = 3
-    EXCHANGES = 'core/services/exchanges.npz'
-
-
-class TestingConfig(BaseConfig):
-    DBNAME = 'test'
-    HOST = '0.0.0.0'
-    PORT = 8086
-    MAGIC_LIMIT = 79
-    EVENT_LIMIT = 3
-    EXCHANGES = 'core/services/exchanges.npz'
+# class BaseConfig(object):
+#     DBNAME = 'test'
+#     HOST = 'localhost'
+#     PORT = 8086
+#     MAGIC_LIMIT = 79
+#     EVENT_LIMIT = 3
+#     EXCHANGES = 'exchanges.npz'
+#     MARGIN=26
