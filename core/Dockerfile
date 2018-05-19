@@ -19,6 +19,7 @@ RUN pip install Cython
 RUN pip install numpy
 RUN pip install pandas
 RUN pip install ta-lib
+RUN pip install -U pyopenssl
 
 # Install requirements
 COPY requirements.txt /tmp
@@ -31,3 +32,4 @@ EXPOSE 80
 
 # Run core.py when the container launches
 CMD ["gunicorn", "-b 0.0.0.0:80", "-w 4", "core:app"]
+
