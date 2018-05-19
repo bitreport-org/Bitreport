@@ -61,7 +61,7 @@ class Plotter
   private
 
   def terminal(save)
-    out = ["set terminal pngcairo truecolor font 'PT Sans,18' size 1570,890 background rgb '##{BLACK}'"]
+    out = ["set terminal pngcairo truecolor font 'PT Sans,15' size 1570,890 background rgb '##{BLACK}'"]
     out << (save ? "set output '#{output}'" : 'unset output')
     out
   end
@@ -293,7 +293,7 @@ class Plotter
       set bmargin 1
       set tmargin 0
 
-      set label 'EWO' at graph 0.5, graph 0.55 center font ',60' front textcolor '#e6#{WHITE}'
+      set label 'EWO' at graph 0.5, graph 0.51 center font ',46' front textcolor '#e6#{WHITE}'
 
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
@@ -319,7 +319,7 @@ class Plotter
       set bmargin 1
       set tmargin 0
 
-      set label 'MACD' at graph 0.5, graph 0.55 center font ',60' front textcolor '#e6#{WHITE}'
+      set label 'MACD' at graph 0.5, graph 0.51 center font ',46' front textcolor '#e6#{WHITE}'
 
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
@@ -346,7 +346,7 @@ class Plotter
       set bmargin 1
       set tmargin 0
 
-      set label 'HTPHASOR' at graph 0.5, graph 0.55 center font ',60' front textcolor '#e6#{WHITE}'
+      set label 'HTPHASOR' at graph 0.5, graph 0.51 center font ',46' front textcolor '#e6#{WHITE}'
 
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
@@ -372,7 +372,7 @@ class Plotter
       set bmargin 1
       set tmargin 0
 
-      set label 'HTSIN' at graph 0.5, graph 0.55 center font ',60' front textcolor '#e6#{WHITE}'
+      set label 'HTSIN' at graph 0.5, graph 0.51 center font ',46' front textcolor '#e6#{WHITE}'
 
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
@@ -397,7 +397,7 @@ class Plotter
       set bmargin 1
       set tmargin 0
 
-      set label 'HTMODE' at graph 0.5, graph 0.55 center font ',60' front textcolor '#e6#{WHITE}'
+      set label 'HTMODE' at graph 0.5, graph 0.51 center font ',46' front textcolor '#e6#{WHITE}'
 
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
@@ -422,7 +422,7 @@ class Plotter
       set bmargin 1
       set tmargin 0
 
-      set label 'RSI' at graph 0.5, graph 0.55 center font ',60' front textcolor '#e6#{WHITE}'
+      set label 'RSI' at graph 0.5, graph 0.51 center font ',46' front textcolor '#e6#{WHITE}'
 
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
@@ -453,7 +453,7 @@ class Plotter
       set bmargin 1
       set tmargin 0
 
-      set label 'MOM' at graph 0.5, graph 0.55 center font ',60' front textcolor '#e6#{WHITE}'
+      set label 'MOM' at graph 0.5, graph 0.51 center font ',46' front textcolor '#e6#{WHITE}'
 
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
@@ -480,7 +480,7 @@ class Plotter
       set bmargin 1
       set tmargin 0
 
-      set label 'OBV' at graph 0.5, graph 0.55 center font ',60' front textcolor '#e6#{WHITE}'
+      set label 'OBV' at graph 0.5, graph 0.51 center font ',46' front textcolor '#e6#{WHITE}'
 
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
@@ -507,7 +507,7 @@ class Plotter
       set bmargin 1
       set tmargin 0
 
-      set label 'LINO' at graph 0.5, graph 0.55 center font ',60' front textcolor '#e6#{WHITE}'
+      set label 'LINO' at graph 0.5, graph 0.51 center font ',46' front textcolor '#e6#{WHITE}'
 
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
@@ -536,7 +536,7 @@ class Plotter
       set bmargin 1
       set tmargin 0
 
-      set label 'CORRO' at graph 0.5, graph 0.55 center font ',60' front textcolor '#e6#{WHITE}'
+      set label 'CORRO' at graph 0.5, graph 0.51 center font ',46' front textcolor '#e6#{WHITE}'
 
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
@@ -566,7 +566,7 @@ class Plotter
       set bmargin 1
       set tmargin 0
 
-      set label 'STOCH' at graph 0.5, graph 0.55 center font ',60' front textcolor '#e6#{WHITE}'
+      set label 'STOCH' at graph 0.5, graph 0.51 center font ',46' front textcolor '#e6#{WHITE}'
 
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
@@ -599,7 +599,7 @@ class Plotter
       set bmargin 1
       set tmargin 0
 
-      set label 'STOCHRSI' at graph 0.5, graph 0.55 center font ',60' front textcolor '#e6#{WHITE}'
+      set label 'STOCHRSI' at graph 0.5, graph 0.51 center font ',46' front textcolor '#e6#{WHITE}'
 
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
