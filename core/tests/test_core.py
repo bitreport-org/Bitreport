@@ -7,8 +7,8 @@ def getpair(pair, tf, limit, untill=None):
     return requests.get('http://0.0.0.0:5001/{}?timeframe={}&limit={}&untill={}'.format(pair, tf, limit, untill))
 
 @pytest.fixture
-def filler(pair):
-	return requests.post('http://0.0.0.0:5001/fill?pair={}'.format(pair))
+def filler(pair, force = False):
+	return requests.post('http://0.0.0.0:5001/fill?pair={}&force={}'.format(pair, force))
 
 
 class TestData(object):
@@ -100,12 +100,12 @@ class TestTA(object):
 class TestFilling(object):
 	def test_no_pair(self):
 		pair = 'lilfasddsdfaWE'
-		response = filler(pair)
+		response = filler(pair, True)
 		assert response.status_code == 500
 
 	def test_bitfinex(self):
 		pair = 'BTCUSD'
-		response = filler(pair)
+		response = filler(pair, True)
 		assert response.status_code == 200
 
 		# Test if filled
@@ -114,7 +114,7 @@ class TestFilling(object):
 
 	def test_binance(self):
 		pair = 'GASBTC'
-		response = filler(pair)
+		response = filler(pair, True)
 		assert response.status_code == 200
 
 		# Test if filled
@@ -123,7 +123,7 @@ class TestFilling(object):
 
 	def test_poloniex(self):
 		pair = 'SCBTC'
-		response = filler(pair)
+		response = filler(pair, True)
 		assert response.status_code == 200
 
 		# Test if filled
@@ -132,7 +132,7 @@ class TestFilling(object):
 
 	def test_bittrex(self):
 		pair = 'POLYBTC'
-		response = filler(pair)
+		response = filler(pair, True)
 		assert response.status_code == 200
 
 		# Test if filled

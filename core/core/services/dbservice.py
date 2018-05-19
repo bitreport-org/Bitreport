@@ -9,7 +9,7 @@ import config
 
 time_now = dt.now().strftime("%Y-%m-%dT%H:%M:%SZ")
 
-def bitfinex_fill(app, client, pair):
+def bitfinex_fill(app, client, pair: str, force: bool = False):
     status = False
 
     timeframes = ['1h', '3h', '6h', '12h', '24h', '168h']
@@ -17,17 +17,19 @@ def bitfinex_fill(app, client, pair):
 
     for timeframe, dist in zip(timeframes, tf_distance):
         # Check last available record
-        try:
-            startTime = internal.import_numpy(pair, '24h', 1)
-            startTime = startTime['date'][0] - 1
-        except:
-            h_number = 168*8*3600
-            startTime = int(time.time() - h_number)
-            pass
+        if force:
+            limit = 600
+        else:
+            try:
+                startTime = internal.import_numpy(pair, timeframe, 1)
+                startTime = startTime['date'][0]-1
+                now = int(time.time())
+                limit = int(min((now - startTime) / dist + 1, 600))
+            except:
+                limit = min(3600 * 24 * 30 * 6, 600)
+                pass
 
-        now = int(time.time())
-        limit = min((now - startTime) / dist, 500)
-        if limit >= 1.0:
+        if limit >= 1:
             name = pair + timeframe
             # Map timeframes for Bitfinex
             timeframeR = timeframe
@@ -87,11 +89,14 @@ def bitfinex_fill(app, client, pair):
                 m = 'FAILED {} Bitfinex response: {}'.format(name, response[-1])
                 app.logger.warning(m)
                 status = False
+        else:
+            app.logger.warning('Data is up to date for {}'.format(pair))
+            status = False
 
     return status
 
 
-def bittrex_fill(app, client, pair):
+def bittrex_fill(app, client, pair: str, force: bool = False):
     status = False
     downsamples = {
         '1h': ['2h', '3h', '6h', '12h'],
@@ -176,23 +181,25 @@ def bittrex_fill(app, client, pair):
     return status
 
 
-def binance_fill(app, client, pair):
+def binance_fill(app, client, pair: str, force: bool = False):
     status = False
     timeframes = ['1h', '2h', '6h', '12h', '24h', '168h']
     tf_distance = [3600, 2*3600, 6*3600, 12*3600, 24*3600, 168*3600 ]
 
     for timeframe, dist in zip(timeframes, tf_distance):
         # Check last available record
-        try:
-            startTime = internal.import_numpy(pair, '24h', 1)
-            startTime = startTime['date'][0] - 1
-        except:
-            h_number = 168*8*3600
-            startTime = int(time.time() - h_number)
-            pass
+        if force:
+            limit = 600
+        else:
+            try:
+                startTime = internal.import_numpy(pair, timeframe, 1)
+                startTime = startTime['date'][0] - 1
+                now = int(time.time())
+                limit = min((now - startTime) / dist + 1, 600)
+            except:
+                limit = min(3600 * 24 * 30 * 6, 600)
+                pass
 
-        now = int(time.time())
-        limit = (now - startTime) / dist
         if limit >= 1.0:
             #Prepare pair for requests
             end_pair = pair[-3:]
@@ -264,7 +271,7 @@ def binance_fill(app, client, pair):
     return status
 
 
-def poloniex_fill(app, client, pair):
+def poloniex_fill(app, client, pair: str, force: bool = False):
     #Returns candlestick chart data. Required GET parameters are "currencyPair", "period"
     # (candlestick period in seconds; valid values are 300, 900, 1800, 7200, 14400, and 86400),
     # "start", and "end". "Start" and "end" are given in UNIX timestamp format and used to specify
@@ -282,17 +289,21 @@ def poloniex_fill(app, client, pair):
 
     for timeframe, dist in zip(timeframes, tf_distance):
         # Check last available record
-        try:
-            startTime = internal.import_numpy(pair, '24h', 1)
-            startTime = startTime['date'][0] - 1
-        except:
-            h_number = 168*8*3600
-            startTime = int(time.time() - h_number)
-            pass
+        if force:
+            limit =3600 * 24 * 30 * 6
+            startTime = int(time.time() - limit) - 1
+        else:
+            try:
+                startTime = internal.import_numpy(pair, timeframe, 1)
+                startTime = startTime['date'][0] - 1
+                now = int(time.time())
+                limit = int(min((now - startTime) / dist + 1, 600))
+            except:
+                limit =3600 * 24 * 30 * 3
+                startTime = int(time.time() - limit) - 1
+                pass
 
-        now = int(time.time())
-        limit = (now - startTime) / dist
-        if limit >=1:
+        if limit >= 1:
             # Prepare pair for request
             end_pair = pair[-3:]
             start_pair = pair[:-3]
@@ -354,7 +365,7 @@ def poloniex_fill(app, client, pair):
     return status
 
 
-def pair_fill(app, pair, exchange):
+def pair_fill(app, pair, exchange, force):
     tic = time.time()
     conf = config.BaseConfig()
     result = False
@@ -370,7 +381,6 @@ def pair_fill(app, pair, exchange):
             poloniex = poloniex_fill
             )
             
-
     filler = fillers.get(exchange, False)
 
     # Check if filler exists
@@ -380,7 +390,7 @@ def pair_fill(app, pair, exchange):
         return 'Failed', 500
 
     # Fill database
-    result = filler(app, client, pair)
+    result = filler(app, client, pair, force)
         
     if result:
         toc = time.time()

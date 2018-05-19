@@ -200,12 +200,14 @@ def event_service():
 @app.route('/fill', methods=['POST'])
 def fill_service():
     if request.method == 'POST':
-        pair = request.args.get('pair',default=None, type=str)
+        pair = request.args.get('pair', default=None, type=str)
+        force = request.args.get('force', default=False, type=bool)
+
         if pair is not None:
             exchange = internal.check_exchange(pair)
             if exchange is not None:
                 try:
-                    return dbservice.pair_fill(app, pair, exchange)
+                    return dbservice.pair_fill(app, pair, exchange, force)
                 except:
                     app.logger.warning(traceback.format_exc())
                     return 'Request failed', 500
