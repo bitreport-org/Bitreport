@@ -252,10 +252,10 @@ def log_service():
     if request.method == 'GET':
         try:
             with open('app.log') as log:
-                text = dict()
+                text = ""
                 for i, line in enumerate(log):
-                    text[i] = line
-            return jsonify(text)
+                    text += line
+            return '<pre>{}</pre>'.format(text)
         except:
             return 'No logfile', 500
 
