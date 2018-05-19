@@ -13,3 +13,5 @@ microcaps.cpython-36.pyc
 Mockup
 core/virtual
 virtual
+core/.pytest_cache
+core/core/.pytest_cache
