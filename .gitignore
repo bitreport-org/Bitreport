@@ -17,3 +17,4 @@ core/.pytest_cache
 core/core/.pytest_cache
 exchanges.npz
 report.html
+data

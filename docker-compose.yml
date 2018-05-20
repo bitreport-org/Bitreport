@@ -18,10 +18,12 @@ services:
     image: influxdb:1.5.2
     environment:
       - INFLUXDB_LOGGING_LEVEL=warn
+      - INFLUXDB_DATA_QUERY_LOG_ENABLED=false
+      - INFLUXDB_HTTP_LOG_ENABLED=false
     ports:
       - 5002:8086
-    volume:
-      - influxdb:/var/lib/influxdb
+    volumes:
+      - ./data/influxdb:/var/lib/influxdb
   dashboard:
     build: ./dashboard
     command: bundle exec rails s -p 3000 -b 0.0.0.0
