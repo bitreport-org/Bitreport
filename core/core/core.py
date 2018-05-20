@@ -38,8 +38,6 @@ while status:
         app.logger.warning('Waiting for InfluxDB...')
         time.sleep(4)
 
-# Make up exchanges
-internal.build_exchanges()
 
 # Data class
 class PairData:
@@ -214,51 +212,18 @@ def fill_service():
     if request.method == 'POST':
         pair = request.args.get('pair', default=None, type=str)
         force = request.args.get('force', default=False, type=bool)
+        exchange = request.args.get('exchange', default=None, type=str)
 
-        if pair is not None:
-            exchange = internal.check_exchange(pair)
-            if exchange is not None:
-                try:
-                    return dbservice.pair_fill(app, pair, exchange, force)
-                except:
-                    app.logger.warning(traceback.format_exc())
-                    return 'Request failed', 500
-            else:
-                return 'Pair not added', 500
+        if pair and exchange:
+            try:
+                return dbservice.pair_fill(app, pair, exchange, force)
+            except:
+                app.logger.warning(traceback.format_exc())
+                return 'Request failed', 500
         else:
-            return 'Pair not provided', 500
+            return 'Pair or exchange not provided', 500
     else:
         return 404
-
-
-@app.route('/pairs', methods=['GET', 'POST', 'VIEW'])
-def pair_service():
-    if request.method == 'GET':
-        try:
-            pairs_list = internal.show_pairs()
-            return jsonify(pairs_list)
-        except:
-            return 'Shit!', 500
-
-    elif request.method == 'POST':
-        exchange = request.args.get('exchange', type=str)
-        pair = request.args.get('pair', type=str)
-
-        try:
-            response = internal.add_pair(pair, exchange)
-            app.logger.info('Pair added: {} | {}'.format(pair, exchange))
-            return jsonify(response)
-        except:
-            app.logger.warning(traceback.format_exc())
-            return 'Request failed', 500
-
-    elif request.method == 'VIEW':
-        action = request.args.get('action',default='view', type=str)
-        if action == 'view':
-            return jsonify(internal.show_pairs_exchanges())
-    else:
-        return 404
-
 
 
 @app.route('/log', methods=['GET'])
@@ -272,6 +237,8 @@ def log_service():
             return '<pre>{}</pre>'.format(text)
         except:
             return 'No logfile', 500
+    else:
+        return 404
 
 
 @app.route("/")

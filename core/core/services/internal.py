@@ -66,6 +66,17 @@ def import_numpy_untill(pair, timeframe, limit, untill):
         return False
 
 
+def make_retention_policies(client):
+    timeframes = ['30m', '1h', '2h', '3h', '6h', '12h', '24h', '168h']
+
+    for tf in timeframes:
+        rp_name = 'RP{}'.format(tf)
+        duration = str(300*int(tf[:-1])) + 'h'
+        client.create_retention_policy(name=rp_name, duration=duration, replication='1')
+
+    return client.get_list_retention_policies()
+
+
 def generate_dates(data, timeframe, margin):
     # Generate timestamps for future
     date = data['date']
@@ -88,79 +99,3 @@ def generate_dates(data, timeframe, margin):
 
 def get_function_list(module):
     return [module.__dict__.get(a) for a in dir(module) if isinstance(module.__dict__.get(a), types.FunctionType)]
-
-
-def show_pairs():
-    file = conf.EXCHANGES
-    with np.load(file) as data:
-        pairs = data['pairs']
-    return pairs.tolist()
-
-
-def build_exchanges():
-    pairs = []
-    exchanges = []
-    with open("exchanges.txt","r")  as file:
-        for row in file:
-            p, e = row.split(',')
-            pairs.append(p)
-            exchanges.append(e[:-1])
-    
-    np.savez('exchanges', pairs=pairs, exchanges=exchanges)
-
-
-def dump_exchanges():
-    file = conf.EXCHANGES
-    with np.load(file) as file:
-        pairs = file['pairs']
-        exchanges = file['exchanges']
-        
-    with open("exchanges.txt","w") as file:
-        for p, e in zip(pairs, exchanges):
-            file.write("{},{}\n".format(p,e))
-
-
-def add_pair(pair, exchange):
-    file = conf.EXCHANGES
-
-    with np.load(file) as data:
-        pairs = data['pairs']
-        exchanges = data['exchanges']
-    
-    if pair in pairs:
-        return 'Pair already exists', 200
-    else:
-        try:
-            pairs = np.append(pairs, [pair])
-            exchanges = np.append(exchanges, [exchange])
-            np.savez('exchanges', pairs= pairs, exchanges = exchanges)
-            return 'Pair added', 200
-        except:
-            return 'shit', 500
-
-
-def check_exchange(pair):
-    file = conf.EXCHANGES
-
-    with np.load(file) as data:
-        pairs = data['pairs']
-        exchanges = data['exchanges']
-
-    try:
-        i = np.where(pairs == pair)[0][0]
-        return exchanges[i]
-    except:
-        return None
-
-def show_pairs_exchanges():
-    file = conf.EXCHANGES
-    with np.load(file) as data:
-        pairs = data['pairs']
-        exchanges = data['exchanges']
-        
-    return np.stack((pairs, exchanges), axis=1).tolist()
-
-
-
-
-

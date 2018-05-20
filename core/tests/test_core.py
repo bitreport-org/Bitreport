@@ -7,8 +7,8 @@ def getpair(pair, tf, limit, untill=None):
     return requests.get('http://0.0.0.0:5001/{}?timeframe={}&limit={}&untill={}'.format(pair, tf, limit, untill))
 
 @pytest.fixture
-def filler(pair, force = False):
-	return requests.post('http://0.0.0.0:5001/fill?pair={}&force={}'.format(pair, force))
+def filler(pair, exchange, force = False):
+	return requests.post('http://0.0.0.0:5001/fill?pair={}&exchange={}&force={}'.format(pair, exchange, force))
 
 
 class TestData(object):
@@ -105,7 +105,7 @@ class TestFilling(object):
 
 	def test_bitfinex(self):
 		pair = 'BTCUSD'
-		response = filler(pair, True)
+		response = filler(pair, 'bitfinex', True)
 		assert response.status_code == 200
 
 	def test_bitfinex2(self):
@@ -116,7 +116,7 @@ class TestFilling(object):
 
 	def test_binance(self):
 		pair = 'GASBTC'
-		response = filler(pair, True)
+		response = filler(pair, 'binance', True)
 		assert response.status_code == 200
 
 	def test_binance2(self):
@@ -127,7 +127,7 @@ class TestFilling(object):
 
 	def test_poloniex(self):
 		pair = 'SCBTC'
-		response = filler(pair, True)
+		response = filler(pair, 'poloniex', True)
 		assert response.status_code == 200
 
 	def test_poloniex2(self):
@@ -138,7 +138,7 @@ class TestFilling(object):
 
 	def test_bittrex(self):
 		pair = 'POLYBTC'
-		response = filler(pair, True)
+		response = filler(pair, 'bittrex', True)
 		assert response.status_code == 200
 
 	def test_bittrex2(self):
@@ -147,17 +147,3 @@ class TestFilling(object):
 		data_test = TestData()
 		data_test.make_all(pair)
 
-
-class TestPairs(object):
-	pair = 'test{}'.format(int(100000000*random()))
-	exchange = 'Exchange_'+pair
-
-	def test_add_pair(self):
-		response = requests.post('http://0.0.0.0:5001/pairs?pair={}&exchange={}'.format(self.pair, self.exchange))
-		assert response.status_code == 200
-
-		response = requests.request('VIEW', 'http://0.0.0.0:5001/pairs')
-		assert response.status_code == 200
-		last_pair, last_ex = response.json()[-1]
-		assert last_pair == self.pair
-		assert last_ex == self.exchange
