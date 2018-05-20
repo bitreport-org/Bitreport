@@ -20,5 +20,9 @@ table.ui.celled.table
             .ui.bottom.attached.button
               i.delete.icon
               | Delete
+          = link_to fill_pair_path(pair), method: :put do
+            .ui.bottom.attached.button
+              i.refresh.icon
+              | Fetch
 
 = link_to 'New pair', new_pair_path

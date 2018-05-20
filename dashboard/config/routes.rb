@@ -6,6 +6,7 @@ Rails.application.routes.draw do
     resources :pairs, only: [:index, :new, :create, :destroy]
     get :twitter_image_preview, to: 'twitter_images#preview'
     get 'twitter_image_preview/:id', to: 'twitter_images#preview'
+    put 'pairs/:id/fill', to: 'pairs#fill', as: 'fill_pair'
   end
 
   namespace :api, constraints: { ip: /127\.0\.0\.1/ } do

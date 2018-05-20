@@ -20,6 +20,13 @@ module Admin
       end
     end
 
+    # This one is temporary
+    def fill
+      @pair = Pair.find(params[:id])
+      @pair.request_data_fill
+      redirect_to pairs_path, notice: 'Pair filled'
+    end
+
     def destroy
       @pair = Pair.find(params[:id])
       @pair.destroy
