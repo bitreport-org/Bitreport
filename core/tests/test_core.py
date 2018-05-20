@@ -108,6 +108,8 @@ class TestFilling(object):
 		response = filler(pair, True)
 		assert response.status_code == 200
 
+	def test_bitfinex2(self):
+		pair = 'BTCUSD'
 		# Test if filled
 		data_test = TestData()
 		data_test.make_all(pair)
@@ -117,6 +119,8 @@ class TestFilling(object):
 		response = filler(pair, True)
 		assert response.status_code == 200
 
+	def test_binance2(self):
+		pair = 'GASBTC'
 		# Test if filled
 		data_test = TestData()
 		data_test.make_all(pair)
@@ -126,6 +130,8 @@ class TestFilling(object):
 		response = filler(pair, True)
 		assert response.status_code == 200
 
+	def test_poloniex2(self):
+		pair = 'SCBTC'
 		# Test if filled
 		data_test = TestData()
 		data_test.make_all(pair)
@@ -135,6 +141,8 @@ class TestFilling(object):
 		response = filler(pair, True)
 		assert response.status_code == 200
 
+	def test_bittrex2(self):
+		pair = 'POLYBTC'
 		# Test if filled
 		data_test = TestData()
 		data_test.make_all(pair)
