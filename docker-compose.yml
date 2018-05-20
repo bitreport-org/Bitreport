@@ -20,6 +20,8 @@ services:
       - INFLUXDB_LOGGING_LEVEL=warn
     ports:
       - 5002:8086
+    volume:
+      - influxdb:/var/lib/influxdb
   dashboard:
     build: ./dashboard
     command: bundle exec rails s -p 3000 -b 0.0.0.0
