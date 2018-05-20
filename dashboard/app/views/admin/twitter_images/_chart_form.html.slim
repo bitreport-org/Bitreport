@@ -11,7 +11,7 @@
     .four.fields
       .field
         = f.label :symbol
-        = f.select :symbol, options_for_select(TwitterImage.available_symbols, 'BTCUSD'), { prompt: 'Select currency pair' }, { class: 'ui fluid search dropdown' }
+        = f.select :symbol, options_for_select(TwitterImage.available_pairs, 'BTCUSD'), { prompt: 'Select currency pair' }, { class: 'ui fluid search dropdown' }
       .field
         = f.label :timeframe
         = f.select :timeframe, options_for_select(TwitterImage::TIMEFRAMES, '1h'), { prompt: 'Select timeframe' }, { class: 'ui fluid search dropdown' }

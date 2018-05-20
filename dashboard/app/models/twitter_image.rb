@@ -4,11 +4,11 @@ class TwitterImage < ApplicationRecord
 
   include TwitterImageUploader[:image]
 
-  def self.available_symbols
-    Pair.order(symbol: :asc).pluck(:symbol)
+  def self.available_pairs
+    Pair.order(name: :asc).map { |pair| ["#{pair.name} (#{pair.symbol})", pair.symbol] }.to_h
   end
 
-  validates :symbol, presence: true, inclusion: { in: -> (_) { available_symbols } }
+  validates :symbol, presence: true, inclusion: { in: -> (_) { Pair.pluck(:symbol) } }
   validates :timeframe, presence: true, inclusion: { in: TIMEFRAMES }
   validates :limit, numericality: true, inclusion: { in: 20..200 }
 
