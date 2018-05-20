@@ -26,7 +26,8 @@ services:
       - ./data/influxdb:/var/lib/influxdb
   dashboard:
     build: ./dashboard
-    command: bundle exec rails s -p 3000 -b 0.0.0.0
+    entrypoint: /usr/src/app/development-entrypoint.sh
+    command: rails s -p 3000 -b 0.0.0.0
     depends_on:
       - postgres
       - core
