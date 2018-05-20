@@ -16,21 +16,30 @@ from core.ta import indicators, levels, patterns, channels
 import config
 
 app = Flask(__name__)
-
-# Config
-conf = config.BaseConfig()
-client = InfluxDBClient(conf.HOST, conf.PORT, 'root', 'root', conf.DBNAME)
-client.create_database(conf.DBNAME)
-
-# Make up exchanges
-internal.build_exchanges()
-
 # Logger
 handler = logging.FileHandler('app.log')
 handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 app.logger.addHandler(handler)
+
+
+# Config
+conf = config.BaseConfig()
+
+# Wait for connection to InfluxDB
+status = True
+while status:
+    try:
+        client = InfluxDBClient(conf.HOST, conf.PORT, 'root', 'root', conf.DBNAME)
+        client.create_database(conf.DBNAME)
+        status = False
+    except:
+        app.logger.warning('Waiting for InfluxDB...')
+        time.sleep(4)
+
+# Make up exchanges
+internal.build_exchanges()
 
 # Data class
 class PairData:
