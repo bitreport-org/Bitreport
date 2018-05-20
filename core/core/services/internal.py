@@ -94,8 +94,30 @@ def show_pairs():
     file = conf.EXCHANGES
     with np.load(file) as data:
         pairs = data['pairs']
-
     return pairs.tolist()
+
+
+def build_exchanges():
+    pairs = []
+    exchanges = []
+    with open("exchanges.txt","r")  as file:
+        for row in file:
+            p, e = row.split(',')
+            pairs.append(p)
+            exchanges.append(e[:-1])
+    
+    np.savez('exchanges', pairs=pairs, exchanges=exchanges)
+
+
+def dump_exchanges():
+    file = conf.EXCHANGES
+    with np.load(file) as file:
+        pairs = file['pairs']
+        exchanges = file['exchanges']
+        
+    with open("exchanges.txt","w") as file:
+        for p, e in zip(pairs, exchanges):
+            file.write("{},{}\n".format(p,e))
 
 
 def add_pair(pair, exchange):

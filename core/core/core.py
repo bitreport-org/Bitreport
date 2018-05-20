@@ -22,6 +22,9 @@ conf = config.BaseConfig()
 client = InfluxDBClient(conf.HOST, conf.PORT, 'root', 'root', conf.DBNAME)
 client.create_database(conf.DBNAME)
 
+# Make up exchanges
+internal.build_exchanges()
+
 # Logger
 handler = logging.FileHandler('app.log')
 handler.setLevel(logging.DEBUG)
