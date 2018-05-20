@@ -9,6 +9,7 @@ import config
 
 time_now = dt.now().strftime("%Y-%m-%dT%H:%M:%SZ")
 
+
 def bitfinex_fill(app, client, pair: str, force: bool = False):
     status = False
 
@@ -44,10 +45,9 @@ def bitfinex_fill(app, client, pair: str, force: bool = False):
 
             if isinstance(response, list) and response[0] != 'error':
                 count = 0 
-                for row in response:
-                    try:
-                        json_body = [
-                            {
+                points = []
+                for row in response:  
+                    json_body = {
                                 "measurement": name,
                                 "time": int(1000000 * row[0]),
                                 "fields": {
@@ -58,15 +58,17 @@ def bitfinex_fill(app, client, pair: str, force: bool = False):
                                     "volume": float(row[5]),
                                 }
                             }
-                        ]
-                        client.write_points(json_body, retention_policy = 'autogen')
-                        count += 1
-                    except:
-                        pass
-
-                m = 'SUCCEDED write {} / {} records for {}'.format(count, len(response), name)
-                app.logger.warning(m)
-                status = True
+                    points.append(json_body)
+                    count += 1
+                try:
+                    client.write_points(points)
+                    m = 'SUCCEDED write {} / {} records for {}'.format(count, len(response), name)
+                    app.logger.warning(m)
+                    status = True
+                except:
+                    m = 'FAILED to write records for {}'.format(name)
+                    app.logger.warning(m)
+                    return False
 
                 if timeframeR == '1h':
                     tf = '2h'
@@ -124,11 +126,9 @@ def bittrex_fill(app, client, pair: str, force: bool = False):
                 candle_list = response.get('result', [])
                 if candle_list != []:
                     count = 0 
-                    # Write ticker
+                    points = []
                     for row in candle_list:
-                        try:
-                            json_body = [
-                                {
+                        json_body = {
                                     "measurement": name,
                                     "time": row['T'],
                                     "fields": {
@@ -139,15 +139,17 @@ def bittrex_fill(app, client, pair: str, force: bool = False):
                                         "volume": float(row['BV']),
                                     }
                                 }
-                            ]
-                            client.write_points(json_body, retention_policy = 'autogen')
-                            count +=1
-                        except:
-                            pass
-
-                    m = 'SUCCEDED write {} / {} records for {}'.format(count, len(candle_list), name)
-                    app.logger.warning(m)
-                    status = True
+                        points.append(json_body)
+                        count +=1
+                    try:
+                        client.write_points(points)
+                        m = 'SUCCEDED write {} / {} records for {}'.format(count, len(candle_list), name)
+                        app.logger.warning(m)
+                        status = True
+                    except:
+                        m = 'FAILED to write records for {}'.format(name)
+                        app.logger.warning(m)
+                        return False
 
                     # Data downsample
                     for tf_sample in downsamples.get(tf):
@@ -224,10 +226,9 @@ def binance_fill(app, client, pair: str, force: bool = False):
             # check if any response and if not error then write candles to influx
             if isinstance(response,list):
                 count = 0
+                points = []
                 for row in response:
-                    try:
-                        json_body = [
-                            {
+                    json_body = {
                                 "measurement": name,
                                 "time": int(1000000 * row[0]),
                                 "fields": {
@@ -238,15 +239,18 @@ def binance_fill(app, client, pair: str, force: bool = False):
                                     "volume": float(row[5]),
                                 }
                             }
-                        ]
-                        client.write_points(json_body, retention_policy = 'autogen')
-                        count += 1
-                    except:
-                        pass
-
-                m = 'SUCCEDED write {} / {} records for {}'.format(count, len(response), name)
-                app.logger.warning(m)
-                status = True
+                    points.append(json_body)
+                    count += 1
+                try:
+                    client.write_points(points, retention_policy = 'autogen')
+                    m = 'SUCCEDED write {} / {} records for {}'.format(count, len(response), name)
+                    app.logger.warning(m)
+                    status = True
+                    
+                except:
+                    m = 'FAILED to write records for {}'.format(name)
+                    app.logger.warning(m)
+                    return False
 
                 # Downsampling
                 if timeframe == '1h':
@@ -319,10 +323,9 @@ def poloniex_fill(app, client, pair: str, force: bool = False):
             # check if any response and if not error then write candles to influx
             if isinstance(response, list):
                 count = 0
+                points = []
                 for row in response:
-                    try:
-                        json_body = [
-                            {
+                    json_body = {
                                 "measurement": pair + timeframe,
                                 "time": int(1000000000 * row['date']),
                                 "fields": {
@@ -333,15 +336,17 @@ def poloniex_fill(app, client, pair: str, force: bool = False):
                                     "volume": float(row['volume']),
                                 }
                             }
-                        ]
-                        client.write_points(json_body, retention_policy = 'autogen')
-                        count += 1
-                    except:
-                        pass
-
-                m = 'SUCCEDED write {} / {} records for {}'.format(count, len(response), name)
-                app.logger.warning(m)
-                status = True
+                    points.append(json_body)
+                    count += 1
+                try:
+                    client.write_points(points)
+                    m = 'SUCCEDED write {} / {} records for {}'.format(count, len(response), name)
+                    app.logger.warning(m)
+                    status = True
+                except:
+                    m = 'FAILED to write records for {}'.format(name)
+                    app.logger.warning(m)
+                    return False
 
                 # Downsampling
                 for tf in r.get('downsamples'):
