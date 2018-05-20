@@ -16,6 +16,8 @@ services:
       - influx
   influx:
     image: influxdb:1.5.2
+    environment:
+      - INFLUXDB_LOGGING_LEVEL=warn
     ports:
       - 5002:8086
   dashboard:
