@@ -212,7 +212,6 @@ def wedge(data: dict):
                 info.append('PRICE_PULLBACK')
             elif np.sum(close[-n_last_points:] < lower_band[-n_last_points:]) > 0 and close[-1] > lower_band[-1]:
                 info.append('PRICE_THROWBACK')
-
             
             # Direction Tokens
             wedge_dir = (lower_band[0] + width[0] - lower_band[-1] + width[-1]) / lower_band.size
@@ -223,14 +222,20 @@ def wedge(data: dict):
             else:
                 info.append('DIRECTION_HORIZONTAL')
 
-
             # Wedge extension
+            cross_point = close_size
             for i in range(margin):
                 new_point_up = np.sum(upper * [close_size+i, 1])
                 new_point_down = np.sum(lower * [close_size+i, 1])
                 if new_point_up > new_point_down:
+                    cross_point += i
                     upper_band = np.append(upper_band, new_point_up)
                     lower_band = np.append(lower_band, new_point_down)
+
+            # Position Tokens
+            price_pos = (close_size - point1) / (cross_point - point1)
+            if price_pos > .85 and 'SHAPE_TRIANGLE' in info:
+                info.append('ABOUT_END')
 
             # Parameters for channel extrapolation
             params = {'x0': data['date'][point1],
