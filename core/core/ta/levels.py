@@ -62,7 +62,9 @@ def _srLevels(close, threshold: float = .95, check_number: int = 4, similarity: 
 def _fibLevels(close, top: float, bottom: float):
     top_index, = np.where(close==top)
     bottom_index, = np.where(close==bottom)
-    
+    top_index = top_index[-1]
+    bottom_index = bottom_index[-1]
+
     height = top - bottom
     fib_lvls = [0.00, .236, .382, .500, .618, 1.00]
     
