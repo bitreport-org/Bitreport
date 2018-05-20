@@ -54,7 +54,7 @@ def channel(data: dict, sma_type: int = 50):
     
      # TOKENS
     info = []
-    p = ( close[-1] - up_channel[-1-margin] ) / (up_channel[-1-margin]-bottom_channel[-1-margin]) 
+    p = ( close[-1] - bottom_channel[-1-margin] ) / (up_channel[-1-margin]-bottom_channel[-1-margin]) 
 
     # Price Tokens
     if p > 1:
@@ -188,7 +188,7 @@ def wedge(data: dict):
             width = upper_band - lower_band 
             if width[-1]/width[0] > 0.90:
                 info.append('SHAPE_PARALLEL')
-            elif width[-1]/width[0] < 0.75:
+            elif width[-1]/width[0] < 0.3:
                 info.append('SHAPE_TRIANGLE')
             else:
                 info.append('SHAPE_CONTRACTING')
@@ -214,10 +214,10 @@ def wedge(data: dict):
                 info.append('PRICE_THROWBACK')
             
             # Direction Tokens
-            wedge_dir = (lower_band[0] + width[0] - lower_band[-1] + width[-1]) / lower_band.size
-            if wedge_dir > 0.25:
+            wedge_dir = ((lower_band[-1] + .5*width[-1]) - (lower_band[0] + .5*width[0])) / lower_band.size
+            if wedge_dir > 0.6:
                 info.append('DIRECTION_UP')
-            elif wedge_dir < -0.25:
+            elif wedge_dir < -0.6:
                 info.append('DIRECTION_DOWN')
             else:
                 info.append('DIRECTION_HORIZONTAL')
