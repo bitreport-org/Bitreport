@@ -14,8 +14,8 @@ class TextGenerator
     RSI: {
       OSCILLATOR_OVERSOLD: ['RSI has beed low recently.', 'RSI below 30 indicates that the pair is oversold.'],
       OSCILLATOR_OVERBOUGHT: ['RSI indicates overbought area.', 'RSI above 70 indicates that the pair is overbought.'],
-      DIRECTION_FALLING: ['RSI is getting higher.'],
-      DIRECTION_RISING: ['RSI is getting lower.'],
+      DIRECTION_FALLING: ['RSI is getting lower.'],
+      DIRECTION_RISING: ['RSI is getting higher.'],
       DIV_POISTIVE: ['There is a positive divergence with RSI.'],
       DIV_NEGATIVE: ['The RSI is showing a negative divergence. This may suggest trend reversal.']
     },
