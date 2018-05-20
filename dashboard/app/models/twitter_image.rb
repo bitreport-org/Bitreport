@@ -5,10 +5,10 @@ class TwitterImage < ApplicationRecord
   include TwitterImageUploader[:image]
 
   def self.available_symbols
-    Pair.pluck(:symbol)
+    Pair.order(symbol: :asc).pluck(:symbol)
   end
 
-  validates :symbol, presence: true #, inclusion: { in: available_symbols } # That got broken for some reason
+  validates :symbol, presence: true, inclusion: { in: -> (_) { available_symbols } }
   validates :timeframe, presence: true, inclusion: { in: TIMEFRAMES }
   validates :limit, numericality: true, inclusion: { in: 20..200 }
 
