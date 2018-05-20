@@ -1,21 +1,16 @@
 # -*- coding: utf-8 -*-
 from flask import Flask, request, jsonify
-import ast
 import time
-import datetime
 import logging
 import traceback
-import numpy as np
-from scipy import stats
 from influxdb import InfluxDBClient
 
 # Internal import
-from core.services import internal
-from core.services import dbservice
-from core.ta import indicators, levels, patterns, channels
+from core.services import dbservice, dataservice
 import config
 
 app = Flask(__name__)
+
 # Logger
 handler = logging.FileHandler('app.log')
 handler.setLevel(logging.DEBUG)
@@ -38,147 +33,6 @@ while status:
         app.logger.warning('Waiting for InfluxDB...')
         time.sleep(4)
 
-
-# Data class
-class PairData:
-    def __init__(self, app, pair, timeframe, limit, untill=None):
-        # to post data without NaN values indicators are calculated on period of length: limit + magic_limit
-        # returned data has length = limit
-        self.magic_limit = 79
-        self.margin = 26
-
-        self.pair = pair
-        self.timeframe = timeframe
-
-        if limit <15:
-            self.limit=15
-        else:
-            self.limit = limit
-
-        self.untill = untill
-        self.output = dict()
-
-    def prepare(self):
-        for maker in [self._makeCandles, self._makeIndicatorsChannels, self._makeLevels, self._makeInfo]:
-            status, message = maker(app)
-            if not status:
-                return message, 500
-        return self.output, 200
-    
-    def _makeCandles(self, app):
-        # Minimum response is 11 candles:
-        if self.limit <11:
-            self.limit=11
-        
-        # Data request
-        if isinstance(self.untill, int):
-            data = internal.import_numpy_untill(self.pair, self.timeframe, self.limit + self.magic_limit, self.untill)
-        else:
-            data = internal.import_numpy(self.pair, self.timeframe, self.limit + self.magic_limit)
-
-        if not data:
-            app.logger.warning('Empty database response {}'.format(self.pair+self.timeframe))
-            return False, 'Empty databse response'
-
-        # Add data
-        self.data = data
-
-        # Generate timestamps for future
-        dates = internal.generate_dates(data, self.timeframe, self.margin)
-        self.output.update(dates = dates[self.magic_limit:])
-
-        # Candles
-        candles = dict(open = data['open'].tolist()[self.magic_limit:],
-                        high = data['high'].tolist()[self.magic_limit:],
-                        close =  data['close'].tolist()[self.magic_limit:],
-                        low = data['low'].tolist()[self.magic_limit:],
-                        volume = data['volume'].tolist()[self.magic_limit:]
-                        )
-        self.output.update(candles = candles)
-
-        return True, 'Candles and dates created'
-
-    def _makeIndicatorsChannels(self, app):
-        indicators_list = internal.get_function_list(indicators)
-        indicators_values = dict()
-
-        for indicator in indicators_list:
-            try:
-                indicators_values[indicator.__qualname__] = indicator(self.data)
-            except Exception as e:
-                app.logger.warning('Indicator {}, error: /n {}'.format(indicator, traceback.format_exc()))
-                pass
-
-        channels_list = internal.get_function_list(channels)
-        for ch in channels_list:
-            try:
-                indicators_values[ch.__qualname__]= ch(self.data)
-            except Exception as e:
-                app.logger.warning('Indicator {}, error: /n {}'.format(ch, traceback.format_exc()))
-                pass
-
-        self.output.update(indicators = indicators_values)
-        return True, 'Indicators and channels created'
-
-    def _makeLevels(self, app):
-        try:
-            self.output.update(levels = levels.prepareLevels(self.data))
-        except Exception as e:
-            app.logger.warning(traceback.format_exc())
-            self.output.update(levels = {'support':[], 'resistance':[]})
-            pass
-        return True, 'Levels created'
-
-    def _makePatterns(self, app):
-        # Short data for patterns
-        data = self.output.get(candles, [])
-
-        try:
-            self.output.update(patterns = patterns.CheckAllPatterns(data))
-        except Exception as e:
-            app.logger.warning(traceback.format_exc())
-            self.output.update(patterns = [])
-            pass
-
-        return True, 'Patterns created'
-
-    def _makeInfo(self, app):
-        info = dict()
-        check_period = -10
-
-        # Volume tokens
-        volume_info = []
-        threshold = np.percentile(self.data['volume'], 80)
-        if self.data['volume'][-2] > threshold or self.data['volume'][-1] > threshold:
-            volume_info.append('VOLUME_SPIKE')
-        
-        slope, i, r, p, std = stats.linregress(np.arange(self.data['volume'][check_period:].size), self.data['volume'][check_period:])
-        if slope < 0.0:
-            volume_info.append('DIRECTION_DOWN')
-        else:
-            volume_info.append('DIRECTION_UP')
-
-        info.update(volume = volume_info)
-
-        # Price tokens
-        price_info = []
-        ath = [24, 168, 4*168]
-        ath_names = ['DAY', 'WEEK', 'MONTH']
-
-        for a, n in zip(ath, ath_names):
-            points2check = int(a / int(self.timeframe[:-1]))
-            if points2check < self.limit + self.magic_limit:
-                if max(self.data['high'][check_period:])  >= max(self.data['high'][-points2check:]):
-                    price_info.append('ATH_{}'.format(n))
-                elif max(self.data['low'][check_period:])  >= max(self.data['low'][-points2check:]):
-                    price_info.append('ATL_{}'.format(n))
-
-        info.update(price =price_info)
-
-        # Update output info
-        self.output.update(info = info)
-        return True, 'Info created'
-
 # API
 
 @app.route('/<pair>', methods=['GET'])
@@ -190,7 +44,7 @@ def data_service(pair: str):
 
         app.logger.warning('Request for {} {} limit {} untill {}'.format(pair, timeframe, limit, untill))
 
-        data = PairData(app, pair, timeframe, limit, untill)
+        data = dataservice.PairData(app, pair, timeframe, limit, untill)
         output, code = data.prepare()
 
         return jsonify(output), code
