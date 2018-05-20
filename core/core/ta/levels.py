@@ -13,14 +13,16 @@ def _srLevels(close, threshold: float = .95, check_number: int = 4, similarity: 
     for point, level in enumerate(close):
         if not point in [0,data_size-1]:
             support = np.sum(close[point:] >= level)/close[point:].size
-            resistance = np.sum(close[:point] < level)/close[:point].size    
-            df.append([int(point), level, support, resistance])
+            resistance = np.sum(close[:point] < level)/close[:point].size
+            sdist = close[point:].size
+            rdist = close[:point].size
+            df.append([int(point), level, support, resistance, sdist, rdist])
 
-    df = pd.DataFrame(df, columns=['position', 'level', 'support', 'resistance'])
+    df = pd.DataFrame(df, columns=['position', 'level', 'support', 'resistance', 'sdist', 'rdist'])
     
     # Resistances
     resistance = []
-    res = df[df.resistance >= threshold][['position','level']].values
+    res = df[(df.resistance >= threshold) & (df.rdist >= 10)][['position','level']].values
     for row in res:
         index, lvl = row
         index = int(index)
@@ -30,7 +32,7 @@ def _srLevels(close, threshold: float = .95, check_number: int = 4, similarity: 
     
     # Supports
     support = []
-    sup = df[df.support >= threshold][['position','level']].values
+    sup = df[(df.support >= threshold) & (df.sdist >= 10)][['position','level']].values
     for row in sup:
         index, lvl = row
         index = int(index)
@@ -42,9 +44,9 @@ def _srLevels(close, threshold: float = .95, check_number: int = 4, similarity: 
     def _sim_delete(levels):
         if levels != []:
             levels = np.array(levels)
-            sim_value = levels[1:]/levels[:-1]
-            for i in np.where(sim_value <= 1 + similarity):
-                levels = np.delete(levels, i)
+            sim_value = np.abs(1-levels[1:]/levels[:-1])
+            for i in np.where(sim_value <= similarity):
+                levels = np.delete(levels, i+1)
             return levels.tolist()
         else:
             return []
