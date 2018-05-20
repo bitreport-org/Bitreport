@@ -2,27 +2,21 @@
 
 module Admin
   class TwitterImagesController < AdminController
-    before_action :set_twitter_image, only: %i[show edit update preview destroy]
+    before_action :set_twitter_image, only: %i[edit update preview destroy]
 
-    # GET /twitter_images
     def index
-      redirect_to new_admin_twitter_image_path
+      redirect_to new_twitter_image_path
     end
 
-    # GET /twitter_images/1
-    def show; end
-
-    # GET /twitter_images/new
     def new
       @twitter_image = TwitterImage.new
     end
 
-    # POST /twitter_images
     def create
       @twitter_image = TwitterImage.new(twitter_image_params)
 
       if @twitter_image.save
-        redirect_to edit_admin_twitter_image_path(@twitter_image)
+        redirect_to edit_twitter_image_path(@twitter_image)
       else
         render :new
       end
@@ -54,14 +48,14 @@ module Admin
         img = @twitter_image.preview_image
         send_data(img, disposition: 'inline', type: 'image/png')
       else
+        Rails.logger.debug("Image generation error: #{@twitter_image.errors.full_messages}")
         send_data('', disposition: 'inline', type: 'image/png')
       end
     end
 
-    # DELETE /twitter_images/1
     def destroy
       @twitter_image.destroy
-      redirect_to admin_twitter_images_url, notice: 'Twitter image was successfully destroyed.'
+      redirect_to twitter_images_path, notice: 'Twitter image was successfully destroyed.'
     end
 
     private
@@ -73,8 +67,8 @@ module Admin
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def twitter_image_params
-      params.require(:admin_twitter_image).permit(:symbol, :timeframe, :limit, :comment,
-                                                  indicators: [], levels: [])
+      params.require(:twitter_image).permit(:symbol, :timeframe, :limit, :comment,
+                                            indicators: [], levels: [])
     end
   end
 end

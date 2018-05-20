@@ -10,3 +10,12 @@ html
   body class="#{controller_name} #{action_name}"
     .ui.container
       = yield
+      .ui.segment
+        = link_to new_twitter_image_path do
+          .ui.blue.button
+            i.twitter.icon
+            | New twitter image
+        = link_to pairs_path do
+          .ui.button
+            i.cogs.icon
+            | Pairs management

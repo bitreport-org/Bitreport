@@ -35,8 +35,8 @@ fetchNewImage = ->
       ctx.font = 'bold 56px PT Sans'
       ctx.fillStyle = '#EEEEEE'
       ctx.textAlign = 'center'
-      symbol = $('#admin_twitter_image_symbol').val()
-      timeframe = $('#admin_twitter_image_timeframe').val()
+      symbol = $('#twitter_image_symbol').val()
+      timeframe = $('#twitter_image_timeframe').val()
       ctx.fillText("#{symbol} #{timeframe}", 820, 80)
       ctx.font = 'bold 32px PT Sans'
       ctx.fillStyle = '#363631'
@@ -65,8 +65,8 @@ fetchExistingImage = ->
       ctx.font = 'bold 56px PT Sans'
       ctx.fillStyle = '#EEEEEE'
       ctx.textAlign = 'center'
-      symbol = $('#admin_twitter_image_symbol').val()
-      timeframe = $('#admin_twitter_image_timeframe').val()
+      symbol = $('#twitter_image_symbol').val()
+      timeframe = $('#twitter_image_timeframe').val()
       ctx.fillText("#{window.symbol} #{window.timeframe}", 820, 80)
       ctx.font = 'bold 32px PT Sans'
       ctx.fillStyle = '#363631'
@@ -85,13 +85,13 @@ fetchExistingImage = ->
           ctx.fillText(level[0], 1610, offset)
           ctx.fillText(level[1], 1760, offset)
           offset += 40
-      if $('#admin_twitter_image_comment').val()
+      if $('#twitter_image_comment').val()
         offset += 40
         ctx.font = 'bold 22px PT Sans'
         ctx.fillText('Comment', 1610, offset)
         offset += 40
         ctx.font = '22px PT Sans'
-        wrapText(ctx, $('#admin_twitter_image_comment').val(), 1610, offset, 410, 36)
+        wrapText(ctx, $('#twitter_image_comment').val(), 1610, offset, 410, 36)
     chart.src = newUrl
 
 countdown = ->

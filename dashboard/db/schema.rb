@@ -10,10 +10,17 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171223195020) do
+ActiveRecord::Schema.define(version: 20180520174952) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "pairs", force: :cascade do |t|
+    t.string "symbol"
+    t.string "name"
+    t.string "exchange"
+    t.datetime "last_updated_at"
+  end
 
   create_table "push_devices", force: :cascade do |t|
     t.string "endpoint", null: false
