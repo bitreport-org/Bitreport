@@ -222,7 +222,7 @@ class Plotter
 
   def prepare_wedge_fg
     if indicators['wedge']
-      @plots << "using 1:3 title 'Wedge' with lines linecolor '#40#{YELLOW}' lw 1.5"
+      @plots << "using 1:3 notitle with lines linecolor '#40#{YELLOW}' lw 1.5"
       @data << timestamps.zip(indicators['wedge']['upperband'], indicators['wedge']['middleband'], indicators['wedge']['lowerband']).map { |candle| candle.join(' ') }.push('e')
     end
   end
