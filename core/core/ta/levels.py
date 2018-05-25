@@ -1,63 +1,20 @@
 import numpy as np
 import pandas as pd
-import config
+import statsmodels.api as sm
+from scipy.signal import argrelmin, argrelmax
 
 import config
 config = config.BaseConfig()
 
-def _srLevels(close, threshold: float = .95, check_number: int = 4, similarity: float = 0.02):
-    df = []
-    data_size = close.size
+def _srLevels(close, r=5):
+    hp_cycle, hp_trend = sm.tsa.filters.hpfilter(close)
+    maxs = argrelmax(hp_trend)[0]
+    mins = argrelmin(hp_trend)[0]
     
-    # It's a kind of magic, magic!
-    for point, level in enumerate(close):
-        if not point in [0,data_size-1]:
-            support = np.sum(close[point:] >= level)/close[point:].size
-            resistance = np.sum(close[:point] < level)/close[:point].size
-            sdist = close[point:].size
-            rdist = close[:point].size
-            df.append([int(point), level, support, resistance, sdist, rdist])
+    resistance = [np.max(close[p-r:p+r]) for p in maxs]
+    support = [np.min(close[p-r:p+r]) for p in mins]
 
-    df = pd.DataFrame(df, columns=['position', 'level', 'support', 'resistance', 'sdist', 'rdist'])
-    
-    # Resistances
-    resistance = []
-    res = df[(df.resistance >= threshold) & (df.rdist >= 10)][['position','level']].values
-    for row in res:
-        index, lvl = row
-        index = int(index)
-        if index < close.size-check_number:
-            if np.sum(close[index:index+check_number] < lvl) >= check_number-1:
-                resistance.append(lvl)
-    
-    # Supports
-    support = []
-    sup = df[(df.support >= threshold) & (df.sdist >= 10)][['position','level']].values
-    for row in sup:
-        index, lvl = row
-        index = int(index)
-        if index > check_number:
-            if np.sum(close[index-check_number:index] > lvl) >= check_number-1:
-                support.append(lvl)
-    
-    # Delete similar levels
-    def _sim_delete(levels):
-        if levels != []:
-            levels = np.array(levels)
-            sim_value = np.abs(1-levels[1:]/levels[:-1])
-            for i in np.where(sim_value <= similarity):
-                levels = np.delete(levels, i+1)
-            return levels.tolist()
-        else:
-            return []
-    
-    resistance = _sim_delete(resistance)
-    support = _sim_delete(support)
-
-    levels = dict(
-                resistance = resistance,
-                support = support
-                )
+    levels = dict(resistance = resistance, support = support)
 
     return levels
 
