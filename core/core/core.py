@@ -86,7 +86,7 @@ def log_service():
         try:
             with open('app.log') as log:
                 text = ""
-                for i, line in enumerate(log):
+                for line in log:
                     text += line
             return '<pre>{}</pre>'.format(text)
         except:

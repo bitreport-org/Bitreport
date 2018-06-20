@@ -40,7 +40,8 @@ def channel(data: dict, sma_type: int = 50):
     else:
         # Find longest channel
         lenghts = ch_points[1:] - ch_points[:-1]
-        s_position, = np.where(lenghts == np.max(lenghts))[0]
+        print(np.where(lenghts == np.max(lenghts)))
+        s_position = np.where(lenghts == np.max(lenghts))[0][0]
         s, e = ch_points[s_position], ch_points[s_position+1]
     
     # Calculate channel and slope

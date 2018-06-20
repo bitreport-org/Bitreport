@@ -82,7 +82,7 @@ def bitfinex_fill(app, client, pair: str, force: bool = False):
                                 "sum(volume) AS volume " \
                                 "INTO {} FROM {}1h WHERE time <= '{}' GROUP BY time({})".format(pair+tf, pair, time_now,  tf)
                         client.query(query)
-                    except Exception as e:
+                    except:
                         m = 'FAILED {} downsample {} error: \n {}'.format(tf, pair, traceback.format_exc())
                         app.logger.warning(m)
                         pass
@@ -162,7 +162,7 @@ def bittrex_fill(app, client, pair: str, force: bool = False):
                                     "INTO {} FROM {} WHERE time <= '{}' GROUP BY time({})".format(pair+tf_sample, name, time_now,  tf_sample)
                             client.query(query)
 
-                        except Exception as e:
+                        except:
                             m = 'FAILED {} downsample {} error: \n {}'.format( tf, pair, traceback.format_exc())
                             app.logger.warning(m)
                             pass
@@ -175,7 +175,7 @@ def bittrex_fill(app, client, pair: str, force: bool = False):
                 m = 'FAILED {} Bitrex response: {}'.format(name, response.get('message','no message'))
                 app.logger.warning(m)
 
-        except Exception as e:
+        except:
             m = 'FAILED Bitrex api request for {}'.format(name)
             app.logger.warning(m)
             status = False
@@ -264,7 +264,7 @@ def binance_fill(app, client, pair: str, force: bool = False):
                                 "sum(volume) AS volume " \
                                 "INTO {} FROM {}1h WHERE time <= '{}' GROUP BY time({})".format(pair + tf, pair, time_now,  tf)
                         client.query(query)
-                    except Exception as e:
+                    except:
                         m = 'FAILED {} downsample {} error: \n {}'.format( tf, pair, traceback.format_exc())
                         app.logger.warning(m)
                         pass
@@ -358,7 +358,7 @@ def poloniex_fill(app, client, pair: str, force: bool = False):
                                 "sum(volume) AS volume " \
                                 "INTO {} FROM {} WHERE time <= '{}' GROUP BY time({})" .format(pair+tf, pair+timeframe, time_now,  tf)
                         client.query(query)
-                    except Exception as e:
+                    except:
                         m = 'FAILED {} downsample {} error: \n {}'.format( tf, pair, traceback.format_exc())
                         app.logger.warning(m)
                         pass
