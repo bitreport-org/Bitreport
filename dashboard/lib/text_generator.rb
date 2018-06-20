@@ -98,6 +98,23 @@ class TextGenerator
       DIRECTION_UP: ['SAR indicates change of the trend.', 'SAR informs us about potential trend reversal.', 'According to SAR indicator it is an end of downward move.']
 
     },
+    price: {
+      VOLUME_SPIKE: ['The big volume suggests potential changes.'],
+      VOLUME_DIRECTION_DOWN: ['Volume is getting higher.'],
+      VOLUME_DIRECTION_UP: ['Volume is getting lower'],
+      PRICE_HIGHEST_DAY: ['We are observing highest price in last 24h'],
+      PRICE_LOWEST_DAY:['We are observing lowest price in last 24h'],
+      PRICE_HIGHEST_WEEK: ['We are observing highest price in this week'],
+      PRICE_LOWEST_WEEK: ['We are observing lowest price in this week'],
+      PRICE_HIGHEST_MONTH: ['We are observing highest price in this month'],
+      PRICE_LOWEST_MONTH: ['We are observing lowest price in this week'],
+      CHART_NONE: [],
+      CHART_DOWN: ['Price is still moving down.', 'We have a downtrend.'],
+      CHART_UP: ['Price is still moving up.', 'We have an uptrend.'],
+      CHART_UD_REV: ['Uptrend to downtrend reversal.'],
+      CHART_DU_REV: ['Downtrend to uptrend reversal']
+    }
+
 
   }.with_indifferent_access
 

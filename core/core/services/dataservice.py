@@ -110,24 +110,21 @@ class PairData:
         return True, 'Patterns created'
 
     def _makeInfo(self):
-        info = dict()
+        info = []
         check_period = -10
 
         # Volume tokens
-        volume_info = []
         threshold = np.percentile(self.data['volume'], 80)
         if self.data['volume'][-2] > threshold or self.data['volume'][-1] > threshold:
-            volume_info.append('VOLUME_SPIKE')
+            info.append('VOLUME_SPIKE')
         
         slope, i, r, p, std = stats.linregress(np.arange(self.data['volume'][check_period:].size), self.data['volume'][check_period:])
         if slope < 0.0:
-            volume_info.append('DIRECTION_DOWN')
+            info.append('VOLUME_DIRECTION_DOWN')
         else:
-            volume_info.append('DIRECTION_UP')
-        info.update(volume = volume_info)
+            info.append('VOLUME_DIRECTION_UP')
 
         # Price tokens
-        price_info = []
         ath = [24, 168, 4*168]
         ath_names = ['DAY', 'WEEK', 'MONTH']
 
@@ -135,24 +132,20 @@ class PairData:
             points2check = int(a / int(self.timeframe[:-1]))
             if points2check < self.limit + self.magic_limit:
                 if max(self.data['high'][check_period:])  >= max(self.data['high'][-points2check:]):
-                    price_info.append('HIGHEST_{}'.format(n))
+                    info.append('PRICE_HIGHEST_{}'.format(n))
                 elif max(self.data['low'][check_period:])  >= max(self.data['low'][-points2check:]):
-                    price_info.append('LOWEST_{}'.format(n))
-        info.update(price = price_info)
+                    info.append('PRICE_LOWEST_{}'.format(n))
         
         # Chart info
         clf = joblib.load('{}/core/ta/clfs/TrendRecognition_RandomForest_100.pkl'.format(os.getcwd())) 
-        chart_info = []
         try:
             X = self.data['close'][-100:]
             X = (X - np.min(X))/(np.max(X)-np.min(X))
             chart_type = clf.predict([X])
-            chart_info.append(chart_type[-1].upper())
+            info.append('CHART_{}'.format(chart_type[-1].upper()))
         except:
-            chart_info.append('NONE')
+            info.append('CHART_NONE')
             pass
-        info.update(chart = chart_info)
 
-        # Update output info
-        self.output.update(info = info)
+        self.output['indicators'].update(price = info)
         return True, 'Info created'
