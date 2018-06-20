@@ -3,6 +3,8 @@ from core.ta import indicators, levels, patterns, channels
 import numpy as np
 from scipy import stats
 import traceback
+from sklearn.externals import joblib
+import os
 
 # Data class
 class PairData:
@@ -71,7 +73,7 @@ class PairData:
         for indicator in indicators_list:
             try:
                 indicators_values[indicator.__qualname__] = indicator(self.data)
-            except Exception as e:
+            except:
                 self.app.logger.warning('Indicator {}, error: /n {}'.format(indicator, traceback.format_exc()))
                 pass
 
@@ -79,7 +81,7 @@ class PairData:
         for ch in channels_list:
             try:
                 indicators_values[ch.__qualname__]= ch(self.data)
-            except Exception as e:
+            except:
                 self.app.logger.warning('Indicator {}, error: /n {}'.format(ch, traceback.format_exc()))
                 pass
 
@@ -89,7 +91,7 @@ class PairData:
     def _makeLevels(self):
         try:
             self.output.update(levels = levels.prepareLevels(self.data))
-        except Exception as e:
+        except:
             self.app.logger.warning(traceback.format_exc())
             self.output.update(levels = {'support':[], 'resistance':[]})
             pass
@@ -97,11 +99,10 @@ class PairData:
 
     def _makePatterns(self):
         # Short data for patterns
-        data = self.output.get(candles, [])
-
+        data = self.output.get('candles', [])
         try:
             self.output.update(patterns = patterns.CheckAllPatterns(data))
-        except Exception as e:
+        except:
             self.app.logger.warning(traceback.format_exc())
             self.output.update(patterns = [])
             pass
@@ -123,7 +124,6 @@ class PairData:
             volume_info.append('DIRECTION_DOWN')
         else:
             volume_info.append('DIRECTION_UP')
-
         info.update(volume = volume_info)
 
         # Price tokens
@@ -135,11 +135,23 @@ class PairData:
             points2check = int(a / int(self.timeframe[:-1]))
             if points2check < self.limit + self.magic_limit:
                 if max(self.data['high'][check_period:])  >= max(self.data['high'][-points2check:]):
-                    price_info.append('ATH_{}'.format(n))
+                    price_info.append('HIGHEST_{}'.format(n))
                 elif max(self.data['low'][check_period:])  >= max(self.data['low'][-points2check:]):
-                    price_info.append('ATL_{}'.format(n))
-
+                    price_info.append('LOWEST_{}'.format(n))
         info.update(price = price_info)
+        
+        # Chart info
+        clf = joblib.load('{}/core/ta/clfs/TrendRecognition_RandomForest_100.pkl'.format(os.getcwd())) 
+        chart_info = []
+        try:
+            X = self.data['close'][-100:]
+            X = (X - np.min(X))/(np.max(X)-np.min(X))
+            chart_type = clf.predict([X])
+            chart_info.append(chart_type[-1].upper())
+        except:
+            chart_info.append('NONE')
+            pass
+        info.update(chart = chart_info)
 
         # Update output info
         self.output.update(info = info)
