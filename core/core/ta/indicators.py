@@ -219,7 +219,6 @@ def ALLIGATOR(data):
     start = config.MAGIC_LIMIT
     close = data['close']
     data_len = close.size
-    output = {}
 
     N1, N2, N3 = 13, 8, 5
     jaw = [talib.SUM(close, N1)[N1-1] / N1]
@@ -268,7 +267,7 @@ def TDS(data):
     close = data['close']
     low = data['low']
     high = data['high']
-    m, n = 9, 4
+    n = 4
     #m2, n2 = 13, 2
 
     # TD Sequential based on TD Setup 9,4
@@ -317,7 +316,7 @@ def TDS(data):
 # Ichimoku Cloud:
 def ICM(data):
     start = config.MAGIC_LIMIT
-    open, high, low, close = data['open'], data['high'], data['low'], data['close']
+    high, low, close = data['high'], data['low'], data['close']
     close_size = close.size
 
     # Tenkan-sen (Conversion Line): (9-period high + 9-period low)/2))
@@ -372,7 +371,7 @@ def ICM(data):
 # Ichimoku Cloud FULL:
 def ICMF(data):
     start = config.MAGIC_LIMIT
-    open, high, low, close=data['open'], data['high'], data['low'], data['close']
+    high, low, close = data['high'], data['low'], data['close']
     close_size = close.size
 
     # Tenkan-sen (Conversion Line): (9-period high + 9-period low)/2))
