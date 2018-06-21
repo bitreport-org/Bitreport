@@ -24,6 +24,8 @@ then
 
   bundle install --quiet
 
+  npm install --silent
+
   bundle exec rails db:migrate 2>/dev/null || bundle exec rake db:setup
 
   unlock_setup
