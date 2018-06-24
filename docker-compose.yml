@@ -23,7 +23,7 @@ services:
     ports:
       - 5002:8086
     volumes:
-      - ./data/influxdb:/var/lib/influxdb
+      - influx-data:/var/lib/influxdb
   dashboard:
     build: ./dashboard
     entrypoint: /usr/src/app/development-entrypoint.sh
