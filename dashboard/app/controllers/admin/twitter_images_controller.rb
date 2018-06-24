@@ -36,7 +36,7 @@ module Admin
           [type.capitalize, level]
         end
       end.flatten
-      @twitter_image.comment ||= @twitter_image.raw_data['indicators'].slice(*@twitter_image.indicators).flat_map do |indicator, params|
+      @twitter_image.comment ||= @twitter_image.raw_data['indicators'].slice(*(['price'] + @twitter_image.indicators).shuffle).flat_map do |indicator, params|
         TextGenerator.new(indicator, params['info']) if params['info']
       end
     end

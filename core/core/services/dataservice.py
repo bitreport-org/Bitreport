@@ -147,5 +147,5 @@ class PairData:
             info.append('CHART_NONE')
             pass
 
-        self.output['indicators'].update(price = info)
+        self.output['indicators'].update(price = { 'info': info })
         return True, 'Info created'
