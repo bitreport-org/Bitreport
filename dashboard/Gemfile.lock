@@ -57,6 +57,9 @@ GEM
       deep_merge (~> 1.1.1)
       dry-validation (~> 0.10.4)
     crass (1.0.2)
+    debase (0.2.2)
+      debase-ruby_core_source (>= 0.10.2)
+    debase-ruby_core_source (0.10.3)
     deep_merge (1.1.1)
     devise (4.3.0)
       bcrypt (~> 3.0)
@@ -203,6 +206,8 @@ GEM
       rainbow (>= 2.2.2, < 3.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (~> 1.0, >= 1.0.1)
+    ruby-debug-ide (0.6.1)
+      rake (>= 0.8.1)
     ruby-progressbar (1.9.0)
     sass (3.5.3)
       sass-listen (~> 4.0.0)
@@ -271,6 +276,7 @@ DEPENDENCIES
   byebug
   coffee-rails (~> 4.2)
   config
+  debase
   devise
   fastimage
   gnuplot
@@ -286,6 +292,7 @@ DEPENDENCIES
   rails (~> 5.1.4)
   rspec-rails
   rubocop
+  ruby-debug-ide
   sass-rails (~> 5.0)
   serviceworker-rails
   shrine

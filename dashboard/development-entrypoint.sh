@@ -22,11 +22,11 @@ then
 
   echo "Preparing Rails..."
 
-  bundle install --quiet
+  bundle install --no-deployment
 
-  npm install --silent
+  npm install
 
-  bundle exec rails db:migrate 2>/dev/null || bundle exec rake db:setup
+  bundle exec rails db:migrate || bundle exec rake db:setup
 
   unlock_setup
 

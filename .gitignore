@@ -19,3 +19,4 @@ exchanges.npz
 report.html
 data
 .vscode/settings.json
+.DS_STORE

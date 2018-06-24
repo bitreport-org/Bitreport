@@ -81,6 +81,9 @@ group :development do
   gem 'spring-watcher-listen', '~> 2.0.0'
   # To keep the code clean
   gem 'rubocop'
+  # To make docker debugging possible
+  gem 'debase'
+  gem 'ruby-debug-ide'
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
