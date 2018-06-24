@@ -1,7 +1,6 @@
 require 'image_processing/mini_magick'
 
 class TwitterImageUploader < Shrine
-  include ImageProcessing::MiniMagick
   plugin :pretty_location, namespace: '/'
   plugin :moving
   plugin :processing
@@ -12,7 +11,7 @@ class TwitterImageUploader < Shrine
   process(:store) do |io|
     original = io.download
 
-    thumbnail = resize_to_limit!(original, 300, 300)
+    thumbnail = ImageProcessing::MiniMagick.source(original).resize_to_limit!(300, 300)
 
     { original: io, thumbnail: thumbnail }
   end

@@ -33,6 +33,10 @@ then
   if [[ "$2" = "s" || "$2" = "server" ]]; then rm -rf /usr/src/app/tmp/pids/server.pid; fi
 fi
 
-echo "Starting..."
-
-exec bundle exec "$@"
+if [[ "$1" = "bundle" ]]
+then
+  exec "$@"
+else
+  echo "Starting..."
+  exec bundle exec "$@"
+fi

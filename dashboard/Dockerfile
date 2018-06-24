@@ -12,6 +12,7 @@ RUN apt-get update -qq && \
         graphicsmagick \
         libcairo2-dev \
         libpq-dev \
+        nano \
         nodejs
 
 WORKDIR /usr/src/app
