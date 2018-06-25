@@ -27,17 +27,15 @@ def _fibLevels(close, top: float, bottom: float):
     height = top - bottom
     fib_lvls = [0.00, .236, .382, .500, .618, 1.00]
     
-    levels = dict()
+    levels = []
     if top_index < bottom_index:
         for lvl in fib_lvls:
             value = bottom + lvl * height
-            lvl_name = 'Fib {0:.1f}%'.format(lvl*100)
-            levels[lvl_name] = [value]
+            levels.append(value)
     else:
         for lvl in fib_lvls:
             value = top - lvl * height
-            lvl_name = 'Fib {}'.format(lvl)
-            levels[lvl_name] = [value]
+            levels.append(value)
     
     return levels
 
@@ -48,9 +46,10 @@ def prepareLevels(data: dict):
     # Find levels
     levels = _srLevels(close)
 
-    # Highest resistance and lowest support
+    # Check if any levels to make fibs
     r, s  = levels.values()
     if r!=[] and s!=[]:
+        # Highest resistance and lowest support
         top = np.max(r)
         bottom = np.min(levels['support'])
 
@@ -58,6 +57,7 @@ def prepareLevels(data: dict):
         fib = _fibLevels(close, top, bottom)
 
         # Add fibs
-        levels.update(fib)
+        levels.update(fib = fib)
 
+    levels.update(info = [])
     return levels
