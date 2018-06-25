@@ -78,8 +78,9 @@ def make_retention_policies(client):
     return client.get_list_retention_policies()
 
 
-def generate_dates(date, timeframe, margin):
+def generate_dates(data, timeframe, margin):
     # Generate timestamps for future
+    date = data['date']
     period = timeframe[-1]
     t = int(timeframe[:-1])
 
@@ -91,7 +92,7 @@ def generate_dates(date, timeframe, margin):
     elif period == 'W':
         d = 60 * 60 * 168 * t
 
-    for _ in range(margin):
+    for i in range(margin):
         date.append(int(date[-1]) + d)
 
     return date
