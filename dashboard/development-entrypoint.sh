@@ -20,13 +20,9 @@ then
 
   lock_setup
 
-  echo "Preparing Rails..."
+  echo "Preparing database"
 
-  bundle install --no-deployment
-
-  npm install
-
-  bundle exec rails db:migrate || bundle exec rake db:setup
+  bundle exec rails db:migrate || bundle exec rails db:setup
 
   unlock_setup
 
@@ -37,6 +33,6 @@ if [[ "$1" = "bundle" ]]
 then
   exec "$@"
 else
-  echo "Starting..."
+  echo "Starting Rails. It should be ready in a few seconds"
   exec bundle exec "$@"
 fi

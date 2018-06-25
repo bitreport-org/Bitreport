@@ -1,7 +1,7 @@
 FROM ruby:2.5.1
 
 # throw errors if Gemfile has been modified since Gemfile.lock
-#RUN bundle config --global frozen 1
+RUN bundle config --global frozen 1
 
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
 RUN apt-get update -qq && \
