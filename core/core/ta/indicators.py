@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 import talib #pylint: skip-file
 import numpy as np
-from decimal import Decimal as dec
-import datetime
-import math
+import os
+import config
+
 from sklearn.externals import joblib
 from scipy import stats
-import os
 
-import config
 config = config.BaseConfig()
 
 ###################     TAlib indicators    ###################
@@ -242,7 +240,6 @@ def ALLIGATOR(data):
         lips.append((lips[-1] * (N3 - 1) + close[i])/N3)
 
     return {'jaw': jaw[start:], 'teeth': teeth[start:], 'lips': lips[start:], 'info': []}
-
 
 ###################   Bitreport indicators   ###################
 

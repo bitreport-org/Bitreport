@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import time
-from requests import post
 import datetime
-import talib
+import talib #pylint: skip-file
 import logging
 import traceback
 
+from requests import post
 from core.services import internal
 
 

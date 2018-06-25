@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
-from flask import Flask, request, jsonify
-import time
 import logging
 import traceback
-from influxdb import InfluxDBClient
-
-# Internal import
-from core.services import dbservice, dataservice
 import config
+
+from flask import Flask, request, jsonify
+from time import sleep
+from influxdb import InfluxDBClient
+from core.services import dbservice, dataservice
 
 app = Flask(__name__)
 
@@ -31,7 +30,7 @@ while status:
         status = False
     except:
         app.logger.warning('Waiting for InfluxDB...')
-        time.sleep(4)
+        sleep(3)
 
 # API
 
@@ -52,12 +51,9 @@ def data_service(pair: str):
         return 404
 
 
-events_list = []
 @app.route('/events', methods=['GET'])
 def event_service():
     if request.method == 'GET':
-        return jsonify(events_list)
-    else:
         return 404
 
 

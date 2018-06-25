@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
-from influxdb import InfluxDBClient
-from datetime import datetime as dt
 import time
 import traceback
 import requests
-from core.services import internal
 import config
 
-time_now = dt.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+from influxdb import InfluxDBClient
+from datetime import datetime as dt
+from core.services import internal
 
+time_now = dt.now().strftime("%Y-%m-%dT%H:%M:%SZ")
 
 def bitfinex_fill(app, client, pair: str, force: bool = False):
     status = False
