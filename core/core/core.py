@@ -11,11 +11,15 @@ from core.services import dbservice, dataservice
 app = Flask(__name__)
 
 # Logger
-handler = logging.FileHandler('app.log')
-handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-app.logger.addHandler(handler)
+logging.basicConfig(level = logging.DEBUG,
+                    filename = 'app.log',
+                    format = '%(asctime)s - core - %(levelname)s - %(message)s')
+console = logging.StreamHandler()
+console.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - core - %(levelname)s - %(message)s')
+console.setFormatter(formatter)
+app.logger.addHandler(console)
+
 
 
 # Config
@@ -29,7 +33,7 @@ while status:
         client.create_database(conf.DBNAME)
         status = False
     except:
-        app.logger.warning('Waiting for InfluxDB...')
+        app.logger.info('Waiting for InfluxDB...')
         sleep(3)
 
 # API
@@ -41,7 +45,7 @@ def data_service(pair: str):
         limit = request.args.get('limit', default=15, type=int)
         untill = request.args.get('untill', default=None, type=int)
 
-        app.logger.warning('Request for {} {} limit {} untill {}'.format(pair, timeframe, limit, untill))
+        app.logger.info('Request for {} {} limit {} untill {}'.format(pair, timeframe, limit, untill))
 
         data = dataservice.PairData(app, pair, timeframe, limit, untill)
         output, code = data.prepare()
