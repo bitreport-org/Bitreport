@@ -1,22 +1,22 @@
 # -*- coding: utf-8 -*-
-import talib
+import talib #pylint: skip-file
 import numpy as np
 from decimal import Decimal as dec
 import datetime
 import math
 from sklearn.externals import joblib
+from scipy import stats
 import os
 
 import config
 config = config.BaseConfig()
 
-
 ###################     TAlib indicators    ###################
-def BB(data, timeperiod=20, nbdevup=2, nbdevdn=2, matype=0):
+def BB(data, timeperiod=20):
     start = config.MAGIC_LIMIT
     m = 10000
     close = m * data['close']
-    upperband, middleband, lowerband = talib.BBANDS(close, timeperiod, nbdevup, nbdevdn, matype)
+    upperband, middleband, lowerband = talib.BBANDS(close, timeperiod, 2, 2, matype = 0)
     
     # TOKENS
     info = []
@@ -31,7 +31,7 @@ def BB(data, timeperiod=20, nbdevup=2, nbdevdn=2, matype=0):
         info.append('PRICE_ONBAND_UP')
     elif p < 0.05:
         info.append('PRICE_ONBAND_DOWN')
-    else:
+    elif 0.40 <= p <= 0.60 :
         info.append('PRICE_BETWEEN')
 
     width = upperband - lowerband
@@ -64,24 +64,29 @@ def RSI(data, timeperiod=14):
     close = data['close']
     real = talib.RSI(close, timeperiod)
 
+    # TOKENS
     info = []
+    points2check = -10
+
     if real[-1] >= 70:
         info.append('OSCILLATOR_OVERBOUGHT')
     elif real[-1] <= 30:
         info.append('OSCILLATOR_OVERSOLD')
 
-    delta = 5
-    direction = real[-1] - real[-1 - delta]
-    if direction < 0:
+    slice2check = real[points2check:]
+    direction = stats.linregress(np.arange(slice2check.size), slice2check).slope
+    threshold = 0.1
+    if direction < -1*threshold:
         info.append('DIRECTION_FALLING')
-    else:
+    elif direction > threshold:
         info.append('DIRECTION_RISING')
 
-    div = np.corrcoef(close[-26:], real[-26:])[0][1]
-
-    if div >0.9:
+    n = int(0.25 * (close.size - start))
+    dir_rsi = stats.linregress(np.arange(n), real[-n:]).slope
+    dir_price = stats.linregress(np.arange(n), close[-n:]).slope
+    if dir_rsi * dir_price >= 0.0:
         info.append('DIV_POSITIVE')
-    elif div < 0.87:
+    elif dir_rsi * dir_price < 0.0:
         info.append('DIV_NEGATIVE')
 
     return {'rsi':real.tolist()[start:], 'info': info }
@@ -144,7 +149,8 @@ def SMA(data):
             info.append('POSITION_DOWN_{}'.format(name.upper() ) )
 
     #TOKENS
-    for i in range(-10, 0):
+    points2check = -10
+    for i in range(points2check, 0):
         if dic['fast'][i] < dic['slow'][i] and dic['fast'][i-1] >= dic['slow'][i-1]:
             info.append('CROSS_BEARISH')
         elif dic['fast'][i] > dic['slow'][i] and dic['fast'][i-1] <= dic['slow'][i-1]:
@@ -184,7 +190,8 @@ def EMA(data):
             info.append('POSITION_DOWN_{}'.format(name.upper() ) )
 
     #TOKENS
-    for i in range(-10, 0):
+    points2check = -10
+    for i in range(points2check, 0):
         if dic['fast'][i] < dic['slow'][i] and dic['fast'][i-1] >= dic['slow'][i-1]:
             info.append('CROSS_BEARISH')
         elif dic['fast'][i] > dic['slow'][i] and dic['fast'][i-1] <= dic['slow'][i-1]:
@@ -207,12 +214,15 @@ def SAR(data):
 
     # TOKENS
     info = []
-    for i in range(-10,0):
+    points2check = -10
+    for i in range(points2check,0):
         if real[i-1] <= close[i-1] and real[i] >= close[i]:
             info.append('DIRECTION_DOWN')
         elif real[i-1] >= close[i-1] and real[i] <= close[i]:
             info.append('DIRECTION_UP')
-
+    
+    if info != []:
+        info = list(info[-1])
     return {'sar': real.tolist()[start:], 'info': info}
 
 
@@ -243,7 +253,6 @@ def EWO(data, fast = 5, slow = 35):
     real = talib.EMA(close, fast) - talib.EMA(close, slow)
     return {'ewo': real.tolist()[start:], 'info': []}
 
-
 # Keltner channels:
 def KC(data):
     # Keltner Channels
@@ -259,8 +268,10 @@ def KC(data):
     upperch = mid + (2 * talib.ATR(high, low, close, 10))
     lowerch = mid - (2 * talib.ATR(high, low, close, 10))
     
-    return {'middle_band': mid.tolist()[start:], 'upper_band': upperch.tolist()[start:], 'lower_band':lowerch.tolist()[start:], 'info': []}
-
+    return {'middle_band': mid.tolist()[start:], 
+            'upper_band': upperch.tolist()[start:], 
+            'lower_band':lowerch.tolist()[start:], 
+            'info': []}
 
 # Tom Demark Sequential
 def TDS(data):
@@ -313,10 +324,10 @@ def TDS(data):
 
     return {'tds':td_list_type[start:], 'info': info}
 
-
 # Ichimoku Cloud:
 def ICM(data):
     start = config.MAGIC_LIMIT
+    margin = config.MARGIN
     high, low, close = data['high'], data['low'], data['close']
     close_size = close.size
 
@@ -347,23 +358,36 @@ def ICM(data):
 
     leading_spanB = np.array(leading_spanB)
 
+    # Some magic
+    leading_spanA = leading_spanA[start-n2:]
+    leading_spanB = leading_spanB[start-n2:]
+
     # Tokens
     info = []
-    if leading_spanA[-1] < close[-1] < leading_spanB[-1]:
-        info.append('IN_CLOUD_UP')
-    elif leading_spanA[-1] > close[-1] > leading_spanB[-1]:
-        info.append('IN_CLOUD_DOWN')
+    actualA = leading_spanA[-margin]
+    actualB = leading_spanB[-margin]
+    if actualA >= actualB and close[-1] < actualA:
+        if close[-1] < actualB:
+            info.append('PIERCED_UP')
+        else:
+            info.append('IN_CLOUD_UP')
 
-    # width = np.abs(leading_spanA - leading_spanB)
-    # p1 = np.percentile(width, .75)
-    # p2 = np.percentile(width, .25)
-    # if width[-1] >= p1:
-    #     info.append('WIDE')
-    # elif width[-1] <= p2:
-    #     info.append('THIN')
+    elif actualB > actualA and close[-1] > actualA:
+        if close[-1] > actualB:
+            info.append('PIERCED_DOWN')
+        else:
+            info.append('IN_CLOUD_DOWN')
 
-    return {'leading_span_b': leading_spanA.tolist()[start-n2:],
-            'leading_span_b': leading_spanB.tolist()[start-n2:],
+    width = np.abs(leading_spanA - leading_spanB)
+    p1 = np.percentile(width, .80)
+    p2 = np.percentile(width, .25)
+    if width[-margin] >= p1:
+        info.append('WIDE')
+    elif width[-margin] <= p2:
+        info.append('THIN')
+
+    return {'leading_span_a': leading_spanA.tolist(),
+            'leading_span_b': leading_spanB.tolist(),
             'info': info}
 
 # Ichimoku Cloud FULL:
@@ -410,6 +434,6 @@ def ICMF(data):
     return {'conversion_line': conversion_line.tolist()[start:],
             'base_line': base_line.tolist()[start:],
             'leading_span_a': leading_spanA.tolist()[start-n2:],
-            'leading_span_a': leading_spanB.tolist()[start-n2:],
+            'leading_span_b': leading_spanB.tolist()[start-n2:],
             'lagging_span': lagging_span.tolist()[start:],
             'info': [] }
