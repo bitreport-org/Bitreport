@@ -12,7 +12,7 @@ config = config.BaseConfig()
 ###################     TAlib indicators    ###################
 def BB(data, timeperiod=20):
     start = config.MAGIC_LIMIT
-    m = 10000
+    m = 1000000
     close = m * data['close']
     upperband, middleband, lowerband = talib.BBANDS(close, timeperiod, 2, 2, matype = 0)
     
@@ -60,7 +60,8 @@ def MACD(data, fastperiod=12, slowperiod=26, signalperiod=9 ):
 def RSI(data, timeperiod=14):
     start = config.MAGIC_LIMIT
     close = data['close']
-    real = talib.RSI(close, timeperiod)
+    m = 10000000
+    real = talib.RSI(m*close, timeperiod)
 
     # TOKENS
     info = []
