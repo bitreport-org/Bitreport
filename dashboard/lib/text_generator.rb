@@ -112,7 +112,13 @@ class TextGenerator
       CHART_DOWN: ['Price is still moving down.', 'We have a downtrend.'],
       CHART_UP: ['Price is still moving up.', 'We have an uptrend.'],
       CHART_UD_REV: ['Uptrend to downtrend reversal.'],
-      CHART_DU_REV: ['Downtrend to uptrend reversal']
+      CHART_DU_REV: ['Downtrend to uptrend reversal'],
+      STRONG_UP: [],
+      STRONG_DOWN: [],
+      SMALL_MOVE_UP: [],
+      SMALL_MOVE_DOWN: [],
+      BIG_MOVE_UP: [],
+      BIG_MOVE_DOWN: [],
     }
 
 

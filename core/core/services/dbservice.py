@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
-from influxdb import InfluxDBClient
-from datetime import datetime as dt
 import time
 import traceback
 import requests
-from core.services import internal
 import config
 
-time_now = dt.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+from influxdb import InfluxDBClient
+from datetime import datetime as dt
+from core.services import internal
 
+time_now = dt.now().strftime("%Y-%m-%dT%H:%M:%SZ")
 
 def bitfinex_fill(app, client, pair: str, force: bool = False):
     status = False
@@ -63,7 +63,7 @@ def bitfinex_fill(app, client, pair: str, force: bool = False):
                 try:
                     client.write_points(points)
                     m = 'SUCCEDED write {} / {} records for {}'.format(count, len(response), name)
-                    app.logger.warning(m)
+                    app.logger.info(m)
                     status = True
                 except:
                     m = 'FAILED to write records for {}'.format(name)
@@ -144,7 +144,7 @@ def bittrex_fill(app, client, pair: str, force: bool = False):
                     try:
                         client.write_points(points)
                         m = 'SUCCEDED write {} / {} records for {}'.format(count, len(candle_list), name)
-                        app.logger.warning(m)
+                        app.logger.info(m)
                         status = True
                     except:
                         m = 'FAILED to write records for {}'.format(name)
@@ -244,7 +244,7 @@ def binance_fill(app, client, pair: str, force: bool = False):
                 try:
                     client.write_points(points, retention_policy = 'autogen')
                     m = 'SUCCEDED write {} / {} records for {}'.format(count, len(response), name)
-                    app.logger.warning(m)
+                    app.logger.info(m)
                     status = True
                     
                 except:
@@ -341,7 +341,7 @@ def poloniex_fill(app, client, pair: str, force: bool = False):
                 try:
                     client.write_points(points)
                     m = 'SUCCEDED write {} / {} records for {}'.format(count, len(response), name)
-                    app.logger.warning(m)
+                    app.logger.info(m)
                     status = True
                 except:
                     m = 'FAILED to write records for {}'.format(name)
@@ -400,7 +400,7 @@ def pair_fill(app, pair, exchange, force):
     if result:
         toc = time.time()
         m = '{} filled from {} fill time: {:.2f} ms'.format( pair, exchange, (toc-tic)*1000)
-        app.logger.warning(m)
+        app.logger.info(m)
         return 'Success', 200
 
     else:

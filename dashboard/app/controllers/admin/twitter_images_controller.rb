@@ -31,12 +31,12 @@ module Admin
     end
 
     def edit
-      @levels = @twitter_image.raw_data['levels'].map do |type, levels|
+      @levels = @twitter_image.raw_data['indicators']['levels'].map do |type, levels|
         levels.map do |level|
           [type.capitalize, level]
         end
       end.flatten
-      @twitter_image.comment ||= @twitter_image.raw_data['indicators'].slice(*(['price'] + @twitter_image.indicators).shuffle).flat_map do |indicator, params|
+      @twitter_image.comment ||= @twitter_image.raw_data['indicators'].slice(*(%w(price volume) + @twitter_image.indicators).shuffle).flat_map do |indicator, params|
         TextGenerator.new(indicator, params['info']) if params['info']
       end
     end

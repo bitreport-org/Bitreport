@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-from influxdb import InfluxDBClient
 import datetime
 import pandas as pd
 import config
 import types
+
+from influxdb import InfluxDBClient
 
 conf = config.BaseConfig()
 

@@ -1,10 +1,12 @@
-from core.services import internal
-from core.ta import indicators, levels, patterns, channels
 import numpy as np
-from scipy import stats
 import traceback
-from sklearn.externals import joblib
 import os
+import talib #pylint: skip-file
+
+from scipy.stats import linregress
+from sklearn.externals import joblib
+from core.services import internal
+from core.ta import indicators, levels, channels
 
 # Data class
 class PairData:
@@ -64,7 +66,90 @@ class PairData:
                         )
         self.output.update(candles = candles)
 
-        return True, 'Candles and dates created'
+        info_price = self._makeInfoPrice()
+        price.update(info = info_price)
+
+        volume_values = data['volume'] #np.array
+        info_volume = self._makeInfoVolume(volume_values)
+        volume = dict(volume = volume_values.tolist()[self.magic_limit:], info = info_volume)
+
+        return True, price, volume
+    
+    def _makeInfoPrice(self):
+        info_price = []
+        close = self.data.get('close')[self.magic_limit:]
+        open = self.data.get('open')[self.magic_limit:]
+        high = self.data.get('high')[self.magic_limit:]
+        low = self.data.get('low')[self.magic_limit:]
+        check_period = -20
+
+        # # Hihghest /lowest tokens
+        # ath = [24, 168, 4*168]
+        # ath_names = ['DAY', 'WEEK', 'MONTH']
+        # for a, n in zip(ath, ath_names):
+        #     points2check = int(a / int(self.timeframe[:-1]))
+        #     if points2check < self.limit + self.magic_limit:
+        #         if max(price['high'][check_period:])  >= max(price['high'][-points2check:]):
+        #             info_price.append('PRICE_HIGHEST_{}'.format(n))
+        #         elif max(price['low'][check_period:])  >= max(price['low'][-points2check:]):
+        #             info_price.append('PRICE_LOWEST_{}'.format(n))
+        
+        # Chart tokens
+        clf = joblib.load('{}/core/ta/clfs/TrendRecognition_RandomForest_100.pkl'.format(os.getcwd())) 
+        try:
+            X = close[-100:]
+            X = (X - np.min(X))/(np.max(X)-np.min(X))
+            chart_type = clf.predict([X])
+            info_price.append('CHART_{}'.format(chart_type[-1].upper()))
+        except:
+            info_price.append('CHART_NONE')
+            pass
+
+        # Last moves tokens
+        n = int(0.70*close.size) 
+        s70 = linregress(np.arange(n), close[-n:]).slope
+        s20 = linregress(np.arange(20), close[-20:]).slope
+        s5 = linregress(np.arange(5), close[-5:]).slope
+        if s5 > s20 > s70 > 0:
+            info_price.append('STRONG_UP')
+        elif s5 < s20 < s70 < 0:
+            info_price.append('STRONG_DOWN')
+        elif s70 < 0 and s20 < 0 and s5 > 0:
+            info_price.append('SMALL_MOVE_UP')
+        elif s70 > 0 and s20 > 0 and s5 < 0:
+            info_price.append('SMALL_MOVE_DOWN')
+        elif s70 < 0 and s20 > 0 and s5 > 0:
+            info_price.append('BIG_MOVE_UP')
+        elif s70 > 0 and s20 < 0 and s5 < 0:
+            info_price.append('BIG_MOVE_DOWN')
+        
+        # Candles patterns tokens
+        p2check = -10
+        hammer = talib.CDLINVERTEDHAMMER(open[p2check:], high[p2check:], low[p2check:], close[p2check:])
+        star = talib.CDLSHOOTINGSTAR(open[p2check:], high[p2check:], low[p2check:], close[p2check:])
+        if np.sum(hammer) != 0 and np.where(hammer != 0)[0][-1] == 100:
+                info_price.append('INVERTED_HAMMER')
+        if np.sum(star) != 0 and np.where(hammer != 0)[0][-1] == -100:
+                info_price.append('SHOOTING_STAR')
+
+        return info_price
+
+    def _makeInfoVolume(self, volume):
+        info_volume = []
+        check_period = -10
+
+        # Volume tokens
+        threshold = np.percentile(volume, 80)
+        if volume[-2] > threshold or volume[-1] > threshold:
+            info_volume.append('VOLUME_SPIKE')
+        
+        slope = linregress(np.arange(volume[check_period:].size), volume[check_period:]).slope
+        if slope < 0.0:
+            info_volume.append('VOLUME_DIRECTION_DOWN')
+        else:
+            info_volume.append('VOLUME_DIRECTION_UP')
+
+        return info_volume
 
     def _makeIndicatorsChannels(self):
         indicators_list = internal.get_function_list(indicators)
@@ -146,6 +231,4 @@ class PairData:
         except:
             info.append('CHART_NONE')
             pass
-
-        self.output['indicators'].update(price = { 'info': info })
-        return True, 'Info created'
+        return indicators_values

@@ -1,9 +1,10 @@
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
+import config
+
 from scipy.signal import argrelmin, argrelmax
 
-import config
 config = config.BaseConfig()
 
 def _srLevels(close, r=5):

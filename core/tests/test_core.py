@@ -78,8 +78,9 @@ class TestTA(object):
 		response = response.json()
 		indicators = response.get('indicators', {})
 		keys = indicators.keys()
-		required_keys =  ['ADX', 'ALLIGATOR', 'AROON', 'BB', 'EMA', 'EWO', 
-						'ICM', 'ICMF', 'KC', 'MACD', 'MOM', 'OBV', 'RSI', 
+
+		required_keys =  ['price', 'ADX', 'ALLIGATOR', 'AROON', 'BB', 'EMA', 'EWO', 
+						'ICM', 'KC', 'MACD', 'MOM', 'OBV', 'RSI', 
 						'SAR', 'SMA', 'STOCH', 'STOCHRSI', 'TDS']
 
 		for k in required_keys:

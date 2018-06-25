@@ -1,5 +1,5 @@
 import numpy as np
-import talib
+import talib #pylint: skip-file
 import config
 
 config = config.BaseConfig()
@@ -40,7 +40,6 @@ def channel(data: dict, sma_type: int = 50):
     else:
         # Find longest channel
         lenghts = ch_points[1:] - ch_points[:-1]
-        print(np.where(lenghts == np.max(lenghts)))
         s_position = np.where(lenghts == np.max(lenghts))[0][0]
         s, e = ch_points[s_position], ch_points[s_position+1]
     
@@ -70,15 +69,15 @@ def channel(data: dict, sma_type: int = 50):
         info.append('PRICE_BETWEEN')
 
     n_last_points = 10
-    if np.sum(close[-n_last_points:] > up_channel[-n_last_points-margin : -margin]) > 0 and close[-1] < up_channel[-1]:
+    if np.sum(close[-n_last_points:] > up_channel[-n_last_points-margin : -margin]) > 0 and close[-1] < up_channel[-1-margin]:
         info.append('FALSE_BREAK_UP')
-    elif np.sum(close[-n_last_points:] < bottom_channel[-n_last_points-margin : -margin]) > 0 and close[-1] > bottom_channel[-1]:
+    elif np.sum(close[-n_last_points:] < bottom_channel[-n_last_points-margin : -margin]) > 0 and close[-1] > bottom_channel[-1-margin]:
         info.append('FLASE_BREAK_DOWN')
 
     # Drirection Tokens
-    if slope < -0.1:
+    if slope < -0.2:
         info.append('DIRECTION_DOWN')
-    elif slope > 0.1:
+    elif slope > 0.2:
         info.append('DIRECTION_UP')
     else:
         info.append('DIRECTION_HORIZONTAL')
@@ -87,7 +86,7 @@ def channel(data: dict, sma_type: int = 50):
     
 
 def parabola(data: dict):
-    margin = config.MARGIN
+    #margin = config.MARGIN
     start = config.MAGIC_LIMIT
 
     close = data.get('close')[start:]
@@ -126,16 +125,14 @@ def wedge(data: dict):
     close_size = close.size
 
     def make_wedge(t):
-        lower_band, upper_band, width, params, info = np.array([]), np.array([]), np.array([]), [], []
+        lower_band, upper_band, width, info = np.array([]), np.array([]), np.array([]), []
         
         if t == 'falling':
-            dt = low
             f0 = talib.MAXINDEX
             f1 = np.max
             f2 = talib.MININDEX
             f3 = np.min
         else:
-            dt = high
             f0 = talib.MININDEX
             f1 = np.min
             f2 = talib.MAXINDEX
@@ -145,35 +142,25 @@ def wedge(data: dict):
         point1 = f0(close, timeperiod=close_size)[-1]
     
         end = close_size-5
+        threshold = 10
         if point1 < close_size - 30:
             # Band 1
-            a_values = np.divide(np.array(close[point1+2 : end+1]) - close[point1], np.arange(point1+2, end+1) - point1)
+            a_values = np.divide(np.array(close[point1 + threshold : end+1]) - close[point1], np.arange(point1 + threshold, end+1) - point1)
             a1 = f1(a_values)
             b1 = close[point1] - a1 * point1
 
             # End point
             point2, = np.where(a_values == a1)[0]
-            point2 = ( point1 + 2 ) + point2 
+            point2 = ( point1 + threshold ) + point2 
 
             # Mid point
             point3 = point1 + f2(close[point1 : point2], timeperiod=len(close[point1: point2]))[-1]
             point3_value = close[point3]
-
-            earlier_point3 = f2(dt[:point3], timeperiod=len(dt[:point3]))[-1]
             
             # Band 2
-            if earlier_point3 < point3:
-                point3 = earlier_point3
-                point3_value = dt[point3]
-
-                a_values = np.divide(np.array(dt[point3+1 : end+1]) - point3_value, np.arange(point3+1, end+1) - point3)
-                a2 = f3(a_values)
-                b2 = dt[point3] - a2 * point3
-
-            else:
-                a_values = np.divide(np.array(close[point3+1 : end+1]) - point3_value, np.arange(point3+1, end+1) - point3)
-                a2 = f3(a_values)
-                b2 = close[point3] - a2 * point3
+            a_values = np.divide(np.array(close[point3+5 : end+1]) - point3_value, np.arange(point3+5, end+1) - point3)
+            a2 = f3(a_values)
+            b2 = close[point3] - a2 * point3
 
             # Create upper and lower band
             if t == 'falling':
@@ -189,7 +176,7 @@ def wedge(data: dict):
             width = upper_band - lower_band 
             if width[-1]/width[0] > 0.90:
                 info.append('SHAPE_PARALLEL')
-            elif width[-1]/width[0] < 0.3:
+            elif width[-1]/width[0] < 0.5:
                 info.append('SHAPE_TRIANGLE')
             else:
                 info.append('SHAPE_CONTRACTING')
@@ -201,24 +188,24 @@ def wedge(data: dict):
                 info.append('PRICE_BREAK_DOWN')
 
             # Price Tokens
-            if (close[-1]-lower_band[-1])/width[-1] >= 0.95:
+            if 1 >= (close[-1]-lower_band[-1])/width[-1] >= 0.95:
                 info.append('PRICE_ONBAND_UP')
-            elif (close[-1]-lower_band[-1])/width[-1] <= 0.05:
-                info.append('PRICE_ONBAND_UP')
+            elif 0 <= (close[-1]-lower_band[-1])/width[-1] <= 0.05:
+                info.append('PRICE_ONBAND_DOWN')
             else:
                 info.append('PRICE_BETWEEN')
 
             n_last_points = 10
             if np.sum(close[-n_last_points:] > upper_band[-n_last_points:]) > 0 and close[-1] < upper_band[-1]:
-                info.append('PRICE_PULLBACK')
+                info.append('BOUNCE_UPPER')
             elif np.sum(close[-n_last_points:] < lower_band[-n_last_points:]) > 0 and close[-1] > lower_band[-1]:
-                info.append('PRICE_THROWBACK')
+                info.append('BOUNCE_LOWER')
             
             # Direction Tokens
             wedge_dir = ((lower_band[-1] + .5*width[-1]) - (lower_band[0] + .5*width[0])) / lower_band.size
-            if wedge_dir > 0.6:
+            if wedge_dir > 0.35:
                 info.append('DIRECTION_UP')
-            elif wedge_dir < -0.6:
+            elif wedge_dir < -0.35:
                 info.append('DIRECTION_DOWN')
             else:
                 info.append('DIRECTION_HORIZONTAL')
@@ -234,8 +221,9 @@ def wedge(data: dict):
                     lower_band = np.append(lower_band, new_point_down)
 
             # Position Tokens
+            # TODO: maybe we should count bounces?
             price_pos = (close_size - point1) / (cross_point - point1)
-            if price_pos > .85 and 'SHAPE_TRIANGLE' in info:
+            if (price_pos > .85) and ('SHAPE_TRIANGLE' in info):
                 info.append('ABOUT_END')
 
             # Parameters for channel extrapolation
@@ -251,13 +239,13 @@ def wedge(data: dict):
     upper_band, lower_band, width, info, params = make_wedge('falling')
 
     # Check if wedge makes sense
-    if width.size > 0  and width[0] - width[-1] < 0:
+    if width.size > 0  and width[0] - width[-1] < 0: 
         # Rising wedge
         upper_band, lower_band, width, info, params = make_wedge('raising')
         # Check if wedge makes sense
         if width.size > 0  and width[0] - width[-1] < 0:
             lower_band, upper_band = np.array([]), np.array([])
-            params, info = [], []
+            info = []
       
 
     return {'upperband': upper_band.tolist(),
