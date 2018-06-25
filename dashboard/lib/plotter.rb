@@ -12,10 +12,11 @@ class Plotter
   PURPLE = 'f455c7'
 
   BANDS = {
-    'BB' => { colors: %W(#f2#{BLUE} #66#{BLUE}), name: 'Bollinger Bands' },
-    'KC' => { colors: %W(#f6#{YELLOW} #40#{YELLOW}), name: 'Keltner Channel' },
-    'parabola' => { colors: %W(#f6#{RED} #40#{RED}), name: 'Parabola' },
-    'channel' => { colors: %W(#f6#{YELLOW} #40#{YELLOW}), name: 'Channel' }
+    'BB' => { colors: %W(#f2#{BLUE} #66#{BLUE}), name: 'Bollinger Bands', middle: true },
+    'KC' => { colors: %W(#f8#{YELLOW} #70#{YELLOW}), name: 'Keltner Channel', middle: true },
+    'parabola' => { colors: %W(#f8#{RED} #70#{RED}), name: 'Parabola', middle: false },
+    'channel' => { colors: %W(#f8#{YELLOW} #70#{YELLOW}), name: 'Channel', middle: false },
+    'wedge' => { colors: %W(#f8#{YELLOW} #70#{YELLOW}), name: 'Wedge', middle: false }
   }.freeze
 
   AVERAGES = {
@@ -43,11 +44,9 @@ class Plotter
     prepare_volume
     prepare_bands_bg
     prepare_ichimoku_bg
-    prepare_wedge_bg
     prepare_candles
     prepare_bands_fg
     prepare_ichimoku_fg
-    prepare_wedge_fg
     prepare_sar
     prepare_averages
     prepare_tds
@@ -126,7 +125,7 @@ class Plotter
     levels.each_with_index do |level, i|
       next unless (lows.min..highs.max).cover?(level)
       out << <<~TXT
-        set arrow #{i + 1} from #{timestamps.first},#{level} to #{timestamps.last},#{level} nohead lc rgb "#33#{YELLOW}" lw 2
+        set arrow #{i + 1} from #{timestamps.first},#{level} to #{timestamps.last},#{level} nohead lc rgb "#c0#{WHITE}" lw 1.5 dt 2
       TXT
     end
     out
@@ -141,11 +140,10 @@ class Plotter
     BANDS.each do |name, info|
       indicator = indicators[name]
       next unless indicator
-      @plots << "using 1:2:4 notitle with filledcurves linecolor '#{info[:colors][0]}'" <<
+      @plots << "using 1:2:3 notitle with filledcurves linecolor '#{info[:colors][0]}'" <<
                 "using 1:2 notitle with lines linecolor '#{info[:colors][1]}' lw 1.5" <<
-                "using 1:4 notitle with lines linecolor '#{info[:colors][1]}' lw 1.5"
+                "using 1:3 notitle with lines linecolor '#{info[:colors][1]}' lw 1.5"
       @data << timestamps.zip(indicator['upper_band'],
-                              indicator['middle_band'],
                               indicator['lower_band']).map { |candle| candle.join(' ') }.push('e') * 3
     end
   end
@@ -156,17 +154,8 @@ class Plotter
               "using 1:2:3 notitle with filledcurves below linecolor '#dd#{RED}'" <<
               "using 1:2 notitle with lines linecolor '#88#{GREEN}' lw 1.5" <<
               "using 1:3 notitle with lines linecolor '#88#{RED}' lw 1.5"
-    @data << timestamps.zip(indicators['ICM']['leading_span_a'], indicators['ICM']['leading_span_b']).map { |candle| candle.join(' ') }.push('e') * 4
-  end
-
-  def prepare_wedge_bg
-    # Can it be moved to channels?
-    if indicators['wedge']
-      @plots << "using 1:2:3 notitle with filledcurves linecolor '#f6#{YELLOW}'" <<
-                "using 1:2 notitle with lines linecolor '#40#{YELLOW}' lw 1.5" <<
-                "using 1:3 notitle with lines linecolor '#40#{YELLOW}' lw 1.5"
-      @data << timestamps.zip(indicators['wedge']['upper_band'], indicators['wedge']['lower_band']).map { |candle| candle.join(' ') }.push('e') * 3
-    end
+    @data << timestamps.zip(indicators['ICM']['leading_span_a'],
+                            indicators['ICM']['leading_span_b']).map { |candle| candle.join(' ') }.push('e') * 4
   end
 
   def prepare_candles
@@ -177,9 +166,9 @@ class Plotter
   def prepare_bands_fg
     BANDS.each do |name, info|
       indicator = indicators[name]
-      next unless indicator
-      @plots << "using 1:3 title '#{info[:name]}' with lines linecolor '#{info[:colors][1]}' lw 1.5"
-      @data << timestamps.zip(indicator['upper_band'], indicator['middle_band'], indicator['lower_band']).map { |candle| candle.join(' ') }.push('e')
+      next unless indicator && info[:middle]
+      @plots << "using 1:2 title '#{info[:name]}' with lines linecolor '#{info[:colors][1]}' lw 1.5"
+      @data << timestamps.zip(indicator['middle_band']).map { |candle| candle.join(' ') }.push('e')
     end
   end
 
@@ -187,13 +176,6 @@ class Plotter
     return unless indicators['ICM']
     @plots << "using 1:2 title 'Ichimoku Base Line' with lines linecolor '#60#{RED}' lw 1.5"
     @data << timestamps.zip(indicators['ICM']['base_line']).map { |candle| candle.join(' ') }.push('e')
-  end
-
-  def prepare_wedge_fg
-    if indicators['wedge']
-      @plots << "using 1:3 notitle with lines linecolor '#40#{YELLOW}' lw 1.5"
-      @data << timestamps.zip(indicators['wedge']['upper_band'], indicators['wedge']['middle_band'], indicators['wedge']['lower_band']).map { |candle| candle.join(' ') }.push('e')
-    end
   end
 
   def prepare_sar
@@ -253,6 +235,8 @@ class Plotter
       set offsets 0,0,#{margin},#{margin}
       set xrange [#{timestamps.first}:#{timestamps.last}]
       set yrange [#{yrange}]
+
+      unset arrow
     GNU
   end
 
