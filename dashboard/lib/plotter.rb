@@ -267,7 +267,7 @@ class Plotter
 
   def rsi
     out = []
-    out << lower_preamble('RSI', margin: 10, yrange: '*<25:75<*', ytics: [30, 70])
+    out << lower_preamble('RSI', margin: 10, yrange: '*<25:75<*', ytics: [0, 30, 70, 100])
     out << <<~GNU
       set object 1 rect from #{timestamps.first},30 to #{timestamps.last},70 fc rgb '#ee#{PURPLE}' fs solid noborder
       set arrow 1 from #{timestamps.first},30 to #{timestamps.last},30 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
@@ -299,7 +299,7 @@ class Plotter
 
   def stoch
     out = []
-    out << lower_preamble('STOCH', margin: 10, yrange: '*<15:85<*', ytics: [20, 80])
+    out << lower_preamble('STOCH', margin: 10, yrange: '*<15:85<*', ytics: [0, 20, 80, 100])
     out << <<~GNU
       set object 1 rect from #{timestamps.first},20 to #{timestamps.last},80 fc rgb '#ee#{PURPLE}' fs solid noborder
       set arrow 1 from #{timestamps.first},20 to #{timestamps.last},20 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
@@ -315,7 +315,7 @@ class Plotter
 
   def stochrsi
     out = []
-    out << lower_preamble('STOCH RSI', margin: 10, yrange: '*<15:85<*', ytics: [20, 80])
+    out << lower_preamble('STOCH RSI', margin: 10, yrange: '*<15:85<*', ytics: [0, 20, 80, 100])
     out << <<~GNU
       set object 1 rect from #{timestamps.first},20 to #{timestamps.last},80 fc rgb '#ee#{PURPLE}' fs solid noborder
       set arrow 1 from #{timestamps.first},20 to #{timestamps.last},20 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
@@ -332,7 +332,7 @@ class Plotter
   def adx
     margin = 10 * (indicators['ADX']['adx'].max - indicators['ADX']['adx'].min) / 100
     out = []
-    out << lower_preamble('ADX', margin: margin, ytics: [25])
+    out << lower_preamble('ADX', margin: margin, ytics: [0, 25, 50, 75, 100])
     out << <<~GNU
       set arrow 1 from #{timestamps.first},25 to #{timestamps.last},25 nohead lc rgb '#66#{PURPLE}' lw 1.5 dt 2
 
