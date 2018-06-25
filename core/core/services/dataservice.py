@@ -1,11 +1,12 @@
 import numpy as np
 import traceback
 import os
+import talib #pylint: skip-file
 
 from scipy.stats import linregress
 from sklearn.externals import joblib
 from core.services import internal
-from core.ta import indicators, levels, patterns, channels
+from core.ta import indicators, levels, channels
 
 # Data class
 class PairData:
@@ -71,7 +72,7 @@ class PairData:
                         low = data['low'].tolist()[self.magic_limit:],
                         )
 
-        info_price = self._makeInfoPrice(price)
+        info_price = self._makeInfoPrice()
         price.update(info = info_price)
 
         volume_values = data['volume'] #np.array
@@ -80,9 +81,13 @@ class PairData:
 
         return True, price, volume
     
-    def _makeInfoPrice(self, price):
+    def _makeInfoPrice(self):
         info_price = []
-        check_period = -10
+        close = self.data.get('close')[self.magic_limit:]
+        open = self.data.get('open')[self.magic_limit:]
+        high = self.data.get('high')[self.magic_limit:]
+        low = self.data.get('low')[self.magic_limit:]
+        check_period = -20
 
         # # Hihghest /lowest tokens
         # ath = [24, 168, 4*168]
@@ -98,7 +103,7 @@ class PairData:
         # Chart tokens
         clf = joblib.load('{}/core/ta/clfs/TrendRecognition_RandomForest_100.pkl'.format(os.getcwd())) 
         try:
-            X = price['close'][-100:]
+            X = close[-100:]
             X = (X - np.min(X))/(np.max(X)-np.min(X))
             chart_type = clf.predict([X])
             info_price.append('CHART_{}'.format(chart_type[-1].upper()))
@@ -107,8 +112,7 @@ class PairData:
             pass
 
         # Last moves tokens
-        close = price['close']
-        n = int(0.70*len(close)) 
+        n = int(0.70*close.size) 
         s70 = linregress(np.arange(n), close[-n:]).slope
         s20 = linregress(np.arange(20), close[-20:]).slope
         s5 = linregress(np.arange(5), close[-5:]).slope
@@ -124,6 +128,15 @@ class PairData:
             info_price.append('BIG_MOVE_UP')
         elif s70 > 0 and s20 < 0 and s5 < 0:
             info_price.append('BIG_MOVE_DOWN')
+        
+        # Candles patterns tokens
+        p2check = -10
+        hammer = talib.CDLINVERTEDHAMMER(open[p2check:], high[p2check:], low[p2check:], close[p2check:])
+        star = talib.CDLSHOOTINGSTAR(open[p2check:], high[p2check:], low[p2check:], close[p2check:])
+        if np.sum(hammer) != 0 and np.where(hammer != 0)[0][-1] == 100:
+                info_price.append('INVERTED_HAMMER')
+        if np.sum(star) != 0 and np.where(hammer != 0)[0][-1] == -100:
+                info_price.append('SHOOTING_STAR')
 
         return info_price
 
