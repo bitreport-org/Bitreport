@@ -385,52 +385,5 @@ def ICM(data):
 
     return {'leading_span_a': leading_spanA.tolist(),
             'leading_span_b': leading_spanB.tolist(),
-            'info': info}
-
-# Ichimoku Cloud FULL:
-def ICMF(data):
-    start = config.MAGIC_LIMIT
-    high, low, close = data['high'], data['low'], data['close']
-    close_size = close.size
-
-    # Tenkan-sen (Conversion Line): (9-period high + 9-period low)/2))
-    n1=9
-    #TODO: czy tu ma być [0] czy [None] ?
-    conversion_line = [0]*n1
-    for i in range(n1, close_size):
-        conversion_line.append((np.max(high[i-n1:i]) + np.min(low[i-n1:i]))/2)
-    conversion_line = np.array(conversion_line)
-
-    # Kijun-sen (Base Line): (26-period high + 26-period low)/2))
-    n2=26
-    base_line = [0]*n2
-    for i in range(n2, close_size):
-         base_line.append((np.max(high[i-n2:i]) + np.min(low[i-n2:i]))/2)
-
-    base_line = np.array(base_line)
-
-    # Senkou Span A (Leading Span A): (Conversion Line + Base Line)/2))
-    leading_spanA = (conversion_line+base_line) /2
-
-    # Senkou Span B (Leading Span B): (52-period high + 52-period low)/2))
-    n3 = 52
-    leading_spanB = [0]*n3
-    for i in range(n3, close_size):
-        leading_spanB.append((np.max(high[i-n3:i]) + np.min(low[i-n3:i]))/2)
-
-    leading_spanB = np.array(leading_spanB)
-
-    # Chikou Span (Lagging Span): Close plotted 26 days in the past
-    n4 = 26
-    lagging_span =[]
-    for i in range(0, close_size-n4):
-        lagging_span.append(close[i+n4])
-    lagging_span = np.array(lagging_span)
-
-
-    return {'conversion_line': conversion_line.tolist()[start:],
             'base_line': base_line.tolist()[start:],
-            'leading_span_a': leading_spanA.tolist()[start-n2:],
-            'leading_span_b': leading_spanB.tolist()[start-n2:],
-            'lagging_span': lagging_span.tolist()[start:],
-            'info': [] }
+            'info': info}
