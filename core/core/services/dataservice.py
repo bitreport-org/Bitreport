@@ -1,10 +1,11 @@
+import numpy as np
+import traceback
+import os
+
+from scipy.stats import linregress
+from sklearn.externals import joblib
 from core.services import internal
 from core.ta import indicators, levels, patterns, channels
-import numpy as np
-from scipy import stats
-import traceback
-from sklearn.externals import joblib
-import os
 
 # Data class
 class PairData:
@@ -83,19 +84,18 @@ class PairData:
         info_price = []
         check_period = -10
 
-        # Price tokens
-        ath = [24, 168, 4*168]
-        ath_names = ['DAY', 'WEEK', 'MONTH']
-
-        for a, n in zip(ath, ath_names):
-            points2check = int(a / int(self.timeframe[:-1]))
-            if points2check < self.limit + self.magic_limit:
-                if max(price['high'][check_period:])  >= max(price['high'][-points2check:]):
-                    info_price.append('PRICE_HIGHEST_{}'.format(n))
-                elif max(price['low'][check_period:])  >= max(price['low'][-points2check:]):
-                    info_price.append('PRICE_LOWEST_{}'.format(n))
+        # # Hihghest /lowest tokens
+        # ath = [24, 168, 4*168]
+        # ath_names = ['DAY', 'WEEK', 'MONTH']
+        # for a, n in zip(ath, ath_names):
+        #     points2check = int(a / int(self.timeframe[:-1]))
+        #     if points2check < self.limit + self.magic_limit:
+        #         if max(price['high'][check_period:])  >= max(price['high'][-points2check:]):
+        #             info_price.append('PRICE_HIGHEST_{}'.format(n))
+        #         elif max(price['low'][check_period:])  >= max(price['low'][-points2check:]):
+        #             info_price.append('PRICE_LOWEST_{}'.format(n))
         
-        # Chart info_price
+        # Chart tokens
         clf = joblib.load('{}/core/ta/clfs/TrendRecognition_RandomForest_100.pkl'.format(os.getcwd())) 
         try:
             X = price['close'][-100:]
@@ -105,6 +105,25 @@ class PairData:
         except:
             info_price.append('CHART_NONE')
             pass
+
+        # Last moves tokens
+        close = price['close']
+        n = int(0.70*len(close)) 
+        s70 = linregress(np.arange(n), close[-n:]).slope
+        s20 = linregress(np.arange(20), close[-20:]).slope
+        s5 = linregress(np.arange(5), close[-5:]).slope
+        if s5 > s20 > s70 > 0:
+            info_price.append('STRONG_UP')
+        elif s5 < s20 < s70 < 0:
+            info_price.append('STRONG_DOWN')
+        elif s70 < 0 and s20 < 0 and s5 > 0:
+            info_price.append('SMALL_MOVE_UP')
+        elif s70 > 0 and s20 > 0 and s5 < 0:
+            info_price.append('SMALL_MOVE_DOWN')
+        elif s70 < 0 and s20 > 0 and s5 > 0:
+            info_price.append('BIG_MOVE_UP')
+        elif s70 > 0 and s20 < 0 and s5 < 0:
+            info_price.append('BIG_MOVE_DOWN')
 
         return info_price
 
@@ -117,7 +136,7 @@ class PairData:
         if volume[-2] > threshold or volume[-1] > threshold:
             info_volume.append('VOLUME_SPIKE')
         
-        slope, i, r, p, std = stats.linregress(np.arange(volume[check_period:].size), volume[check_period:])
+        slope = linregress(np.arange(volume[check_period:].size), volume[check_period:]).slope
         if slope < 0.0:
             info_volume.append('VOLUME_DIRECTION_DOWN')
         else:
@@ -154,15 +173,3 @@ class PairData:
             indicators_values.update(levels = {'support':[], 'resistance':[], 'auto': [], 'info':[]})
             pass
         return indicators_values
-
-    # def _makePatterns(self):
-    #     # Short data for patterns
-    #     data = self.output.get('candles', [])
-    #     try:
-    #         self.output.update(patterns = patterns.CheckAllPatterns(data))
-    #     except:
-    #         self.app.logger.warning(traceback.format_exc())
-    #         self.output.update(patterns = [])
-    #         pass
-
-    #     return True, 'Patterns created'
