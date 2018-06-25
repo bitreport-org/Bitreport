@@ -90,7 +90,7 @@ def RSI(data, timeperiod=14):
     return {'rsi':real.tolist()[start:], 'info': info }
 
 
-def STOCH(data, fastk_period=5, slowk_period=3, slowk_matype=0, slowd_period=3, slowd_matype=0):
+def STOCH(data, fastk_period=14, slowk_period=14, slowk_matype=3, slowd_period=14, slowd_matype=3):
     start = config.MAGIC_LIMIT
     slowk, slowd = talib.STOCH(data['high'], data['low'], data['close'],
                                fastk_period, slowk_period, slowk_matype, slowd_period, slowd_matype)
@@ -105,7 +105,7 @@ def STOCH(data, fastk_period=5, slowk_period=3, slowk_matype=0, slowd_period=3, 
     return {'k': slowk.tolist()[start:], 'd': slowd.tolist()[start:], 'info': info}
 
 
-def STOCHRSI(data, timeperiod=14, fastk_period=5, fastd_period=3, fastd_matype=0):
+def STOCHRSI(data, timeperiod=14, fastk_period=14, fastd_period=14, fastd_matype=3):
     start = config.MAGIC_LIMIT
     fastk, fastd = talib.STOCHRSI(data['close'], timeperiod, fastk_period, fastd_period, fastd_matype)
     return {'k': fastk.tolist()[start:], 'd': fastd.tolist()[start:], 'info': []}
@@ -330,15 +330,14 @@ def ICM(data):
 
     # Tenkan-sen (Conversion Line): (9-period high + 9-period low)/2))
     n1=9
-    #TODO: czy tu ma byc [0] czy [None] ?
-    conversion_line = [0]*n1
+    conversion_line = [0]*(n1-1)
     for i in range(n1, close_size):
         conversion_line.append((np.max(high[i-n1:i]) + np.min(low[i-n1:i]))/2)
     conversion_line = np.array(conversion_line)
 
     # Kijun-sen (Base Line): (26-period high + 26-period low)/2))
     n2=26
-    base_line = [0]*n2
+    base_line = [0]*(n2-1)
     for i in range(n2, close_size):
          base_line.append((np.max(high[i-n2:i]) + np.min(low[i-n2:i]))/2)
 
@@ -349,7 +348,7 @@ def ICM(data):
 
     # Senkou Span B (Leading Span B): (52-period high + 52-period low)/2))
     n3 = 52
-    leading_spanB = [0]*n3
+    leading_spanB = [0]*(n3-1)
     for i in range(n3, close_size):
         leading_spanB.append((np.max(high[i-n3:i]) + np.min(low[i-n3:i]))/2)
 
