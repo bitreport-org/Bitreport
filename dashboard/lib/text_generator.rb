@@ -12,7 +12,7 @@ class TextGenerator
       PRICE_ONBAND_DOWN: ['We\'re really close to the lower band.']
     },
     RSI: {
-      OSCILLATOR_OVERSOLD: ['RSI has beed low recently.', 'RSI below 30 indicates that the pair is oversold.'],
+      OSCILLATOR_OVERSOLD: ['RSI has been low recently.', 'RSI below 30 indicates that the pair is oversold.'],
       OSCILLATOR_OVERBOUGHT: ['RSI indicates overbought area.', 'RSI above 70 indicates that the pair is overbought.'],
       DIRECTION_FALLING: ['RSI is getting lower.'],
       DIRECTION_RISING: ['RSI is getting higher.'],
@@ -69,7 +69,7 @@ class TextGenerator
       CROSS_BULLISH: ['There was a bullish cross on SMA.', 'We have observed a bullish cross recently.', 'The bullish cross signals possible downtrend.', 'Fast SMA crossed up what means a bullish cross.']
     },
     EMA: {
-      CCROSS_UP_FAST: ['We\'re already above fast EMA.', 'Price has crrosed up the fast EMA recently.'],
+      CROSS_UP_FAST: ['We\'re already above fast EMA.', 'Price has crrosed up the fast EMA recently.'],
       CROSS_UP_MEDIUM: ['We\'re already above medium EMA.', 'Price has crrosed up the medium EMA recently.'],
       CROSS_UP_SLOW: ['We\'re already above slow EMA.', 'Price has crrosed up the slow EMA recently.'],
       CROSS_DOWN_SLOW: ['The price went below slow EMA.', 'Price has crrosed down the slow EMA recently.'],
@@ -101,9 +101,8 @@ class TextGenerator
 
   }.with_indifferent_access
 
-  def initialize(indicator, tokens)
-    @indicator = indicator
-    @tokens = tokens
+  def initialize(parsers)
+    @parsers = parsers
   end
 
   def to_s
