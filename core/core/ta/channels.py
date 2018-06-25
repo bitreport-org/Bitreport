@@ -83,7 +83,7 @@ def channel(data: dict, sma_type: int = 50):
     else:
         info.append('DIRECTION_HORIZONTAL')
 
-    return {'upper_band': up_channel.tolist(), 'lower_band': bottom_channel.tolist(), 'middle_band':[], 'info': info}
+    return {'upperband': up_channel.tolist(), 'lowerband': bottom_channel.tolist(), 'middleband':[], 'info': info}
     
 
 def parabola(data: dict):
@@ -113,10 +113,9 @@ def parabola(data: dict):
     upperband = parabola(x) + std
     lowerband = parabola(x) - std
 
-    return {'middle_band': [],
-            'upper_band': upperband.tolist(),
-            'lower_band': lowerband.tolist(),
-            'info': []}
+    return {'middleband': [],
+            'upperband': upperband.tolist(),
+            'lowerband': lowerband.tolist()}
             
 
 def wedge(data: dict):
@@ -239,22 +238,30 @@ def wedge(data: dict):
             if price_pos > .85 and 'SHAPE_TRIANGLE' in info:
                 info.append('ABOUT_END')
 
-        return upper_band, lower_band, width, info
+            # Parameters for channel extrapolation
+            params = {'x0': data['date'][point1],
+                       'dx': int(data['date'][1]-data['date'][0]),
+                       'upper': (a1, b1),
+                       'lower': (a2, b2)
+                       }
+
+        return upper_band, lower_band, width, info, params
 
     # Falling wedge
-    upper_band, lower_band, width, info = make_wedge('falling')
+    upper_band, lower_band, width, info, params = make_wedge('falling')
 
     # Check if wedge makes sense
     if width.size > 0  and width[0] - width[-1] < 0:
         # Rising wedge
-        upper_band, lower_band, width, info = make_wedge('raising')
+        upper_band, lower_band, width, info, params = make_wedge('raising')
         # Check if wedge makes sense
         if width.size > 0  and width[0] - width[-1] < 0:
             lower_band, upper_band = np.array([]), np.array([])
             params, info = [], []
       
 
-    return {'upper_band': upper_band.tolist(),
-            'middle_band': [],
-            'lower_band': lower_band.tolist(),
-            'info': info}
+    return {'upperband': upper_band.tolist(),
+            'middleband': [],
+            'lowerband': lower_band.tolist(),
+            'info': info,
+            'params': params}

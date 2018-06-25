@@ -44,9 +44,9 @@ def BB(data, timeperiod=20, nbdevup=2, nbdevdn=2, matype=0):
     middleband = middleband/m
     lowerband = lowerband/m
 
-    return {'upper_band' : upperband.tolist()[start:],
-            'middle_band':middleband.tolist()[start:],
-            'lower_band':lowerband.tolist()[start:],
+    return {'upperband' : upperband.tolist()[start:],
+            'middleband':middleband.tolist()[start:],
+            'lowerband':lowerband.tolist()[start:],
             'info': info}
 
 
@@ -55,8 +55,7 @@ def MACD(data, fastperiod=12, slowperiod=26, signalperiod=9 ):
     macd, signal, hist = talib.MACD(data['close'], fastperiod, slowperiod, signalperiod)
     return {'macd' : macd.tolist()[start:],
             'signal':signal.tolist()[start:],
-            'histogram':hist.tolist()[start:],
-            'info': []}
+            'hist':hist.tolist()[start:]}
 
 
 def RSI(data, timeperiod=14):
@@ -99,31 +98,31 @@ def STOCH(data, fastk_period=5, slowk_period=3, slowk_matype=0, slowd_period=3, 
     elif slowk[-1] <= 20:
         info.append('OSCILLATOR_OVERSOLD')
 
-    return {'k': slowk.tolist()[start:], 'd': slowd.tolist()[start:], 'info': info}
+    return {'slowk': slowk.tolist()[start:], 'slowd': slowd.tolist()[start:], 'info': info}
 
 
 def STOCHRSI(data, timeperiod=14, fastk_period=5, fastd_period=3, fastd_matype=0):
     start = config.MAGIC_LIMIT
     fastk, fastd = talib.STOCHRSI(data['close'], timeperiod, fastk_period, fastd_period, fastd_matype)
-    return {'k': fastk.tolist()[start:], 'd': fastd.tolist()[start:], 'info': []}
+    return {'fastk': fastk.tolist()[start:], 'fastd': fastd.tolist()[start:]}
 
 
 def MOM(data, timeperiod=10):
     start = config.MAGIC_LIMIT
     real = talib.MOM(data['close'], timeperiod)
-    return {'mom': real.tolist()[start:], 'info': []}
+    return {'mom': real.tolist()[start:]}
 
 
 def ADX(data, timeperiod=14):
     start = config.MAGIC_LIMIT
     real = talib.ADX(data['high'], data['low'], data['close'], timeperiod)
-    return {'adx': real.tolist()[start:], 'info': []}
+    return {'adx': real.tolist()[start:]}
 
 
 def AROON(data, timeperiod=14):
     start = config.MAGIC_LIMIT
     aroondown, aroonup = talib.AROON(data['high'], data['low'], timeperiod)
-    return {'down': aroondown.tolist()[start:], 'up': aroonup.tolist()[start:], 'info': []}
+    return {'down': aroondown.tolist()[start:], 'up': aroonup.tolist()[start:]}
 
 
 def SMA(data):
@@ -156,14 +155,14 @@ def SMA(data):
             elif close[i] < real[i] and close[i-1] > real[i-1]:
                 info.append('CROSS_DOWN_{}'.format(name.upper()))
 
-    dic.update(info = info)
+    dic['info'] = info
     return dic
 
 
 def OBV(data):
     start = config.MAGIC_LIMIT
     real = talib.OBV(data['close'], data['volume'])
-    return {'obv': real.tolist()[start:], 'info': []}
+    return {'obv': real.tolist()[start:]}
 
 
 def EMA(data):
@@ -196,7 +195,7 @@ def EMA(data):
             elif close[i] < real[i] and close[i-1] > real[i-1]:
                 info.append('CROSS_DOWN_{}'.format(name.upper()))
 
-    dic.update(info = info)
+    dic['info'] = info
     return dic
 
 
@@ -231,7 +230,7 @@ def ALLIGATOR(data):
         teeth.append((teeth[-1] * (N2 - 1) + close[i])/N2)
         lips.append((lips[-1] * (N3 - 1) + close[i])/N3)
 
-    return {'jaw': jaw[start:], 'teeth': teeth[start:], 'lips': lips[start:], 'info': []}
+    return {'jaw': jaw[start:], 'teeth': teeth[start:], 'lips': lips[start:]}
 
 
 ###################   Bitreport indicators   ###################
@@ -241,7 +240,7 @@ def EWO(data, fast = 5, slow = 35):
     start = config.MAGIC_LIMIT
     close = data['close']
     real = talib.EMA(close, fast) - talib.EMA(close, slow)
-    return {'ewo': real.tolist()[start:], 'info': []}
+    return {'ewo': real.tolist()[start:]}
 
 
 # Keltner channels:
@@ -259,7 +258,7 @@ def KC(data):
     upperch = mid + (2 * talib.ATR(high, low, close, 10))
     lowerch = mid - (2 * talib.ATR(high, low, close, 10))
     
-    return {'middle_band': mid.tolist()[start:], 'upper_band': upperch.tolist()[start:], 'lower_band':lowerch.tolist()[start:], 'info': []}
+    return {'middleband': mid.tolist()[start:], 'upperband': upperch.tolist()[start:], 'lowerband':lowerch.tolist()[start:]}
 
 
 # Tom Demark Sequential
@@ -362,8 +361,11 @@ def ICM(data):
     # elif width[-1] <= p2:
     #     info.append('THIN')
 
-    return {'leading_span_b': leading_spanA.tolist()[start-n2:],
-            'leading_span_b': leading_spanB.tolist()[start-n2:],
+    return {'conversion line': [],
+            'base line': [],
+            'leading span A': leading_spanA.tolist()[start-n2:],
+            'leading span B': leading_spanB.tolist()[start-n2:],
+            'lagging span': [],
             'info': info}
 
 # Ichimoku Cloud FULL:
@@ -407,9 +409,66 @@ def ICMF(data):
     lagging_span = np.array(lagging_span)
 
 
-    return {'conversion_line': conversion_line.tolist()[start:],
-            'base_line': base_line.tolist()[start:],
-            'leading_span_a': leading_spanA.tolist()[start-n2:],
-            'leading_span_a': leading_spanB.tolist()[start-n2:],
-            'lagging_span': lagging_span.tolist()[start:],
-            'info': [] }
+    return {'conversion line': conversion_line.tolist()[start:],
+            'base line': base_line.tolist()[start:],
+            'leading span A': leading_spanA.tolist()[start-n2:],
+            'leading span B': leading_spanB.tolist()[start-n2:],
+            'lagging span': lagging_span.tolist()[start:]}
+
+
+# # Correlation Oscillator
+# def CORRO(data, oscillator='RSI', period=25):
+#     start = config.MAGIC_LIMIT
+#     close = data['close']
+
+#     oscillator_values = getattr(talib, oscillator)(close)
+#     corr_list= [0]*period
+
+#     for i in range(period, close.size):
+#         corr_list.append(np.corrcoef(close[i-period:i], oscillator_values[i-period:i])[0][1])
+
+#     return {'corro': corr_list[start:]}
+
+# Phase indicator
+# def position(now=None):
+#    if now is None:
+#       now = datetime.datetime.now()
+
+#    diff = now - datetime.datetime(2001, 1, 1)
+#    days = dec(diff.days) + (dec(diff.seconds) / dec(86400))
+#    lunations = dec("0.20439731") + (days * dec("0.03386319269"))
+
+#    return lunations % dec(1)
+
+# def phase(pos):
+#    index = (pos * dec(8)) + dec("0.5")
+#    index = math.floor(index)
+#    return {
+#       0: "🌑",
+#       1: "🌒",
+#       2: "🌓",
+#       3: "🌔",
+#       4: "🌕",
+#       5: "🌖",
+#       6: "🌗",
+#       7: "🌘"
+#    }[int(index) & 7]
+
+# def what_phase(timestamp):
+#    t = datetime.datetime.fromtimestamp(int(timestamp))
+#    pos = position(t)
+#    phasename = phase(pos)
+
+#    roundedpos = round(float(pos), 3)
+#    return (phasename, roundedpos)
+
+# def MOON(data):
+#     start = config.MAGIC_LIMIT
+#     dates = data['date']
+#     phase_list = []
+
+#     for moment in dates:
+#         p = what_phase(moment)
+#         phase_list.append(p[0])
+
+#     return {'labels': phase_list[start:], 'timestamps': dates[start:]}
