@@ -145,15 +145,16 @@ def wedge(data: dict):
         point1 = f0(close, timeperiod=close_size)[-1]
     
         end = close_size-5
+        threshold = 10
         if point1 < close_size - 30:
             # Band 1
-            a_values = np.divide(np.array(close[point1+2 : end+1]) - close[point1], np.arange(point1+2, end+1) - point1)
+            a_values = np.divide(np.array(close[point1 + threshold : end+1]) - close[point1], np.arange(point1 + threshold, end+1) - point1)
             a1 = f1(a_values)
             b1 = close[point1] - a1 * point1
 
             # End point
             point2, = np.where(a_values == a1)[0]
-            point2 = ( point1 + 2 ) + point2 
+            point2 = ( point1 + threshold ) + point2 
 
             # Mid point
             point3 = point1 + f2(close[point1 : point2], timeperiod=len(close[point1: point2]))[-1]
@@ -166,12 +167,12 @@ def wedge(data: dict):
                 point3 = earlier_point3
                 point3_value = dt[point3]
 
-                a_values = np.divide(np.array(dt[point3+1 : end+1]) - point3_value, np.arange(point3+1, end+1) - point3)
+                a_values = np.divide(np.array(dt[point3+5 : end+1]) - point3_value, np.arange(point3+5, end+1) - point3)
                 a2 = f3(a_values)
                 b2 = dt[point3] - a2 * point3
 
             else:
-                a_values = np.divide(np.array(close[point3+1 : end+1]) - point3_value, np.arange(point3+1, end+1) - point3)
+                a_values = np.divide(np.array(close[point3+5 : end+1]) - point3_value, np.arange(point3+5, end+1) - point3)
                 a2 = f3(a_values)
                 b2 = close[point3] - a2 * point3
 
