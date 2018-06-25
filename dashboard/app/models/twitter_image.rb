@@ -30,12 +30,11 @@ class TwitterImage < ApplicationRecord
 
   def generate_image(save = true)
     body = fetch_data
-    @price = body['candles']['close'].last
-    @change = body['candles']['close'].last - body['candles']['open'].first
+    @price = body['indicators']['price']['close'].last
+    @change = body['indicators']['price']['close'].last - body['indicators']['price']['open'].first
     Plotter.new(body['dates'],
-                body['candles'],
-                body['indicators'].slice(*indicators),
-                body['levels'].values.flatten.uniq & (levels&.map(&:to_f) || [])).plot(save)
+                body['indicators'].slice(*(%w(price volume) + indicators)),
+                body['indicators']['levels'].values.flatten.uniq & (levels&.map(&:to_f) || [])).plot(save)
   end
 
   def save_image
