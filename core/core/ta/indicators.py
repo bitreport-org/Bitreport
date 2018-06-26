@@ -42,9 +42,9 @@ def BB(data, timeperiod=20):
     middleband = middleband/m
     lowerband = lowerband/m
 
-    return {'upperband' : upperband.tolist()[start:],
-            'middleband':middleband.tolist()[start:],
-            'lowerband':lowerband.tolist()[start:],
+    return {'upper_band' : upperband.tolist()[start:],
+            'middle_band':middleband.tolist()[start:],
+            'lower_band':lowerband.tolist()[start:],
             'info': info}
 
 
@@ -53,7 +53,8 @@ def MACD(data, fastperiod=12, slowperiod=26, signalperiod=9 ):
     macd, signal, hist = talib.MACD(data['close'], fastperiod, slowperiod, signalperiod)
     return {'macd' : macd.tolist()[start:],
             'signal':signal.tolist()[start:],
-            'hist':hist.tolist()[start:]}
+            'histogram':hist.tolist()[start:],
+            'info': []}
 
 
 def RSI(data, timeperiod=14):
@@ -102,31 +103,31 @@ def STOCH(data, fastk_period=14, slowk_period=14, slowk_matype=3, slowd_period=1
     elif slowk[-1] <= 20:
         info.append('OSCILLATOR_OVERSOLD')
 
-    return {'slowk': slowk.tolist()[start:], 'slowd': slowd.tolist()[start:], 'info': info}
+    return {'k': slowk.tolist()[start:], 'd': slowd.tolist()[start:], 'info': info}
 
 
 def STOCHRSI(data, timeperiod=14, fastk_period=14, fastd_period=14, fastd_matype=3):
     start = config.MAGIC_LIMIT
     fastk, fastd = talib.STOCHRSI(data['close'], timeperiod, fastk_period, fastd_period, fastd_matype)
-    return {'fastk': fastk.tolist()[start:], 'fastd': fastd.tolist()[start:]}
+    return {'k': fastk.tolist()[start:], 'd': fastd.tolist()[start:], 'info': []}
 
 
 def MOM(data, timeperiod=10):
     start = config.MAGIC_LIMIT
     real = talib.MOM(data['close'], timeperiod)
-    return {'mom': real.tolist()[start:]}
+    return {'mom': real.tolist()[start:], 'info': []}
 
 
 def ADX(data, timeperiod=14):
     start = config.MAGIC_LIMIT
     real = talib.ADX(data['high'], data['low'], data['close'], timeperiod)
-    return {'adx': real.tolist()[start:]}
+    return {'adx': real.tolist()[start:], 'info': []}
 
 
 def AROON(data, timeperiod=14):
     start = config.MAGIC_LIMIT
     aroondown, aroonup = talib.AROON(data['high'], data['low'], timeperiod)
-    return {'down': aroondown.tolist()[start:], 'up': aroonup.tolist()[start:]}
+    return {'down': aroondown.tolist()[start:], 'up': aroonup.tolist()[start:], 'info': []}
 
 
 def SMA(data):
@@ -160,14 +161,14 @@ def SMA(data):
             elif close[i] < real[i] and close[i-1] > real[i-1]:
                 info.append('CROSS_DOWN_{}'.format(name.upper()))
 
-    dic['info'] = info
+    dic.update(info = info)
     return dic
 
 
 def OBV(data):
     start = config.MAGIC_LIMIT
     real = talib.OBV(data['close'], data['volume'])
-    return {'obv': real.tolist()[start:]}
+    return {'obv': real.tolist()[start:], 'info': []}
 
 
 def EMA(data):
@@ -201,7 +202,7 @@ def EMA(data):
             elif close[i] < real[i] and close[i-1] > real[i-1]:
                 info.append('CROSS_DOWN_{}'.format(name.upper()))
 
-    dic['info'] = info
+    dic.update(info = info)
     return dic
 
 
@@ -239,7 +240,7 @@ def ALLIGATOR(data):
         teeth.append((teeth[-1] * (N2 - 1) + close[i])/N2)
         lips.append((lips[-1] * (N3 - 1) + close[i])/N3)
 
-    return {'jaw': jaw[start:], 'teeth': teeth[start:], 'lips': lips[start:]}
+    return {'jaw': jaw[start:], 'teeth': teeth[start:], 'lips': lips[start:], 'info': []}
 
 ###################   Bitreport indicators   ###################
 
@@ -248,7 +249,7 @@ def EWO(data, fast = 5, slow = 35):
     start = config.MAGIC_LIMIT
     close = data['close']
     real = talib.EMA(close, fast) - talib.EMA(close, slow)
-    return {'ewo': real.tolist()[start:]}
+    return {'ewo': real.tolist()[start:], 'info': []}
 
 # Keltner channels:
 def KC(data):
@@ -269,7 +270,6 @@ def KC(data):
             'upper_band': upperch.tolist()[start:], 
             'lower_band':lowerch.tolist()[start:], 
             'info': []}
-
 
 # Tom Demark Sequential
 def TDS(data):
@@ -387,5 +387,3 @@ def ICM(data):
             'leading_span_b': leading_spanB.tolist(),
             'base_line': base_line.tolist()[start:],
             'info': info}
-
-
