@@ -108,7 +108,8 @@ def STOCH(data, fastk_period=14, slowk_period=14, slowk_matype=3, slowd_period=1
 
 def STOCHRSI(data, timeperiod=14, fastk_period=14, fastd_period=14, fastd_matype=3):
     start = config.MAGIC_LIMIT
-    fastk, fastd = talib.STOCHRSI(data['close'], timeperiod, fastk_period, fastd_period, fastd_matype)
+    m = 10000000
+    fastk, fastd = talib.STOCHRSI(m*data['close'], timeperiod, fastk_period, fastd_period, fastd_matype)
     return {'k': fastk.tolist()[start:], 'd': fastd.tolist()[start:], 'info': []}
 
 
