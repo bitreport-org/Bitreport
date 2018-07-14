@@ -23,7 +23,7 @@ RUN apt-get update -qq && \
         libglib2.0-dev \
         liborc-0.4-dev \
         libpng-dev \
-        libpangoft2-1.0-0 \
+        libpango1.0-dev \
         automake \
         libtool \
         swig \

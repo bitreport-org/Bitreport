@@ -46,7 +46,7 @@ module Admin
 
       if @twitter_image.valid?
         img = @twitter_image.preview_image
-        send_data(img.read, disposition: 'inline', type: 'image/png')
+        send_data(img, disposition: 'inline', type: 'image/png')
       else
         Rails.logger.debug("Image generation error: #{@twitter_image.errors.full_messages}")
         send_data('', disposition: 'inline', type: 'image/png')
