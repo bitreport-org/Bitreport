@@ -15,7 +15,8 @@ class TwitterImage < ApplicationRecord
   before_create :save_image
 
   def preview_image
-    generate_image(false)
+    plotter = generate_image(true)
+    OverlayGenerator.new(plotter.output).generate
   end
 
   def raw_data
@@ -44,6 +45,7 @@ class TwitterImage < ApplicationRecord
 
   def fetch_data
     Rails.logger.debug("Requesting: #{data_url}")
+    # TODO: Fetch API prices if not updated for a long time
     Rails.cache.fetch(data_url, expires_in: 10.minutes) do
       Rails.logger.debug("Fetching: #{data_url}")
       response = HTTParty.get(data_url)

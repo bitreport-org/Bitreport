@@ -52,10 +52,8 @@ gem 'config'
 
 # File Attachment toolkit for Ruby applications
 gem 'shrine'
-# Shrine Dependencies
-gem 'fastimage'
+# High-level image processing helper methods with libvips and ImageMagick/GraphicsMagick
 gem 'image_processing'
-gem 'mini_magick'
 
 # The ruby gnuplot gem
 gem 'gnuplot'

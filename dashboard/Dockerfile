@@ -9,11 +9,40 @@ RUN apt-get update -qq && \
         build-essential \
         curl \
         gnuplot \
-        graphicsmagick \
         libcairo2-dev \
         libpq-dev \
         nano \
-        nodejs
+        nodejs \
+        libxml2-dev \
+        libfftw3-dev \
+        libmagickwand-dev \
+        libopenexr-dev \
+        liborc-0.4-0 \
+        gobject-introspection \
+        libgsf-1-dev \
+        libglib2.0-dev \
+        liborc-0.4-dev \
+        libpng-dev \
+        libpangoft2-1.0-0 \
+        automake \
+        libtool \
+        swig \
+        gtk-doc-tools
+
+RUN git clone https://github.com/jcupitt/libvips.git && \
+    cd libvips && \
+    ./autogen.sh && \
+    make && \
+    make install && \
+    echo "export VIPSHOME=/usr/local; \
+         export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$VIPSHOME/lib; \
+         export PATH=$PATH:$VIPSHOME/bin; \
+         export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$VIPSHOME/lib/pkgconfig; \
+         export MANPATH=$MANPATH:$VIPSHOME/man; \
+         export PYTHONPATH=$VIPSHOME/lib/python2.7/site-packages;" > ~/.bashrc && \
+     cd ~ && \
+     rm -rf libvips && \
+     ldconfig
 
 WORKDIR /usr/src/app
 

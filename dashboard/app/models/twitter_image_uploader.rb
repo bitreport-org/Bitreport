@@ -1,4 +1,4 @@
-require 'image_processing/mini_magick'
+require 'image_processing/vips'
 
 class TwitterImageUploader < Shrine
   plugin :pretty_location, namespace: '/'
@@ -11,7 +11,7 @@ class TwitterImageUploader < Shrine
   process(:store) do |io|
     original = io.download
 
-    thumbnail = ImageProcessing::MiniMagick.source(original).resize_to_limit!(300, 300)
+    thumbnail = ImageProcessing::Vips.source(original).resize_to_limit!(300, 300)
 
     { original: io, thumbnail: thumbnail }
   end
