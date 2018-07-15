@@ -66,6 +66,9 @@ gem 'webpush'
 # Use Service Worker with the Rails asset pipeline
 gem 'serviceworker-rails'
 
+# A Ruby interface to the Twitter API. http://www.rubydoc.info/gems/twitter
+gem 'twitter'
+
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug', platform: :mri
