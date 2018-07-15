@@ -36,9 +36,9 @@ class Plotter
     @data = []
   end
 
-  def plot(save = true)
+  def plot
     out = []
-    out << terminal(save)
+    out << terminal
     out << upper_preamble
     out << draw_levels
     prepare_volume
@@ -55,23 +55,14 @@ class Plotter
     io = IO.popen('gnuplot -persist', 'w+')
     io << out.join("\n")
     io.close_write
-    if save
-      Rails.logger.info io.read
-      self
-    else
-      io.read
-    end
-  end
-
-  def output
-    File.join(Rails.root, 'tmp', filename)
+    io.read
   end
 
   private
 
-  def terminal(save)
+  def terminal
     out = ["set terminal pngcairo truecolor font 'PT Sans,15' size 1570,890 background rgb '##{BLACK}'"]
-    out << (save ? "set output '#{output}'" : 'unset output')
+    out << 'unset output'
     out
   end
 

@@ -12,11 +12,14 @@ class TwitterImage < ApplicationRecord
   validates :timeframe, presence: true, inclusion: { in: TIMEFRAMES }
   validates :limit, numericality: true, inclusion: { in: 20..200 }
 
-  before_create :save_image
-
   def preview_image
-    plotter = generate_image(true)
-    OverlayGenerator.new(self, plotter.output).generate
+    @preview_image ||= OverlayGenerator.new(self, plot).generate
+  end
+
+  def image_file
+    image = Tempfile.new(%w(plot .png), encoding: 'ascii-8bit')
+    image.write(preview_image)
+    image
   end
 
   def raw_data
@@ -29,18 +32,13 @@ class TwitterImage < ApplicationRecord
     "http://core/#{symbol}?timeframe=#{timeframe}&limit=#{limit}"
   end
 
-  def generate_image(save = true)
+  def plot
     body = fetch_data
     @price = body['indicators']['price']['close'].last
     @change = body['indicators']['price']['close'].last - body['indicators']['price']['open'].first
     Plotter.new(body['dates'],
                 body['indicators'].slice(*(%w(price volume) + indicators)),
-                body['indicators']['levels'].values.flatten.uniq & (levels&.map(&:to_f) || [])).plot(save)
-  end
-
-  def save_image
-    plotter = generate_image(true)
-    self.image = File.open(plotter.output)
+                body['indicators']['levels'].values.flatten.uniq & (levels&.map(&:to_f) || [])).plot
   end
 
   def fetch_data

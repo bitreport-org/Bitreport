@@ -23,8 +23,11 @@ module Admin
     end
 
     def update
-      if @twitter_image.update(twitter_image_params)
-        redirect_to @twitter_image, notice: 'Twitter image was successfully created.'
+      @twitter_image.assign_attributes(twitter_image_params)
+      @twitter_image.image = @twitter_image.image_file
+
+      if @twitter_image.save
+        redirect_to @twitter_image.image_url(:original)
       else
         render :edit
       end
@@ -45,8 +48,7 @@ module Admin
       @twitter_image.assign_attributes(twitter_image_params)
 
       if @twitter_image.valid?
-        img = @twitter_image.preview_image
-        send_data(img, disposition: 'inline', type: 'image/png')
+        send_data(@twitter_image.preview_image, disposition: 'inline', type: 'image/png')
       else
         Rails.logger.debug("Image generation error: #{@twitter_image.errors.full_messages}")
         send_data('', disposition: 'inline', type: 'image/png')

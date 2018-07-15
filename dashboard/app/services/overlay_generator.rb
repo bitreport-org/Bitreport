@@ -3,7 +3,7 @@ require 'image_processing/vips'
 class OverlayGenerator
   def initialize(twitter_image, plot_image)
     @twitter_image = twitter_image
-    @plot_image = Vips::Image.new_from_file(plot_image, access: :sequential)
+    @plot_image = Vips::Image.new_from_buffer(plot_image, '', access: :sequential)
   end
 
   def generate
