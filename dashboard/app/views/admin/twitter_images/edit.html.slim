@@ -5,8 +5,7 @@
 
   .ui.segment
     h4.ui.dividing.header Preview
-    canvas#preview.ui.image width='2048' height='1024'
-      = image_tag 'template.png', id: 'background'
+    = image_tag 'template.png', id: 'preview', class: 'ui image'
 
   .ui.basic.segment
     .ui.disabled.labeled.icon.button

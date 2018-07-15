@@ -16,7 +16,7 @@ class TwitterImage < ApplicationRecord
 
   def preview_image
     plotter = generate_image(true)
-    OverlayGenerator.new(plotter.output).generate
+    OverlayGenerator.new(self, plotter.output).generate
   end
 
   def raw_data
