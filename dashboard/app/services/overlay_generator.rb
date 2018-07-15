@@ -25,7 +25,7 @@ class OverlayGenerator
   end
 
   def timestamp
-    timestamp = Vips::Image.text(report_date.strftime("%Y-%m-%d %H:%M UTC"), font: 'PT Sans Bold 32', align: :centre)
+    timestamp = Vips::Image.text(@twitter_image.timestamp, font: 'PT Sans Bold 32', align: :centre)
     timestamp.embed(1810 - timestamp.width / 2, 200 - timestamp.height, 2048, 1024)
   end
 
@@ -54,9 +54,5 @@ class OverlayGenerator
       base = base.insert(comment, 1610, offset)
     end
     base
-  end
-
-  def report_date
-    @twitter_image.created_at || Time.zone.now
   end
 end

@@ -22,6 +22,10 @@ class TwitterImage < ApplicationRecord
     image
   end
 
+  def timestamp
+    (created_at || Time.zone.now).strftime("%Y-%m-%d %H:%M UTC")
+  end
+
   def raw_data
     fetch_data
   end

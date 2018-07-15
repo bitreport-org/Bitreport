@@ -1,13 +1,7 @@
-.ui.padded.basic.segment
-  h1 New twitter_image
+h1 New twitter_image
 
-  == render 'chart_form'
+== render 'chart_form'
 
-  .ui.segment
-    h4.ui.dividing.header Preview
-    = image_tag 'template.png', id: 'preview', class: 'ui image'
-
-  .ui.basic.segment
-    .ui.disabled.labeled.icon.button
-      i.arrow.left.icon
-      | Back
+.ui.segment
+  h4.ui.dividing.header Preview
+  = image_tag 'template.png', id: 'preview', class: 'ui image'

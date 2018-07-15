@@ -2,7 +2,7 @@
 
 module Admin
   class TwitterImagesController < AdminController
-    before_action :set_twitter_image, only: %i[edit update preview destroy]
+    before_action :set_twitter_image, only: %i[show edit update preview destroy]
 
     def index
       redirect_to new_twitter_image_path
@@ -10,6 +10,9 @@ module Admin
 
     def new
       @twitter_image = TwitterImage.new
+    end
+
+    def show
     end
 
     def create
@@ -27,7 +30,7 @@ module Admin
       @twitter_image.image = @twitter_image.image_file
 
       if @twitter_image.save
-        redirect_to @twitter_image.image_url(:original)
+        redirect_to @twitter_image
       else
         render :edit
       end

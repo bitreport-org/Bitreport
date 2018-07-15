@@ -1,12 +1,16 @@
-h1 = "#{@twitter_image.timeframe}#{@twitter_image.symbol}#{@twitter_image.limit}"
+h1= "#{@twitter_image.symbol} #{@twitter_image.timeframe} #{@twitter_image.timestamp}"
 
-p#notice = notice
+= form_for @twitter_image, html: {class: 'ui form'} do |f|
+  .ui.segment
+    h4.ui.dividing.header Actions
+    = link_to @twitter_image.image_url(:original), download: "#{@twitter_image.symbol} #{@twitter_image.timeframe} #{@twitter_image.timestamp}.png" do
+      .ui.green.right.labeled.icon.button
+        i.download.icon
+        | Download Image
+    = f.button :submit, class: 'ui blue right labeled icon disabled button' do
+      i.twitter.icon
+      | Publish
 
-= image_tag @twitter_image.image[:original].url, class: 'ui image'
-
-p Patterns
-p = @twitter_image.patterns
-p Indicators
-p = @twitter_image.indicators
-
-= link_to 'Back', twitter_images_path
+.ui.segment
+  h4.ui.dividing.header Image
+  = image_tag @twitter_image.image_url(:original), class: 'ui image'

@@ -7,8 +7,8 @@ setDownloadUrl = (url) ->
 fetchImage = ->
   if $('body').hasClass('new')
     fetchNewImage()
-  else
-     fetchExistingImage()
+  else if $('body').hasClass('edit')
+    fetchExistingImage()
 
 fetchNewImage = ->
   oldUrl = $('img#preview').attr('src')

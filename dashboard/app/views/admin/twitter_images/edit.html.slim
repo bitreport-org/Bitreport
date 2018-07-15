@@ -1,16 +1,10 @@
-.ui.padded.basic.segment
-  h1 Edit twitter_image
+h1 Edit twitter_image
 
-  == render 'comments_form'
+== render 'comments_form'
 
-  .ui.segment
-    h4.ui.dividing.header Preview
-    = image_tag 'template.png', id: 'preview', class: 'ui image'
-
-  .ui.basic.segment
-    .ui.disabled.labeled.icon.button
-      i.arrow.left.icon
-      | Back
+.ui.segment
+  h4.ui.dividing.header Preview
+  = image_tag 'template.png', id: 'preview', class: 'ui image'
 
 javascript:
   window.image_id = "#{@twitter_image.id}";
