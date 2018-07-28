@@ -45,7 +45,7 @@ class OverlayGenerator
         offset += 40
       end
     end
-    if @twitter_image.comment
+    if @twitter_image.comment.present?
       offset += 40
       comment_header = Vips::Image.text('Comment', font: 'PT Sans Bold 22')
       base = base.insert(comment_header, 1610, offset)

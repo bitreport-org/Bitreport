@@ -36,7 +36,7 @@ module Admin
     private
 
     def pair_params
-      params.require(:pair).permit(:symbol, :name, :exchange)
+      params.require(:pair).permit(:symbol, :name, :tags, :exchange)
     end
   end
 end

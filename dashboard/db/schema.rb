@@ -10,16 +10,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2018_05_20_174952) do
+ActiveRecord::Schema.define(version: 2018_07_28_213656) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
   create_table "pairs", force: :cascade do |t|
-    t.string "symbol"
+    t.string "symbol", null: false
     t.string "name"
     t.string "exchange"
     t.datetime "last_updated_at"
+    t.string "tags", null: false, array: true
+    t.index ["symbol"], name: "index_pairs_on_symbol"
   end
 
   create_table "push_devices", force: :cascade do |t|
@@ -42,6 +44,9 @@ ActiveRecord::Schema.define(version: 2018_05_20_174952) do
     t.text "image_data"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "pair_id"
+    t.datetime "published_at"
+    t.index ["pair_id"], name: "index_twitter_images_on_pair_id"
   end
 
   create_table "wallets", force: :cascade do |t|

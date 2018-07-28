@@ -1,5 +1,5 @@
 class TwitterImage < ApplicationRecord
-  TIMEFRAMES = %w[30m 1h 2h 3h 6h 12h 24h 168h].freeze
+  TIMEFRAMES = %w[1h 2h 3h 6h 12h 24h].freeze
   attr_reader :price, :change
 
   include TwitterImageUploader[:image]
@@ -7,6 +7,8 @@ class TwitterImage < ApplicationRecord
   def self.available_pairs
     Pair.order(name: :asc).map { |pair| ["#{pair.name} (#{pair.symbol})", pair.symbol] }.to_h
   end
+
+  belongs_to :pair
 
   validates :symbol, presence: true, inclusion: { in: -> (_) { Pair.pluck(:symbol) } }
   validates :timeframe, presence: true, inclusion: { in: TIMEFRAMES }
@@ -22,8 +24,13 @@ class TwitterImage < ApplicationRecord
     image
   end
 
+  def symbol=(val)
+    self.pair = Pair.find_by(symbol: val)
+    super
+  end
+
   def timestamp
-    (created_at || Time.zone.now).strftime("%Y-%m-%d %H:%M UTC")
+    pair.last_updated_at.strftime("%Y-%m-%d %H:%M UTC")
   end
 
   def raw_data
@@ -50,6 +57,10 @@ class TwitterImage < ApplicationRecord
     # TODO: Fetch API prices if not updated for a long time
     Rails.cache.fetch(data_url, expires_in: 10.minutes) do
       Rails.logger.debug("Fetching: #{data_url}")
+      if pair.last_updated_at < timeframe.tr('h', '').to_i.hours.ago
+        Rails.logger.debug("Requesting fill for: #{symbol}")
+        pair.request_data_fill
+      end
       response = HTTParty.get(data_url)
       JSON.parse(response.body)
     end

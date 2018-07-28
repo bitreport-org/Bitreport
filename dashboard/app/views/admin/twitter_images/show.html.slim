@@ -7,9 +7,10 @@ h1= "#{@twitter_image.symbol} #{@twitter_image.timeframe} #{@twitter_image.times
       .ui.green.right.labeled.icon.button
         i.download.icon
         | Download Image
-    = f.button :submit, class: 'ui blue right labeled icon disabled button' do
-      i.twitter.icon
-      | Publish
+    = link_to publish_twitter_image_url(@twitter_image), method: :post, confirm: 'This will automatically post to Twitter. Are you sure?' do
+      div class=['ui', 'blue', 'right', 'labeled', 'icon', 'button', (@twitter_image.published_at ? 'disabled' : '')].join(' ')
+        i.twitter.icon
+        | Publish
 
 .ui.segment
   h4.ui.dividing.header Image

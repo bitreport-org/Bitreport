@@ -7,6 +7,7 @@ Rails.application.routes.draw do
     get :twitter_image_preview, to: 'twitter_images#preview'
     get 'twitter_image_preview/:id', to: 'twitter_images#preview'
     put 'pairs/:id/fill', to: 'pairs#fill', as: 'fill_pair'
+    post 'twitter_images/:id/publish', to: 'twitter_images#publish', as: 'publish_twitter_image'
   end
 
   namespace :api, constraints: { ip: /127\.0\.0\.1/ } do
