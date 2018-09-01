@@ -46,11 +46,6 @@ RUN git clone https://github.com/jcupitt/libvips.git && \
 
 WORKDIR /usr/src/app
 
-COPY Gemfile Gemfile
-COPY Gemfile.lock Gemfile.lock
-
-RUN bundle install
-
 COPY . .
 
 RUN npm install
@@ -60,5 +55,9 @@ RUN cd /usr/share/fonts && \
     cp -R /usr/src/app/vendor/assets/fonts/ googlefonts && \
     chmod -R --reference=truetype googlefonts && \
     fc-cache -fv
+
+COPY ./development-entrypoint.sh /
+RUN chmod +x /development-entrypoint.sh
+ENTRYPOINT ["/development-entrypoint.sh"]
 
 EXPOSE 3000
