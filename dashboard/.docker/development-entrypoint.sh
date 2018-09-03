@@ -35,6 +35,6 @@ if [[ "$1" = "bundle" ]]
 then
   exec "$@"
 else
-  echo "Starting Rails. It should be ready in a few seconds"
+  echo "Starting $1. It should be ready in a few seconds"
   exec bundle exec "$@"
 fi

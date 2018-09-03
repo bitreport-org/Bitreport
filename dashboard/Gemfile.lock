@@ -1,3 +1,10 @@
+GIT
+  remote: https://github.com/doabit/semantic-ui-sass.git
+  revision: b16900532fd95aabd41fbffcfae3ea5bdb683180
+  specs:
+    semantic-ui-sass (2.3.3.0)
+      sass (>= 3.2)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -370,6 +377,7 @@ DEPENDENCIES
   rubocop
   ruby-debug-ide
   sass-rails
+  semantic-ui-sass!
   serviceworker-rails
   shrine
   sidekiq
@@ -385,5 +393,8 @@ DEPENDENCIES
   web-console
   webpush
 
+RUBY VERSION
+   ruby 2.5.1p57
+
 BUNDLED WITH
-   1.16.2
+   1.16.4

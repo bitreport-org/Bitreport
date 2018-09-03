@@ -1,20 +1,32 @@
 version: '3'
 
 volumes:
-  app-gems:
+  certs:
+  certs-data:
+  dashboard-public:
   influx-data:
   postgres-data:
   redis-data:
 
 services:
+  web:
+    build: ./web
+    depends_on:
+      - dashboard
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - certs:/etc/letsencrypt
+      - certs-data:/data/letsencrypt
+      - dashboard-public:/usr/src/app/public
+
   core:
     build: ./core
     depends_on:
       - influx
     ports:
       - 5001:80
-    volumes:
-      - ./core:/app
 
   influx:
     environment:
@@ -30,17 +42,14 @@ services:
   dashboard:
     build:
       context: ./dashboard
-      dockerfile: .docker/Dockerfile
-    command: rails s -p 3000 -b 0.0.0.0
+      dockerfile: .docker/production.Dockerfile
+    env_file: dashboard/.docker/production.env
     depends_on:
       - postgres
       - redis
       - core
-    ports:
-      - 3000:3000
     volumes:
-      - ./dashboard:/usr/src/app
-      - app-gems:/usr/local/bundle
+      - dashboard-public:/usr/src/app/public
 
   postgres:
     image: postgres:10.4-alpine
@@ -52,15 +61,3 @@ services:
     image: redis:4.0.11-alpine
     volumes:
       - redis-data:/data
-
-  sidekiq:
-    build:
-      context: ./dashboard
-      dockerfile: .docker/Dockerfile
-    command: sidekiq -C config/sidekiq.yml.erb
-    depends_on:
-      - postgres
-      - redis
-    volumes:
-      - ./dashboard:/usr/src/app
-      - app-gems:/usr/local/bundle
