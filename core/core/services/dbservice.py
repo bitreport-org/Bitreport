@@ -405,3 +405,56 @@ def pair_fill(app, pair, exchange, force):
 
     else:
         return 'Pair not filled.', 500
+
+
+def check_exchange(pair: str):
+    history = []
+    #Bitfinex
+    url = 'https://api.bitfinex.com/v2/candles/trade:{}:t{}/hist?limit={}'.format('1D', pair, 1000)
+    request = requests.get(url)
+    response = request.json()
+    if isinstance(response, list) and response[0] != 'error':
+        history.append(('bitfinex', len(response)))
+
+    # bitrex
+    end_pair = pair[-3:]
+    start_pair = pair[:-3]
+    if end_pair == 'USD':
+        end_pair = end_pair + 'T'
+    req_pair = end_pair + '-' + start_pair
+    url = 'https://bittrex.com/Api/v2.0/pub/market/GetTicks?marketName={}&tickInterval=24h'.format(req_pair)
+    request = requests.get(url)
+    response = request.json()
+    if response.get('success', False):
+        candle_list = response.get('result', None)
+        if candle_list:
+            history.append(('bittrex', len(candle_list)))
+
+    
+    # binance
+    end_pair = pair[-3:]
+    start_pair = pair[:-3]
+    if end_pair == 'USD':
+        end_pair = end_pair + 'T'
+    req_pair = start_pair + end_pair
+    url = 'https://api.binance.com/api/v1/klines?symbol={}&interval={}&limit={}'.format(req_pair, '1d', 500)
+    request = requests.get(url)
+    response = request.json()
+    if isinstance(response,list):
+        history.append(('binance', len(response)))
+    
+    # poloniex
+    end_pair = pair[-3:]
+    start_pair = pair[:-3]
+    if end_pair == 'USD':
+        end_pair = end_pair + 'T'
+    req_pair = end_pair + '_' + start_pair
+    url = 'https://poloniex.com/public?command=returnChartData&currencyPair={}&start=339361693&end=9999999999&period=86400'.format(req_pair)
+    request = requests.get(url)
+    response = request.json()
+    if isinstance(response, list):
+         history.append(('poloniex', len(response)))
+    
+    history.sort(key=lambda x: x[1])
+
+    return history[-1][0]

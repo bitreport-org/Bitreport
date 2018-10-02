@@ -55,6 +55,15 @@ def data_service(pair: str):
         return 404
 
 
+@app.route('/exchange', methods=['GET'])
+def exchange_service():
+    if request.method == 'GET':
+        pair = request.args.get('pair', default='BTCUSD', type=str)
+        exchange = dbservice.check_exchange(pair)
+        return jsonify(exchange)
+    else:
+        return 404
+
 @app.route('/events', methods=['GET'])
 def event_service():
     if request.method == 'GET':
