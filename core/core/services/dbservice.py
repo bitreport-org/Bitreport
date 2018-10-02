@@ -413,7 +413,7 @@ def check_exchange(pair: str):
     url = 'https://api.bitfinex.com/v2/candles/trade:{}:t{}/hist?limit={}'.format('1D', pair, 1000)
     request = requests.get(url)
     response = request.json()
-    if isinstance(response, list) and response[0] != 'error':
+    if isinstance(response, list) and response != []:
         history.append(('bitfinex', len(response)))
 
     # bitrex
@@ -457,4 +457,7 @@ def check_exchange(pair: str):
     
     history.sort(key=lambda x: x[1])
 
-    return history[-1][0]
+    if len(history) > 0:
+        return history[-1][0]
+    else:
+        None
