@@ -19,10 +19,9 @@ module Admin
 
     def create
       @twitter_response = TwitterResponse.new(twitter_response_params)
-      tag = @twitter_response.cashtag
 
-      @twitter_image = TwitterImage.new(symbol: tag + 'USD',
-                                        timeframe: @twitter_response.timeframe || TwitterImage::TIMEFRAMES.sample,
+      @twitter_image = TwitterImage.new(symbol: @twitter_response.cashtag,
+                                        timeframe: @twitter_response.timeframe.present? ? @twitter_response.timeframe : TwitterImage::TIMEFRAMES.sample,
                                         limit: 100 + rand(100),
                                         indicators: [%w(RSI MACD).sample, [%w(SMA wedge), %w(BB wedge), %w(BB levels), %w(ICM levels)].sample].flatten)
 

@@ -11,19 +11,23 @@ class TwitterResponse < ApplicationRecord
   end
 
   def cashtag=(val)
-    return unless val.present?
-    if(val.length > 3 && %w(btc usd).include?(val[-3..-1]))
-      super(val)
-    else
-      super(val + 'USD')
-    end
+    @cashtag = parsed_tag(val)
   end
 
   def cashtag
-    @cashtag ||= fetch_cashtags.first
+    @cashtag ||= parsed_tag(fetch_cashtags.first)
   end
 
   private
+
+  def parsed_tag(val)
+    return unless val.present?
+    if(val.length > 3 && %w(btc usd).include?(val[-3..-1]))
+      val.upcase
+    else
+      val.upcase + 'USD'
+    end
+  end
 
   def fetch_cashtags
     return [] unless in_reply_to
