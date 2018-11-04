@@ -34,7 +34,7 @@ class TwitterImage < ApplicationRecord
   end
 
   def raw_data
-    fetch_data
+    @raw_data ||= fetch_data
   end
 
   private

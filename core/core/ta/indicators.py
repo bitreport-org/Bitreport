@@ -380,9 +380,9 @@ def ICM(data):
     p1 = np.percentile(width, .80)
     p2 = np.percentile(width, .25)
     if width[-margin] >= p1:
-        info.append('WIDE')
+        info.append('CLOUD_WIDE')
     elif width[-margin] <= p2:
-        info.append('THIN')
+        info.append('CLOUD_THIN')
 
     return {'leading_span_a': leading_spanA.tolist(),
             'leading_span_b': leading_spanB.tolist(),

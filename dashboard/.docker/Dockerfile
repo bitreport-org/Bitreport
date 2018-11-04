@@ -1,4 +1,4 @@
-FROM ruby:2.5.1
+FROM ruby:2.5.3
 
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
@@ -32,13 +32,13 @@ RUN apt-get update -qq && \
     apt-get autoremove -y && \
     apt-get clean -y
 
-RUN curl -s -L https://github.com/jcupitt/libvips/releases/download/v8.6.5/vips-8.6.5.tar.gz | tar -xz && \
-    cd vips-8.6.5 && \
+RUN curl -s -L https://github.com/libvips/libvips/releases/download/v8.7.0/vips-8.7.0.tar.gz | tar -xz && \
+    cd vips-8.7.0 && \
     ./configure && \
     make && \
     make install && \
     cd ~ && \
-    rm -rf vips-8.6.5
+    rm -rf vips-8.7.0
 
 WORKDIR /usr/src/app
 

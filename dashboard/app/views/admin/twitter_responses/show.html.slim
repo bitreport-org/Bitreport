@@ -15,3 +15,5 @@ h1= "#{@twitter_image.symbol} #{@twitter_image.timeframe} #{@twitter_image.times
 .ui.segment
   h4.ui.dividing.header Image
   = image_tag @twitter_image.image_url(:original), class: 'ui image'
+  h4.ui.dividing.header In reply to
+  = @twitter_response.in_reply_to
