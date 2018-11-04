@@ -142,7 +142,9 @@ class PairData:
 
     def _makeInfoVolume(self, volume):
         info_volume = []
-        check_period = -10
+        period_map = {'1h': 48, '2h': 24, '3h': 16, 
+                    '6h': 28, '12h': 14, '24h': 14}
+        check_period = period_map.get(self.timeframe, 24)
 
         # Volume tokens
         threshold = np.percentile(volume, 80)
