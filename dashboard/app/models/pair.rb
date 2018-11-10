@@ -1,12 +1,14 @@
+# frozen_string_literal: true
+
 class Pair < ApplicationRecord
-  EXCHANGES = %w[bitfinex bittrex poloniex binance]
+  EXCHANGES = %w[bitfinex bittrex poloniex binance].freeze
 
   has_many :twitter_images
 
   validates :symbol, presence: true, uniqueness: true
   validates :name, presence: true
   validates :exchange, presence: true, inclusion: { in: EXCHANGES }
-  validates :tags, length: { minimum: 1 } #, format: /\A([#$])[a-z](\w+)\z/i
+  validates :tags, length: { minimum: 1 } # , format: /\A([#$])[a-z](\w+)\z/i
 
   after_create :request_data_fill
 

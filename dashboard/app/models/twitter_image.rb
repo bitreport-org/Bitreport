@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class TwitterImage < ApplicationRecord
   TIMEFRAMES = %w[1h 2h 3h 6h 12h 24h].freeze
   attr_reader :price, :change
@@ -10,7 +12,7 @@ class TwitterImage < ApplicationRecord
 
   belongs_to :pair
 
-  validates :symbol, presence: true, inclusion: { in: -> (_) { Pair.pluck(:symbol) } }
+  validates :symbol, presence: true, inclusion: { in: ->(_) { Pair.pluck(:symbol) } }
   validates :timeframe, presence: true, inclusion: { in: TIMEFRAMES }
   validates :limit, numericality: true, inclusion: { in: 20..200 }
 
@@ -19,7 +21,7 @@ class TwitterImage < ApplicationRecord
   end
 
   def image_file
-    image = Tempfile.new(%w(plot .png), encoding: 'ascii-8bit')
+    image = Tempfile.new(%w[plot .png], encoding: 'ascii-8bit')
     image.write(preview_image)
     image
   end
@@ -30,7 +32,7 @@ class TwitterImage < ApplicationRecord
   end
 
   def timestamp
-    pair.last_updated_at.strftime("%Y-%m-%d %H:%M UTC")
+    pair.last_updated_at.strftime('%Y-%m-%d %H:%M UTC')
   end
 
   def raw_data
@@ -48,7 +50,7 @@ class TwitterImage < ApplicationRecord
     @price = body['indicators']['price']['close'].last
     @change = body['indicators']['price']['close'].last - body['indicators']['price']['open'].first
     Plotter.new(body['dates'],
-                body['indicators'].slice(*(%w(price volume) + indicators)),
+                body['indicators'].slice(*(%w[price volume] + indicators)),
                 body['indicators']['levels'].values.flatten.uniq & (levels&.map(&:to_f) || [])).plot
   end
 

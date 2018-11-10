@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class TwitterResponse < ApplicationRecord
   attr_reader :url
   attr_accessor :timeframe
@@ -21,8 +23,8 @@ class TwitterResponse < ApplicationRecord
   private
 
   def parsed_tag(val)
-    return unless val.present?
-    if(val.length > 3 && %w(btc usd).include?(val[-3..-1]))
+    return if val.blank?
+    if val.length > 3 && %w[btc usd].include?(val[-3..-1])
       val.upcase
     else
       val.upcase + 'USD'

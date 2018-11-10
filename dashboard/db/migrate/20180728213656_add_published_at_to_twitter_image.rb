@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AddPublishedAtToTwitterImage < ActiveRecord::Migration[5.2]
   def change
     add_column :twitter_images, :published_at, :timestamp

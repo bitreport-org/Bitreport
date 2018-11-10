@@ -12,17 +12,17 @@ class Plotter
   PURPLE = 'f455c7'
 
   BANDS = {
-    'BB' => { colors: %W(#f2#{BLUE} #66#{BLUE}), name: 'Bollinger Bands', middle: true },
-    'KC' => { colors: %W(#f8#{YELLOW} #70#{YELLOW}), name: 'Keltner Channel', middle: true },
-    'parabola' => { colors: %W(#f8#{RED} #70#{RED}), name: 'Parabola', middle: false },
-    'channel' => { colors: %W(#f8#{YELLOW} #70#{YELLOW}), name: 'Channel', middle: false },
-    'wedge' => { colors: %W(#f8#{YELLOW} #70#{YELLOW}), name: 'Wedge', middle: false }
+    'BB' => { colors: %W[#f2#{BLUE} #66#{BLUE}], name: 'Bollinger Bands', middle: true },
+    'KC' => { colors: %W[#f8#{YELLOW} #70#{YELLOW}], name: 'Keltner Channel', middle: true },
+    'parabola' => { colors: %W[#f8#{RED} #70#{RED}], name: 'Parabola', middle: false },
+    'channel' => { colors: %W[#f8#{YELLOW} #70#{YELLOW}], name: 'Channel', middle: false },
+    'wedge' => { colors: %W[#f8#{YELLOW} #70#{YELLOW}], name: 'Wedge', middle: false }
   }.freeze
 
   AVERAGES = {
-    'SMA' => { colors: %W(#c0#{YELLOW} #70#{YELLOW} #00#{YELLOW}), attributes: %w(slow medium fast), name: 'SMA' },
-    'EMA' => { colors: %W(#c0#{BLUE} #70#{BLUE} #00#{BLUE}), attributes: %w(slow medium fast), name: 'EMA' },
-    'ALLIGATOR' => {colors: %W(#70#{BLUE} #70#{GREEN} #70#{RED}), attributes: %w(jaw lips teeth), name: 'Alligator' }
+    'SMA' => { colors: %W[#c0#{YELLOW} #70#{YELLOW} #00#{YELLOW}], attributes: %w[slow medium fast], name: 'SMA' },
+    'EMA' => { colors: %W[#c0#{BLUE} #70#{BLUE} #00#{BLUE}], attributes: %w[slow medium fast], name: 'EMA' },
+    'ALLIGATOR' => { colors: %W[#70#{BLUE} #70#{GREEN} #70#{RED}], attributes: %w[jaw lips teeth], name: 'Alligator' }
   }.freeze
 
   def initialize(timestamps, indicators, levels)
@@ -131,9 +131,9 @@ class Plotter
     BANDS.each do |name, info|
       indicator = indicators[name]
       next unless indicator
-      @plots << "using 1:2:3 notitle with filledcurves linecolor '#{info[:colors][0]}'" <<
-                "using 1:2 notitle with lines linecolor '#{info[:colors][1]}' lw 1.5" <<
-                "using 1:3 notitle with lines linecolor '#{info[:colors][1]}' lw 1.5"
+      @plots << "using 1:2:3 notitle with filledcurves linecolor '#{info[:colors][0]}'" \
+        "using 1:2 notitle with lines linecolor '#{info[:colors][1]}' lw 1.5" \
+        "using 1:3 notitle with lines linecolor '#{info[:colors][1]}' lw 1.5"
       @data << timestamps.zip(indicator['upper_band'],
                               indicator['lower_band']).map { |candle| candle.join(' ') }.push('e') * 3
     end
@@ -141,10 +141,10 @@ class Plotter
 
   def prepare_ichimoku_bg
     return unless indicators['ICM']
-    @plots << "using 1:2:3 notitle with filledcurves above linecolor '#dd#{GREEN}'" <<
-              "using 1:2:3 notitle with filledcurves below linecolor '#dd#{RED}'" <<
-              "using 1:2 notitle with lines linecolor '#88#{GREEN}' lw 1.5" <<
-              "using 1:3 notitle with lines linecolor '#88#{RED}' lw 1.5"
+    @plots << "using 1:2:3 notitle with filledcurves above linecolor '#dd#{GREEN}'" \
+      "using 1:2:3 notitle with filledcurves below linecolor '#dd#{RED}'" \
+      "using 1:2 notitle with lines linecolor '#88#{GREEN}' lw 1.5" \
+      "using 1:3 notitle with lines linecolor '#88#{RED}' lw 1.5"
     @data << timestamps.zip(indicators['ICM']['leading_span_a'],
                             indicators['ICM']['leading_span_b']).map { |candle| candle.join(' ') }.push('e') * 4
   end
@@ -179,9 +179,9 @@ class Plotter
     AVERAGES.each do |name, info|
       indicator = indicators[name]
       next unless indicator
-      @plots << "using 1:2 title '#{info[:name]} #{info[:attributes][0]}' with lines lw 1.5 lc '#{info[:colors][0]}'" <<
-                "using 1:3 title '#{info[:name]} #{info[:attributes][1]}' with lines lw 1.5 lc '#{info[:colors][1]}'" <<
-                "using 1:4 title '#{info[:name]} #{info[:attributes][2]}' with lines lw 1.5 lc '#{info[:colors][2]}'"
+      @plots << "using 1:2 title '#{info[:name]} #{info[:attributes][0]}' with lines lw 1.5 lc '#{info[:colors][0]}'" \
+        "using 1:3 title '#{info[:name]} #{info[:attributes][1]}' with lines lw 1.5 lc '#{info[:colors][1]}'" \
+        "using 1:4 title '#{info[:name]} #{info[:attributes][2]}' with lines lw 1.5 lc '#{info[:colors][2]}'"
       @data << timestamps.zip(indicator[info[:attributes][0]],
                               indicator[info[:attributes][1]],
                               indicator[info[:attributes][2]]).map { |candle| candle.join(' ') }.push('e') * 3
@@ -194,14 +194,14 @@ class Plotter
     tdsvals = { 'pbuy' => -1, 'buy' => 0, 'sell' => 0, 'psell' => 1 }
     vals = indicators['TDS']['tds'].map { |v| tdsvals[v] }
     prices = indicators['TDS']['tds'].each_with_index.map do |v, i|
-      v.include?('buy') ? lows[i] - @margin/2 : highs[i] + @margin/2
+      v.include?('buy') ? lows[i] - @margin / 2 : highs[i] + @margin / 2
     end
-    @plots << 'using 1:2:3 title "TD Sequential" with points pt 6 palette' <<
-              'using 1:2:3 notitle with points pt 7 palette'
+    @plots << 'using 1:2:3 title "TD Sequential" with points pt 6 palette' \
+      'using 1:2:3 notitle with points pt 7 palette'
     @data << timestamps.zip(prices, vals).map { |candle| candle.join(' ') }.push('e')
     counts = [1]
     (1..indicators['TDS']['tds'].count).each do |i|
-      counts << ((indicators['TDS']['tds'][i] == indicators['TDS']['tds'][i - 1] || (indicators['TDS']['tds'][i] == 'buy' && indicators['TDS']['tds'][i - 1] == 'pbuy') || (indicators['TDS']['tds'][i] == 'pbuy' && indicators['TDS']['tds'] == 'buy') || (indicators['TDS']['tds'][i] == 'sell' && indicators['TDS']['tds'][i - 1] == 'psell') || (indicators['TDS']['tds'][i] == 'psell' && indicators['TDS']['tds'][i - 1] == 'sell')) ? counts.last + 1 : 1)
+      counts << (indicators['TDS']['tds'][i] == indicators['TDS']['tds'][i - 1] || (indicators['TDS']['tds'][i] == 'buy' && indicators['TDS']['tds'][i - 1] == 'pbuy') || (indicators['TDS']['tds'][i] == 'pbuy' && indicators['TDS']['tds'] == 'buy') || (indicators['TDS']['tds'][i] == 'sell' && indicators['TDS']['tds'][i - 1] == 'psell') || (indicators['TDS']['tds'][i] == 'psell' && indicators['TDS']['tds'][i - 1] == 'sell') ? counts.last + 1 : 1)
     end
     @data << timestamps.zip(prices, vals, counts).select { |el| el[1] && el[3] >= 9 }.map { |candle| candle[0..2].join(' ') }.push('e')
   end
@@ -216,7 +216,7 @@ class Plotter
       set origin 0.0,0.05
 
       set format x "%Y-%m-%d\\n%H:%M"
-      set ytics(#{ytics.map { |tic| %Q("#{tic}" #{tic}) }.join(', ')})
+      set ytics(#{ytics.map { |tic| %("#{tic}" #{tic}) }.join(', ')})
 
       set bmargin 1
       set tmargin 0

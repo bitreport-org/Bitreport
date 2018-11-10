@@ -21,18 +21,18 @@ module Admin
       @twitter_response = TwitterResponse.new(twitter_response_params)
 
       @twitter_image = TwitterImage.new(symbol: @twitter_response.cashtag,
-                                        timeframe: @twitter_response.timeframe.present? ? @twitter_response.timeframe : TwitterImage::TIMEFRAMES.sample,
-                                        limit: 100 + rand(100),
-                                        indicators: [%w(RSI MACD).sample, [%w(SMA wedge), %w(BB wedge), %w(BB levels), %w(ICM levels)].sample].flatten)
+                                        timeframe: @twitter_response.timeframe.presence || TwitterImage::TIMEFRAMES.sample,
+                                        limit: rand(100..199),
+                                        indicators: [%w[RSI MACD].sample, [%w[SMA wedge], %w[BB wedge], %w[BB levels], %w[ICM levels]].sample].flatten)
 
       @twitter_image.validate!
 
       if @twitter_image.indicators.include?('levels')
         levels = @twitter_image.raw_data['indicators']['levels']
-        @twitter_image.levels = [levels['support'].sort.last, levels['resistance'].sort.first]
+        @twitter_image.levels = [levels['support'].max, levels['resistance'].min]
       end
 
-      @twitter_image.comment ||= @twitter_image.raw_data['indicators'].slice(*(%w(price volume) + @twitter_image.indicators)).flat_map do |indicator, params|
+      @twitter_image.comment ||= @twitter_image.raw_data['indicators'].slice(*(%w[price volume] + @twitter_image.indicators)).flat_map do |indicator, params|
         if params['info'].any?
           [indicator.upcase, TextGenerator.new(indicator, params['info']).details]
         end
@@ -44,12 +44,12 @@ module Admin
       if @twitter_response.save
         respond_to do |format|
           format.html { redirect_to @twitter_response }
-          format.json { render json: { id: @twitter_response.id, preview:  @twitter_image.reload.image_url(:original)} }
+          format.json { render json: { id: @twitter_response.id, preview: @twitter_image.reload.image_url(:original) } }
         end
       else
         render :new
       end
-    rescue => e
+    rescue StandardError => e
       respond_to do |format|
         format.html { raise e }
         format.json { render json: { error: e.full_message } }
@@ -67,9 +67,9 @@ module Admin
         config.access_token_secret = Settings.twitter.access_token_secret
       end
       response = client.update_with_media(tweet_message,
-                               @twitter_image.image[:original].download,
-                               in_reply_to_status_id: @twitter_response.in_reply_to,
-                               auto_populate_reply_metadata: true)
+                                          @twitter_image.image[:original].download,
+                                          in_reply_to_status_id: @twitter_response.in_reply_to,
+                                          auto_populate_reply_metadata: true)
       @twitter_image.touch(:published_at)
       respond_to do |format|
         format.html { redirect_to twitter_response_path(@twitter_response) }
@@ -94,7 +94,7 @@ module Admin
     end
 
     def allowed_by_magic_token?
-      %w(create publish).include?(params[:action]) && params[:magic_token] && Digest::SHA256.hexdigest(params[:magic_token]) == 'bbd88faacbe8df40efe7689c1f1b99c3ebf5bb2bf695f33d263f5e8ea7c76a20'
+      %w[create publish].include?(params[:action]) && params[:magic_token] && Digest::SHA256.hexdigest(params[:magic_token]) == 'bbd88faacbe8df40efe7689c1f1b99c3ebf5bb2bf695f33d263f5e8ea7c76a20'
     end
 
     # Never trust parameters from the scary internet, only allow the white list through.

@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 Rails.application.routes.draw do
   post 'wallet/use'
 
   scope module: :admin, path: '/admin' do
     resources :twitter_images
     resources :twitter_responses
-    resources :pairs, only: [:index, :new, :create, :destroy]
+    resources :pairs, only: %i[index new create destroy]
     get :twitter_image_preview, to: 'twitter_images#preview'
     get 'twitter_image_preview/:id', to: 'twitter_images#preview'
     put 'pairs/:id/fill', to: 'pairs#fill', as: 'fill_pair'

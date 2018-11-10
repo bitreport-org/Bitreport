@@ -38,7 +38,7 @@ class TextGenerator
       PRICE_BREAK_DOWN: ['Price has broke out of the channel.', 'Price is now below the channel.'],
       PRICE_BETWEEN: ['Prices stays within channel.', 'Price is still moving within the channel.', 'Will the price stay within the channel?'],
       PRICE_ONBAND_UP: ['We are close to the upper band of the channel.', 'Price is close to the upper band of the channel.'],
-      PRICE_ONBAND_DOWN:['We are close to the lower band of the channel.', 'Price is close to the lower band of the channel.'],
+      PRICE_ONBAND_DOWN: ['We are close to the lower band of the channel.', 'Price is close to the lower band of the channel.'],
       DIRECTION_UP: ['The channel is steady moving up.', 'Channel is pointing up.'],
       DIRECTION_DOWN: ['The channel is steady moving down.', 'Channel is pointing down.'],
       DIRECTION_HORIZONTAL: ['The channel moves roughly horizontally.'],
@@ -50,7 +50,7 @@ class TextGenerator
     },
     STOCH: {
       OSCILLATOR_OVERSOLD: ['Stochastic oscillator looks really low.', 'Stochastic oscillator has bead low recently.', 'Stochastic oscillator below 20 indicates that the pair is oversold.'],
-      OSCILLATOR_OVERBOUGHT: ['Stoch has been in an overbought area.', 'Stochastic oscillator indicates overbought area.', 'Stochastic oscillator above 80 indicates that the pair is overbought.'],
+      OSCILLATOR_OVERBOUGHT: ['Stoch has been in an overbought area.', 'Stochastic oscillator indicates overbought area.', 'Stochastic oscillator above 80 indicates that the pair is overbought.']
     },
     SMA: {
       CROSS_UP_FAST: ['We\'re already above fast SMA.', 'Price has crossed up the fast SMA recently.'],
@@ -63,7 +63,7 @@ class TextGenerator
       POSITION_UP_MEDIUM: ['The price is above medium SMA.', 'Price is above medium SMA.', 'Price stays above the medium SMA recently.'],
       POSITION_UP_SLOW: ['The price is above slow SMA.', 'Price stays above the slow SMA recently.'],
       POSITION_DOWN_FAST: ['The price is below fast SMA.',  'Price stays below the fast SMA recently.'],
-      POSITION_DOWN_MEDIUM: ['The price is below medium SMA.',  'Price stays below the medium SMA recently.'],
+      POSITION_DOWN_MEDIUM: ['The price is below medium SMA.', 'Price stays below the medium SMA recently.'],
       POSITION_DOWN_SLOW: ['The price is below slow SMA.', 'Price stays below the slow SMA recently.'],
       CROSS_BEARISH: ['We have seen a bearish cross on SMA.', 'We have observed a bearish cross recently.', 'The bearish cross signals possible downtrend.', 'Fast SMA crossed down slow what means a bearish cross.'],
       CROSS_BULLISH: ['There was a bullish cross on SMA.', 'We have observed a bullish cross recently.', 'The bullish cross signals possible downtrend.', 'Fast SMA crossed up what means a bullish cross.']
@@ -79,7 +79,7 @@ class TextGenerator
       POSITION_UP_MEDIUM: ['The price is above medium EMA.', 'Price is above medium EMA.', 'Price stays above the medium EMA recently.'],
       POSITION_UP_SLOW: ['The price is above slow EMA.', 'Price stays above the slow EMA recently.'],
       POSITION_DOWN_FAST: ['The price is below fast EMA.',  'Price stays below the fast EMA recently.'],
-      POSITION_DOWN_MEDIUM: ['The price is below medium EMA.',  'Price stays below the medium EMA recently.'],
+      POSITION_DOWN_MEDIUM: ['The price is below medium EMA.', 'Price stays below the medium EMA recently.'],
       POSITION_DOWN_SLOW: ['The price is below slow EMA.', 'Price stays below the slow EMA recently.'],
       CROSS_BEARISH: ['We have seen a bearish cross on EMA.', 'We have observed a bearish cross recently.', 'The bearish cross signals possible downtrend.', 'Fast EMA crossed down slow what means a bearish cross.'],
       CROSS_BULLISH: ['There was a bullish cross on EMA.', 'We have observed a bullish cross recently.', 'The bullish cross signals possible downtrend.', 'Fast EMA crossed up what means a bullish cross.']
@@ -102,7 +102,7 @@ class TextGenerator
       VOLUME_DIRECTION_DOWN: ['Volume is getting higher.'],
       VOLUME_DIRECTION_UP: ['Volume is getting lower'],
       PRICE_HIGHEST_DAY: ['We are observing highest price in last 24h'],
-      PRICE_LOWEST_DAY:['We are observing lowest price in last 24h'],
+      PRICE_LOWEST_DAY: ['We are observing lowest price in last 24h'],
       PRICE_HIGHEST_WEEK: ['We are observing highest price in this week'],
       PRICE_LOWEST_WEEK: ['We are observing lowest price in this week'],
       PRICE_HIGHEST_MONTH: ['We are observing highest price in this month'],
@@ -162,7 +162,7 @@ class TextGenerator
       SHAPE: {
         TRIANGLE: ['a triangle'],
         PARALLEL: ['a channel', 'parallel'],
-        CONTRACTING: ['contracting'],
+        CONTRACTING: ['contracting']
       },
       BOUNCE: {
         UPPER: ['price bounced from upper wedge'],
@@ -171,7 +171,7 @@ class TextGenerator
       DIRECTION: {
         UP: ['pointing up', 'moving up'],
         DOWN: ['pointing down', 'moving down'],
-        HORIZONTAL: ['sideways', 'horizontal']
+        HORIZONTAL: %w[sideways horizontal]
       },
       ABOUT: {
         END: ['close to end']
@@ -192,8 +192,8 @@ class TextGenerator
         UP_FAST: ['above fast SMA'],
         UP_MEDIUM: ['above medium SMA'],
         UP_SLOW: ['above slow SMA'],
-        DOWN_FAST: ['below fast SMA',],
-        DOWN_MEDIUM: ['below medium SMA',],
+        DOWN_FAST: ['below fast SMA'],
+        DOWN_MEDIUM: ['below medium SMA'],
         DOWN_SLOW: ['below slow SMA']
       }
     },
@@ -219,7 +219,7 @@ class TextGenerator
         SPIKE: ['big volume spike'],
         DIRECTION_DOWN: ['getting lower'],
         DIRECTION_UP: ['getting higher']
-      },
+      }
     },
     price: {
       PRICE: {
@@ -235,7 +235,7 @@ class TextGenerator
         DOWN: ['moving down', 'downtrend'],
         UP: ['moving up', 'uptrend'],
         UD_REV: ['possible reversal'],
-        DU_REV: ['possible reversal'],
+        DU_REV: ['possible reversal']
       },
       MOVE: {
         STRONG_UP: ['overall move up'],
@@ -243,7 +243,7 @@ class TextGenerator
         SMALL_UP: ['recent move up'],
         SMALL_DOWN: ['recent move down'],
         BIG_UP: ['recent move up'],
-        BIG_DOWN: ['recent move down'],
+        BIG_DOWN: ['recent move down']
       }
     }
   }.with_indifferent_access
