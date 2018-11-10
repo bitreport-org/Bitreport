@@ -3,7 +3,7 @@ class TwitterResponse < ApplicationRecord
   attr_accessor :timeframe
 
   belongs_to :twitter_image
-  validates :in_reply_to, presence: true, uniqueness: true
+  validates :in_reply_to, presence: true#, uniqueness: true
 
   def url=(val)
     @url = URI(val)

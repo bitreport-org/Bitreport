@@ -53,14 +53,14 @@ services:
     volumes:
       - redis-data:/data
 
-  sidekiq:
-    build:
-      context: ./dashboard
-      dockerfile: .docker/Dockerfile
-    command: sidekiq -C config/sidekiq.yml.erb
-    depends_on:
-      - postgres
-      - redis
-    volumes:
-      - ./dashboard:/usr/src/app
-      - app-gems:/usr/local/bundle
+#  sidekiq:
+#    build:
+#      context: ./dashboard
+#      dockerfile: .docker/Dockerfile
+#    command: sidekiq -C config/sidekiq.yml.erb
+#    depends_on:
+#      - postgres
+#      - redis
+#    volumes:
+#      - ./dashboard:/usr/src/app
+#      - app-gems:/usr/local/bundle

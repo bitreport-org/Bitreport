@@ -50,6 +50,8 @@ services:
       - postgres
       - redis
       - core
+    ports:
+      - 3000:3000
     volumes:
       - dashboard-public:/usr/src/app/public
       - dashboard-settings:/usr/src/app/config/settings

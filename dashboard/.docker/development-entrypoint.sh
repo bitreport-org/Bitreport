@@ -14,17 +14,19 @@ trap unlock_setup HUP INT QUIT KILL TERM EXIT
 
 if [ -z "$1" ]; then set -- rails server -p 3000 -b 0.0.0.0 "$@"; fi
 
-bundle check || bundle install
-
 if [[ "$1" = "rails" || "$1" = "sidekiq" ]]
 then
   while [ -f $APP_SETUP_LOCK ]; do wait_setup; done
 
   lock_setup
 
+  echo "Resolving dependencies"
+
+  bundle check || bundle install
+
   echo "Preparing database"
 
-  bundle exec rails db:migrate || bundle exec rails db:setup
+  bundle exec rails db:create db:migrate
 
   unlock_setup
 
