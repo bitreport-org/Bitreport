@@ -4,6 +4,7 @@ volumes:
   certs:
   certs-data:
   dashboard-public:
+  dashboard-settings:
   influx-data:
   postgres-data:
   redis-data:
@@ -50,6 +51,7 @@ services:
       - core
     volumes:
       - dashboard-public:/usr/src/app/public
+      - dashboard-settings:/usr/src/app/config/settings
 
   postgres:
     image: postgres:10.4-alpine
