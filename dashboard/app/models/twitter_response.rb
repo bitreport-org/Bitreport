@@ -22,10 +22,11 @@ class TwitterResponse < ApplicationRecord
 
   def parsed_tag(val)
     return if val.blank?
-    if val.length > 3 && %w[btc usd].include?(val[-3..-1])
-      val.upcase
+    val = val.upcase
+    if val.length > 3 && %w[BTC USD].include?(val[-3..-1])
+      val
     else
-      val.upcase + 'USD'
+      Pair.where('symbol LIKE ?', "#{val}%").pluck(:symbol).sample
     end
   end
 
