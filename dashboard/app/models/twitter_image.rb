@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 class TwitterImage < ApplicationRecord
   TIMEFRAMES = %w[1h 2h 3h 6h 12h 24h].freeze
   attr_reader :price, :change

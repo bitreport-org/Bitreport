@@ -1,8 +1,5 @@
 FROM ruby:2.5.3
 
-# throw errors if Gemfile has been modified since Gemfile.lock
-RUN bundle config --global frozen 1
-
 ENV RAILS_ENV production
 ENV RAILS_ROOT /usr/src/app
 

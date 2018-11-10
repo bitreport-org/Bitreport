@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 class Plotter
   attr_reader :timestamps, :indicators, :levels, :step, :margin, :filename
 

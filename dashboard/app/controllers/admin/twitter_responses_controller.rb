@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module Admin
   class TwitterResponsesController < AdminController
     skip_before_action :verify_authenticity_token, if: :allowed_by_magic_token?

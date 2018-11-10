@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 class TwitterResponse < ApplicationRecord
   attr_reader :url
   attr_accessor :timeframe

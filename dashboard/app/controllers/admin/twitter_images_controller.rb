@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module Admin
   class TwitterImagesController < AdminController
     before_action :set_twitter_image, only: %i[show edit update preview destroy publish]
