@@ -1,4 +1,4 @@
-FROM python:3.6
+FROM python:3.6.7
 
 RUN mkdir app
 WORKDIR /app
@@ -31,5 +31,5 @@ WORKDIR /app
 EXPOSE 80
 
 # Run core.py when the container launches
-CMD ["gunicorn", "-b 0.0.0.0:80", "-w 4", "core:app"]
-
+# CMD ["gunicorn", "-b 0.0.0.0:80", "-w 4", "core:app"]
+CMD ["python", "run.py"]
