@@ -6,7 +6,7 @@ import config
 from flask import Flask, request, jsonify
 from time import sleep
 from influxdb import InfluxDBClient
-from core.services import dbservice, dataservice
+from core.services import dbservice, dataservice, exchanges
 
 app = Flask(__name__)
 
@@ -24,17 +24,8 @@ app.logger.addHandler(console)
 
 # Config
 conf = config.BaseConfig()
-
-# Wait for connection to InfluxDB
-status = True
-while status:
-    try:
-        client = InfluxDBClient(conf.HOST, conf.PORT, 'root', 'root', conf.DBNAME)
-        client.create_database(conf.DBNAME)
-        status = False
-    except:
-        app.logger.info('Waiting for InfluxDB...')
-        sleep(3)
+dbservice.connect_influx(app)
+dbservice.prepare_postgres()
 
 # API
 
@@ -59,15 +50,11 @@ def data_service(pair: str):
 def exchange_service():
     if request.method == 'GET':
         pair = request.args.get('pair', default='BTCUSD', type=str)
-        exchange = dbservice.check_exchange(pair)
+        exchange = exchanges.check_exchange(pair)
         return jsonify(exchange)
     else:
         return 404
 
-@app.route('/events', methods=['GET'])
-def event_service():
-    if request.method == 'GET':
-        return 404
 
 
 @app.route('/fill', methods=['POST'])
@@ -79,7 +66,7 @@ def fill_service():
 
         if pair and exchange:
             try:
-                return dbservice.pair_fill(app, pair, exchange, force)
+                return exchanges.pair_fill(app, pair, exchange, force)
             except:
                 app.logger.warning(traceback.format_exc())
                 return 'Request failed', 500

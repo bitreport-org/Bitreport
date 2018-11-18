@@ -4,8 +4,9 @@ class BaseConfig(object):
     PORT = 8086
     MAGIC_LIMIT = 79
     EVENT_LIMIT = 3
-    EXCHANGES = 'exchanges.npz'
     MARGIN=26
+    POSTGRES_URI = 'postgres://postgres:postgres@postgres'
+    CHART_TABLE = 'charting'
 
 
 # class BaseConfig(object):

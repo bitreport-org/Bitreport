@@ -6,7 +6,7 @@ import talib #pylint: skip-file
 from scipy.stats import linregress
 from sklearn.externals import joblib
 from core.services import internal
-from core.ta import indicators, levels, channels
+from core.ta import indicators, levels, channels, wedge
 
 # Data class
 class PairData:
@@ -87,29 +87,6 @@ class PairData:
         open = self.data.get('open')[self.magic_limit:]
         high = self.data.get('high')[self.magic_limit:]
         low = self.data.get('low')[self.magic_limit:]
-        check_period = -20
-
-        # # Hihghest /lowest tokens
-        # ath = [24, 168, 4*168]
-        # ath_names = ['DAY', 'WEEK', 'MONTH']
-        # for a, n in zip(ath, ath_names):
-        #     points2check = int(a / int(self.timeframe[:-1]))
-        #     if points2check < self.limit + self.magic_limit:
-        #         if max(price['high'][check_period:])  >= max(price['high'][-points2check:]):
-        #             info_price.append('PRICE_HIGHEST_{}'.format(n))
-        #         elif max(price['low'][check_period:])  >= max(price['low'][-points2check:]):
-        #             info_price.append('PRICE_LOWEST_{}'.format(n))
-        
-        # Chart tokens
-        clf = joblib.load('{}/core/ta/clfs/TrendRecognition_RandomForest_100.pkl'.format(os.getcwd())) 
-        try:
-            X = close[-100:]
-            X = (X - np.min(X))/(np.max(X)-np.min(X))
-            chart_type = clf.predict([X])
-            info_price.append('CHART_{}'.format(chart_type[-1].upper()))
-        except:
-            info_price.append('CHART_NONE')
-            pass
 
         # Last moves tokens
         n = int(0.70*close.size) 
@@ -172,15 +149,20 @@ class PairData:
                 pass
 
         # Channels
-        channels_list = internal.get_function_list(channels)
-        for ch in channels_list:
-            try:
-                indicators_values[ch.__name__]= ch(self.data)
-            except:
-                self.app.logger.warning('Indicator {}, error: /n {}'.format(ch, traceback.format_exc()))
-                pass
+        try:
+            indicators_values['channel']= channels.channel(self.data)
+        except:
+            self.app.logger.warning('Indicator {}, error: /n {}'.format('channel', traceback.format_exc()))
+            pass
+        
+        # Wedges
+        try:
+            indicators_values['channel']= channels.channel(self.data)
+        except:
+            self.app.logger.warning('Indicator {}, error: /n {}'.format('channel', traceback.format_exc()))
+            pass
 
-        # Channels
+        # Levels
         try:
             indicators_values.update(levels = levels.prepareLevels(self.data))
         except:
