@@ -2,11 +2,11 @@ import pytest
 import requests
 from random import random
 
-@pytest.fixture
+
 def getpair(pair, tf, limit, untill=None):
     return requests.get('http://0.0.0.0:5001/{}?timeframe={}&limit={}&untill={}'.format(pair, tf, limit, untill))
 
-@pytest.fixture
+
 def filler(pair, exchange, force = False):
 	return requests.post('http://0.0.0.0:5001/fill?pair={}&exchange={}&force={}'.format(pair, exchange, force))
 
@@ -111,7 +111,7 @@ class TestTA(object):
 		response = response.json()
 		indicators = response.get('indicators', {})
 		keys = indicators.keys()
-		required_keys =  ['channel', 'parabola', 'wedge', 'levels']
+		required_keys =  ['channel', 'wedge', 'levels']
 
 		for k in required_keys:
 			assert k in keys
@@ -125,7 +125,7 @@ class TestTA(object):
 		assert isinstance(response, dict)
 		
 		indicators = response.get('indicators')
-		keys_to_check = ['channel', 'wedge', 'parabola', 'BB', 'KC']
+		keys_to_check = ['channel', 'wedge', 'BB', 'KC']
 
 		for k in keys_to_check:
 			key_list = indicators.get(k).keys() 
