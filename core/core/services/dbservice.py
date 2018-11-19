@@ -28,9 +28,9 @@ def connect_influx(app):
 class Chart(Base):
     __tablename__ = Conf.CHART_TABLE
     id = Column(Integer, primary_key = True)
-    timestamp = Column(Integer)
     pair = Column(String)
     timeframe = Column(String)
+    last_tsmp = Column(Integer)
     type = Column(String)
     params = Column(JSON)
 
@@ -39,8 +39,8 @@ def prepare_postgres():
     # Postgres setup
     db_uri = Conf.POSTGRES_URI
     engine = create_engine(db_uri)
-    # sql = 'DROP TABLE IF EXISTS charting;'
-    # result = engine.execute(sql)
+    sql = 'DROP TABLE IF EXISTS charting;'
+    result = engine.execute(sql)
 
     session = sessionmaker()
     session.configure(bind=engine)

@@ -152,7 +152,8 @@ class PairData:
         try:
             close = self.data.get('close', np.array([]))
             dates = self.output.get('dates')
-            indicators_values['channel']= channels.channel(close, dates)
+            ch = channels.Channel(self.pair, self.timeframe, close, dates)
+            indicators_values['channel']= ch.make()
         except:
             self.app.logger.warning('Indicator {}, error: /n {}'.format('channel', traceback.format_exc()))
             pass
