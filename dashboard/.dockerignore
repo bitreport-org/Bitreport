@@ -6,7 +6,6 @@
 *Dockerfile
 docker-compose*.yml
 *.env
-development-entrypoint
 .dockerignore
 
 # Ignore log files:
@@ -33,3 +32,8 @@ spec/
 
 # 3.3: bundler stuff
 .bundle/*
+
+.idea
+public/uploads
+public/assets
+node_modules

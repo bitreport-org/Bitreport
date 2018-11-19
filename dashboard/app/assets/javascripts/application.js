@@ -13,7 +13,7 @@
 //= require jquery
 //= require jquery_ujs
 //= require turbolinks
-//= require semantic-ui/dist/semantic
+//= require semantic-ui
 //= require qrcode/build/qrcode
 //= require serviceworker-companion
 //= require_tree ./app

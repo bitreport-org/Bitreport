@@ -10,16 +10,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2018_05_20_174952) do
+ActiveRecord::Schema.define(version: 2018_11_03_183830) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
   create_table "pairs", force: :cascade do |t|
-    t.string "symbol"
+    t.string "symbol", null: false
     t.string "name"
     t.string "exchange"
     t.datetime "last_updated_at"
+    t.string "tags", null: false, array: true
+    t.index ["symbol"], name: "index_pairs_on_symbol"
   end
 
   create_table "push_devices", force: :cascade do |t|
@@ -42,6 +44,16 @@ ActiveRecord::Schema.define(version: 2018_05_20_174952) do
     t.text "image_data"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "pair_id"
+    t.datetime "published_at"
+    t.string "media_id"
+    t.index ["pair_id"], name: "index_twitter_images_on_pair_id"
+  end
+
+  create_table "twitter_responses", force: :cascade do |t|
+    t.bigint "twitter_image_id"
+    t.string "in_reply_to"
+    t.index ["twitter_image_id"], name: "index_twitter_responses_on_twitter_image_id"
   end
 
   create_table "wallets", force: :cascade do |t|
@@ -50,4 +62,5 @@ ActiveRecord::Schema.define(version: 2018_05_20_174952) do
     t.datetime "updated_at", null: false
   end
 
+  add_foreign_key "twitter_responses", "twitter_images"
 end

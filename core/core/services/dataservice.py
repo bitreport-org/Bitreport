@@ -94,17 +94,17 @@ class PairData:
         s20 = linregress(np.arange(20), close[-20:]).slope
         s5 = linregress(np.arange(5), close[-5:]).slope
         if s5 > s20 > s70 > 0:
-            info_price.append('STRONG_UP')
+            info_price.append('MOVE_STRONG_UP')
         elif s5 < s20 < s70 < 0:
-            info_price.append('STRONG_DOWN')
+            info_price.append('MOVE_STRONG_DOWN')
         elif s70 < 0 and s20 < 0 and s5 > 0:
-            info_price.append('SMALL_MOVE_UP')
+            info_price.append('MOVE_SMALL_UP')
         elif s70 > 0 and s20 > 0 and s5 < 0:
-            info_price.append('SMALL_MOVE_DOWN')
+            info_price.append('MOVE_SMALL_DOWN')
         elif s70 < 0 and s20 > 0 and s5 > 0:
-            info_price.append('BIG_MOVE_UP')
+            info_price.append('MOVE_BIG_UP')
         elif s70 > 0 and s20 < 0 and s5 < 0:
-            info_price.append('BIG_MOVE_DOWN')
+            info_price.append('MOVE_BIG_DOWN')
         
         # Candles patterns tokens
         p2check = -10

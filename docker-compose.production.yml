@@ -1,0 +1,69 @@
+version: '3'
+
+volumes:
+  certs:
+  certs-data:
+  dashboard-public:
+  dashboard-settings:
+  dashboard-logs:
+  influx-data:
+  postgres-data:
+  redis-data:
+
+services:
+  web:
+    build: ./web
+    depends_on:
+      - dashboard
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - certs:/etc/letsencrypt
+      - certs-data:/data/letsencrypt
+      - dashboard-public:/usr/src/app/public
+
+  core:
+    build: ./core
+    depends_on:
+      - influx
+    ports:
+      - 5001:80
+
+  influx:
+    environment:
+      - INFLUXDB_LOGGING_LEVEL=warn
+      - INFLUXDB_DATA_QUERY_LOG_ENABLED=false
+      - INFLUXDB_HTTP_LOG_ENABLED=false
+    image: influxdb:1.5.2-alpine
+    ports:
+      - 5002:8086
+    volumes:
+      - influx-data:/var/lib/influxdb
+
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: .docker/production.Dockerfile
+    env_file: dashboard/.docker/production.env
+    depends_on:
+      - postgres
+      - redis
+      - core
+    ports:
+      - 3000:3000
+    volumes:
+      - dashboard-public:/usr/src/app/public
+      - dashboard-settings:/usr/src/app/config/settings
+      - dashboard-logs:/usr/src/app/log
+
+  postgres:
+    image: postgres:10.4-alpine
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  redis:
+    command: redis-server --requirepass yourpassword
+    image: redis:4.0.11-alpine
+    volumes:
+      - redis-data:/data

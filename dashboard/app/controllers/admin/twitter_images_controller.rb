@@ -1,8 +1,6 @@
-# frozen_string_literal: true
-
 module Admin
   class TwitterImagesController < AdminController
-    before_action :set_twitter_image, only: %i[show edit update preview destroy]
+    before_action :set_twitter_image, only: %i[show edit update preview destroy publish]
 
     def index
       redirect_to new_twitter_image_path
@@ -12,8 +10,7 @@ module Admin
       @twitter_image = TwitterImage.new
     end
 
-    def show
-    end
+    def show; end
 
     def create
       @twitter_image = TwitterImage.new(twitter_image_params)
@@ -42,7 +39,7 @@ module Admin
           [type.capitalize, level]
         end
       end.flatten
-      @twitter_image.comment ||= @twitter_image.raw_data['indicators'].slice(*(%w(price volume) + @twitter_image.indicators).shuffle).flat_map do |indicator, params|
+      @twitter_image.comment ||= @twitter_image.raw_data['indicators'].slice(*(%w[price volume] + @twitter_image.indicators).shuffle).flat_map do |indicator, params|
         TextGenerator.new(indicator, params['info']) if params['info']
       end
     end
@@ -56,6 +53,18 @@ module Admin
         Rails.logger.debug("Image generation error: #{@twitter_image.errors.full_messages}")
         send_data('', disposition: 'inline', type: 'image/png')
       end
+    end
+
+    def publish
+      client = Twitter::REST::Client.new do |config|
+        config.consumer_key = Settings.twitter.api_key
+        config.consumer_secret = Settings.twitter.api_secret
+        config.access_token = Settings.twitter.access_token
+        config.access_token_secret = Settings.twitter.access_token_secret
+      end
+      client.update_with_media("Beep-a-boop 🤖 Our TA bot created this chart for #{@twitter_image.pair.tags.sample || @twitter_image.pair.name}. What do you think about it?", @twitter_image.image[:original].download)
+      @twitter_image.touch(:published_at)
+      redirect_to twitter_image_path(@twitter_image)
     end
 
     def destroy
