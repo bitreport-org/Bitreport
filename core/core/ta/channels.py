@@ -52,14 +52,15 @@ def tokens(close, upper_band, lower_band, slope):
     
     return info
 
-def channel(data: dict, sma_type: int = 50):
+def channel(close, x_dates, sma_type: int = 50):
     margin = Config.MARGIN
     start = Config.MAGIC_LIMIT
-    close = data.get('close')[start:]
     limit = close.size
-    
-    sma = talib.SMA(data.get('close'), timeperiod = sma_type)
-    sma = (close - sma[start:]) / sma[start:]
+    x_dates = np.array(x_dates) / 10000 # to increase precision
+    short_close = close[start:]
+
+    sma = talib.SMA(close, timeperiod = sma_type)
+    sma = (short_close - sma[start:]) / sma[start:]
     sma = np.where(sma >=0, 1., -1.)
     filter_value =5
     f1 = np.where(talib.SMA(sma, timeperiod = filter_value)[filter_value:] >= 0.0, 1., -1.)
@@ -67,13 +68,6 @@ def channel(data: dict, sma_type: int = 50):
     points, = np.where(f2>0)
     ch_points = np.array([0] + (points+filter_value).tolist())
 
-    def _make(start, end, close):
-        x = np.arange(start, end)
-        y = close[start:end]
-        lm = np.poly1d(np.polyfit(x,y, 1))
-        std = np.std(close[start:end])     
-        return lm, std
-    
     
     # If price was below / above the SMA then ch_points could contain only 1 point
     if len(ch_points) < 2:
@@ -90,16 +84,22 @@ def channel(data: dict, sma_type: int = 50):
         s, e = ch_points[s_position], ch_points[s_position+1]
     
     # Calculate channel and slope
-    lm, std =  _make(s,e, close)
+    x = x_dates[:-margin][s: e]
+    y = short_close[s: e]
+    print(x.size, y.size)
+
+    lm = np.poly1d(np.polyfit(x,y, 1))
+    std = np.std(short_close[s:e])     
     slope = lm[0]
     
     # Prepare channel
-    x = np.arange(close.size + margin)
-    up_channel= lm(x) + 2 * std
-    bottom_channel = lm(x) - 2 * std
+    up_channel= lm(x_dates) + 2 * std
+    bottom_channel = lm(x_dates) - 2 * std
     
      # TOKENS
-    info = tokens(close, up_channel, bottom_channel, slope)
+    info = tokens(short_close, up_channel, bottom_channel, slope)
+
+    params = {'slope':slope, 'coef': lm[1]}
 
     return {'upper_band': up_channel.tolist(), 'lower_band': bottom_channel.tolist(), 'middle_band':[], 'info': info}
     

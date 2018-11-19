@@ -150,14 +150,16 @@ class PairData:
 
         # Channels
         try:
-            indicators_values['channel']= channels.channel(self.data)
+            close = self.data.get('close', np.array([]))
+            dates = self.output.get('dates')
+            indicators_values['channel']= channels.channel(close, dates)
         except:
             self.app.logger.warning('Indicator {}, error: /n {}'.format('channel', traceback.format_exc()))
             pass
         
         # Wedges
         try:
-            indicators_values['channel']= channels.channel(self.data)
+            indicators_values['wedge']= wedge.wedge(self.data)
         except:
             self.app.logger.warning('Indicator {}, error: /n {}'.format('channel', traceback.format_exc()))
             pass
