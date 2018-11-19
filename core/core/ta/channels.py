@@ -35,16 +35,36 @@ class Channel():
         session.add(ch)
         session.commit()
 
+    def _compare(self, params):
+
+        candles2check = 20
+        slope = params['slope']
+        coef = params['coef']
+        std = params['std']
+        up_channel= slope * self.x_dates[-candles2check:] + coef + 2 * std
+        bottom_channel = slope * self.x_dates[-candles2check:] + coef - 2 * std
+
+        # Check price position
+        price = self.close[-candles2check:]
+        above = price > up_channel
+        below = price < bottom_channel
+
+        threshold = 0.8
+        if np.sum(above)/candles2check > threshold or np.sum(below)/candles2check> threshold:
+            return True
+        else:
+            return False
+
     def make(self):
         new_params = self._channel(self.close, self.x_dates)
         params = self._last_channel()
         print(new_params)
         print(params)
+        
         # Compare channels
         if params: # if no previous history
-            dt = (new_params['last_tsmp'] - params['last_tsmp'])/(3600*int(self.timeframe[:-1]))
-            if dt>15:
-                # Check if price is out of the channel
+            # Check if price is out of the channel
+            if self._compare(params):
                 params = new_params
                 self._save_channel(params)
         else:
@@ -62,7 +82,8 @@ class Channel():
         short_close = self.close[self.start:]
         info = self._tokens(short_close, up_channel, bottom_channel, slope)
         
-        return {'upper_band': up_channel.tolist(), 'lower_band': bottom_channel.tolist(), 'middle_band':[], 'info': info}
+        return {'upper_band': up_channel.tolist(), 'lower_band': bottom_channel.tolist(), 
+                'middle_band':[], 'info': info}
 
     def _tokens(self, close, upper_band, lower_band, slope):
         margin = self.margin
@@ -130,7 +151,6 @@ class Channel():
         # Calculate channel and slope
         x = x_dates[:-margin][s: e]
         y = short_close[s: e]
-        print(x.size, y.size)
 
         lm = np.poly1d(np.polyfit(x,y, 1))
         std = np.std(short_close[s:e])     
