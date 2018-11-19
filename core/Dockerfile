@@ -32,4 +32,4 @@ EXPOSE 80
 
 # Run core.py when the container launches
 # CMD ["gunicorn", "-b 0.0.0.0:80", "-w 4", "core:app"]
-CMD ["python", "run.py"]
+CMD ["python","-u", "run.py"]

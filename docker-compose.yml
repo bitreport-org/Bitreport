@@ -10,6 +10,8 @@ services:
     build: ./core
     volumes:
       - ./core:/app
+    environment:
+      - PYTHONUNBUFFERED=1
     ports:
       - 5001:80
     depends_on:
