@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreatePushDevices < ActiveRecord::Migration[5.1]
   def change
     create_table :push_devices do |t|

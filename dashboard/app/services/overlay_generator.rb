@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'image_processing/vips'
 
 class OverlayGenerator
@@ -37,7 +39,7 @@ class OverlayGenerator
       levels_header = Vips::Image.text('Levels', font: 'PT Sans Bold 22')
       base = base.insert(levels_header, 1610, offset)
       offset += 40
-      @twitter_image.levels.each do |value|
+      @twitter_image.levels.compact.each do |value|
         type = Vips::Image.text(value.to_f > @twitter_image.price ? 'Resistance' : 'Support', font: 'PT Sans 22') # This is not right
         level = Vips::Image.text(value, font: 'PT Sans 22')
         base = base.insert(type, 1610, offset)
@@ -45,7 +47,7 @@ class OverlayGenerator
         offset += 40
       end
     end
-    if @twitter_image.comment
+    if @twitter_image.comment.present?
       offset += 40
       comment_header = Vips::Image.text('Comment', font: 'PT Sans Bold 22')
       base = base.insert(comment_header, 1610, offset)

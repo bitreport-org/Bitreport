@@ -1,0 +1,19 @@
+h1= "#{@twitter_image.symbol} #{@twitter_image.timeframe} #{@twitter_image.timestamp}"
+
+= form_for @twitter_image, html: {class: 'ui form'} do |f|
+  .ui.segment
+    h4.ui.dividing.header Actions
+    = link_to @twitter_image.image_url(:original), download: "#{@twitter_image.symbol} #{@twitter_image.timeframe} #{@twitter_image.timestamp}.png" do
+      .ui.green.right.labeled.icon.button
+        i.download.icon
+        | Download Image
+    = link_to publish_twitter_response_url(@twitter_response), method: :post, confirm: 'This will automatically post to Twitter. Are you sure?' do
+      div class=['ui', 'blue', 'right', 'labeled', 'icon', 'button', (@twitter_image.published_at ? 'disabled' : '')].join(' ')
+        i.twitter.icon
+        | Publish
+
+.ui.segment
+  h4.ui.dividing.header Image
+  = image_tag @twitter_image.image_url(:original), class: 'ui image'
+  h4.ui.dividing.header In reply to
+  = @twitter_response.in_reply_to

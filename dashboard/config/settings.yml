@@ -10,3 +10,8 @@ push:
     public_key: BEGWlY-pPkuEWL3MmJzbynW3tnqve8_-5qBD9M4C1ljUaHJG83mIs8UWsRUlHjplqxtNNAwzRo-k3RjO_PLT5mc=
     private_key: JVQGb7_PDTwQDMaH4nJumsJAz9ssnitGiKeTyht9kCE=
 
+twitter: # Create settings/development.local.yml and fill this there
+  api_key: ''
+  api_secret: ''
+  access_token: ''
+  access_token_secret: ''

@@ -1,10 +1,13 @@
 # frozen_string_literal: true
+
 source 'https://rubygems.org'
 
 git_source(:github) do |repo_name|
   repo_name = "#{repo_name}/#{repo_name}" unless repo_name.include?('/')
   "https://github.com/#{repo_name}.git"
 end
+
+ruby '~> 2.5.1'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails'
@@ -31,12 +34,9 @@ gem 'turbolinks'
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 gem 'jbuilder'
 # Use Redis adapter to run Action Cable in production
-# gem 'redis', '~> 3.0'
+gem 'redis'
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
-
-# Use Capistrano for deployment
-# gem 'capistrano-rails', group: :development
 
 # Manage Users with Devise
 gem 'devise'
@@ -66,6 +66,18 @@ gem 'webpush'
 # Use Service Worker with the Rails asset pipeline
 gem 'serviceworker-rails'
 
+# A Ruby interface to the Twitter API. http://www.rubydoc.info/gems/twitter
+gem 'twitter'
+
+# Simple, efficient background processing for Ruby
+gem 'sidekiq'
+# Lightweight job scheduler extension for Sidekiq
+gem 'sidekiq-scheduler'
+
+gem 'sinatra'
+# Semantic UI, converted to Sass and ready to drop into Rails & Compass
+gem 'semantic-ui-sass', github: 'doabit/semantic-ui-sass'
+
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug', platform: :mri
@@ -75,17 +87,18 @@ end
 
 group :development do
   # Access an IRB console on exception pages or by using <%= console %> anywhere in the code.
-  gem 'web-console'
   gem 'listen'
+  gem 'web-console'
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
   gem 'spring'
   gem 'spring-watcher-listen'
-  # To keep the code clean
-  gem 'rubocop'
   # To make docker debugging possible
   gem 'debase'
   gem 'ruby-debug-ide'
+  # A Ruby static code analyzer and formatter, based on the community Ruby style guide
+  gem 'rubocop', require: false
+  gem 'rubocop-rspec', require: false
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
-gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
+gem 'tzinfo-data', platforms: %i[mingw mswin x64_mingw jruby]
