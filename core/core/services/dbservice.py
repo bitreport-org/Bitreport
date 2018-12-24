@@ -39,8 +39,8 @@ def prepare_postgres():
     # Postgres setup
     db_uri = Conf.POSTGRES_URI
     engine = create_engine(db_uri)
-    sql = 'DROP TABLE IF EXISTS charting;'
-    result = engine.execute(sql)
+    # sql = 'DROP TABLE IF EXISTS charting;'
+    # result = engine.execute(sql)
 
     session = sessionmaker()
     session.configure(bind=engine)
