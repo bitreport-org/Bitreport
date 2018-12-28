@@ -4,6 +4,7 @@ import config
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.orm import sessionmaker
 from core.services.dbservice import Chart
+from core.services.internal import import_numpy, generate_dates
 
 Config = config.BaseConfig()
 engine = create_engine(Config.POSTGRES_URI)
@@ -154,3 +155,37 @@ class Channel():
         std = np.std(short_close[s:e])     
 
         return {'slope': lm[1], 'coef': lm[0], 'std': std, 'last_tsmp': x_dates[-margin]}
+
+
+# Long channels
+def remakeChannel(pair, timeframe, limit=200):
+    start = Config.MAGIC_LIMIT
+    margin = Config.MARGIN
+
+    # Get data
+    data = import_numpy(pair, timeframe, limit)
+    close = data['close'][start:]
+    x_dates = generate_dates(data['date'], timeframe, margin)
+
+    ch = Channel(pair, timeframe, close, x_dates)
+    ch.make()
+    params = ch._last_channel()
+
+    return params
+
+
+def makeLongChannel(pair: str, timeframe:str, x_dates:list, limit:int=200):
+    x_dates = np.array(x_dates) / 10000  # to increase precision
+    params = remakeChannel(pair, timeframe, limit)
+    print('params', params)
+
+    slope = params['slope']
+    coef = params['coef']
+    std = params['std']
+
+    band = slope * x_dates + coef
+    upper_band = band + std
+    lower_band = band - std
+
+    return {'upper_band': upper_band.tolist(), 'lower_band': lower_band.tolist(),
+            'middle_band': [], 'info': []}

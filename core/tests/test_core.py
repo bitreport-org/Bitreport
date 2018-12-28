@@ -111,7 +111,7 @@ class TestTA(object):
 		response = response.json()
 		indicators = response.get('indicators', {})
 		keys = indicators.keys()
-		required_keys =  ['channel', 'wedge', 'levels']
+		required_keys =  ['channel', 'wedge', 'levels', 'channel12']
 
 		for k in required_keys:
 			assert k in keys
@@ -125,7 +125,7 @@ class TestTA(object):
 		assert isinstance(response, dict)
 		
 		indicators = response.get('indicators')
-		keys_to_check = ['channel', 'wedge', 'BB', 'KC']
+		keys_to_check = ['channel', 'wedge', 'BB', 'KC', 'channel12']
 
 		for k in keys_to_check:
 			key_list = indicators.get(k).keys() 

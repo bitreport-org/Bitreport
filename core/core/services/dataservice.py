@@ -1,10 +1,8 @@
 import numpy as np
 import traceback
-import os
 import talib #pylint: skip-file
 
 from scipy.stats import linregress
-from sklearn.externals import joblib
 from core.services import internal
 from core.ta import indicators, levels, channels, wedge
 
@@ -32,18 +30,18 @@ class PairData:
         # Prepare price
         status, price, volume = self._makePrice()
         if not status:
-            message = 'Empty database response {}'.format(self.pair+self.timeframe)
+            message = f'Empty database response {self.pair+self.timeframe}'
             return message, 500
 
         # Prepare dates
         dates = internal.generate_dates(self.data['date'], self.timeframe, self.margin)
-        self.output.update(dates = dates[self.magic_limit:])
+        self.output.update(dates=dates[self.magic_limit:])
 
         # Prepare indicators
         indicators_dict = self._makeIndicators()
-        indicators_dict.update(price = price)
-        indicators_dict.update(volume = volume)
-        self.output.update(indicators = indicators_dict)
+        indicators_dict.update(price=price)
+        indicators_dict.update(volume=volume)
+        self.output.update(indicators=indicators_dict)
 
         return self.output, 200
     
@@ -66,16 +64,16 @@ class PairData:
         self.data = data
 
         # Candles
-        price = dict(open = data['open'].tolist()[self.magic_limit:],
-                        high = data['high'].tolist()[self.magic_limit:],
-                        close =  data['close'].tolist()[self.magic_limit:],
-                        low = data['low'].tolist()[self.magic_limit:],
-                        )
+        price = dict(open=data['open'].tolist()[self.magic_limit:],
+                     high=data['high'].tolist()[self.magic_limit:],
+                     close= data['close'].tolist()[self.magic_limit:],
+                     low=data['low'].tolist()[self.magic_limit:],
+                    )
 
         info_price = self._makeInfoPrice()
         price.update(info = info_price)
 
-        volume_values = data['volume'] #np.array
+        volume_values = data['volume']  # np.array
         info_volume = self._makeInfoVolume(volume_values)
         volume = dict(volume = volume_values.tolist()[self.magic_limit:], info = info_volume)
 
@@ -145,7 +143,7 @@ class PairData:
             try:
                 indicators_values[indicator.__name__] = indicator(self.data)
             except:
-                self.app.logger.warning('Indicator {}, error: /n {}'.format(indicator, traceback.format_exc()))
+                self.app.logger.warning(f'Indicator {indicator}, error: /n {traceback.format_exc()}')
                 pass
 
         # Channels
@@ -153,9 +151,14 @@ class PairData:
         dates = self.output.get('dates')
         try:
             ch = channels.Channel(self.pair, self.timeframe, close, dates)
-            indicators_values['channel']= ch.make()
+            indicators_values['channel'] = ch.make()
         except:
-            self.app.logger.warning('Indicator {}, error: /n {}'.format('channel', traceback.format_exc()))
+            self.app.logger.warning(f'Indicator channel, error: /n {traceback.format_exc()}')
+            pass
+        try:
+            indicators_values['channel12'] = channels.makeLongChannel(self.pair, '12h', dates)
+        except:
+            self.app.logger.warning(f'Indicator channel12, error: /n {traceback.format_exc()}')
             pass
         
         # Wedges
@@ -163,7 +166,7 @@ class PairData:
             wg = wedge.Wedge(self.pair, self.timeframe, close, dates)
             indicators_values['wedge'] = wg.make()
         except:
-            self.app.logger.warning('Indicator {}, error: /n {}'.format('channel', traceback.format_exc()))
+            self.app.logger.warning(f'Indicator wedge, error: /n {traceback.format_exc()}')
             pass
 
         # Levels
