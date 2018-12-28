@@ -4,16 +4,14 @@ import traceback
 import config
 
 from flask import Flask, request, jsonify
-from time import sleep
-from influxdb import InfluxDBClient
 from core.services import dbservice, dataservice, exchanges
 
 app = Flask(__name__)
 
 # Logger
-logging.basicConfig(level = logging.DEBUG,
-                    filename = 'app.log',
-                    format = '%(asctime)s - core - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.DEBUG,
+                    filename='app.log',
+                    format='%(asctime)s - core - %(levelname)s - %(message)s')
 console = logging.StreamHandler()
 console.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - core - %(levelname)s - %(message)s')
@@ -21,14 +19,13 @@ console.setFormatter(formatter)
 app.logger.addHandler(console)
 
 
-
 # Config
 conf = config.BaseConfig()
 dbservice.connect_influx(app)
 dbservice.prepare_postgres()
 
-# API
 
+# API
 @app.route('/<pair>', methods=['GET'])
 def data_service(pair: str):
     if request.method == 'GET':
@@ -36,7 +33,7 @@ def data_service(pair: str):
         limit = request.args.get('limit', default=15, type=int)
         untill = request.args.get('untill', default=None, type=int)
 
-        app.logger.info('Request for {} {} limit {} untill {}'.format(pair, timeframe, limit, untill))
+        app.logger.info(f'Request for {pair} {timeframe} limit {limit} untill {untill}')
 
         data = dataservice.PairData(app, pair, timeframe, limit, untill)
         output, code = data.prepare()
@@ -56,7 +53,6 @@ def exchange_service():
         return 404
 
 
-
 @app.route('/fill', methods=['POST'])
 def fill_service():
     if request.method == 'POST':
@@ -72,21 +68,6 @@ def fill_service():
                 return 'Request failed', 500
         else:
             return 'Pair or exchange not provided', 500
-    else:
-        return 404
-
-
-@app.route('/log', methods=['GET'])
-def log_service():
-    if request.method == 'GET':
-        try:
-            with open('app.log') as log:
-                text = ""
-                for line in log:
-                    text += line
-            return '<pre>{}</pre>'.format(text)
-        except:
-            return 'No logfile', 500
     else:
         return 404
 
