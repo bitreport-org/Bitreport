@@ -149,9 +149,9 @@ class PairData:
                 pass
 
         # Channels
+        close = self.data.get('close', np.array([]))
+        dates = self.output.get('dates')
         try:
-            close = self.data.get('close', np.array([]))
-            dates = self.output.get('dates')
             ch = channels.Channel(self.pair, self.timeframe, close, dates)
             indicators_values['channel']= ch.make()
         except:
@@ -160,7 +160,8 @@ class PairData:
         
         # Wedges
         try:
-            indicators_values['wedge']= wedge.wedge(self.data)
+            wg = wedge.Wedge(self.pair, self.timeframe, close, dates)
+            indicators_values['wedge'] = wg.make()
         except:
             self.app.logger.warning('Indicator {}, error: /n {}'.format('channel', traceback.format_exc()))
             pass

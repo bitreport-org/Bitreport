@@ -58,9 +58,7 @@ class Channel():
     def make(self):
         new_params = self._channel(self.close, self.x_dates)
         params = self._last_channel()
-        print(new_params)
-        print(params)
-        
+
         # Compare channels
         if params: # if no previous history
             # Check if price is out of the channel
