@@ -169,6 +169,12 @@ class PairData:
             self.app.logger.warning(f'Indicator wedge, error: /n {traceback.format_exc()}')
             pass
 
+        try:
+            indicators_values['wedge12'] = wedge.makeLongWedge(self.pair, '12h', dates)
+        except:
+            self.app.logger.warning(f'Indicator wedge12, error: /n {traceback.format_exc()}')
+            pass
+
         # Levels
         try:
             indicators_values.update(levels = levels.prepareLevels(self.data))

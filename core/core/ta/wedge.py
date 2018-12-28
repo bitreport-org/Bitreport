@@ -4,6 +4,7 @@ import config
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from core.services.dbservice import Chart
+from core.services.internal import import_numpy, generate_dates
 
 Config = config.BaseConfig()
 engine = create_engine(Config.POSTGRES_URI)
@@ -70,7 +71,7 @@ class Wedge():
         params = self._last_wedge()
         
         # Compare channels
-        if params:
+        if params['upper_a']:
             # Check if price is out of the channel
             if self._compare(params):
                 params = new_params
@@ -191,3 +192,37 @@ class Wedge():
 
             return info
 
+# Long channels
+def remakeWedge(pair, timeframe, limit=200):
+    start = Config.MAGIC_LIMIT
+    margin = Config.MARGIN
+
+    # Get data
+    data = import_numpy(pair, timeframe, limit)
+    close = data['close'][start:]
+    x_dates = generate_dates(data['date'], timeframe, margin)
+
+    wg = Wedge(pair, timeframe, close, x_dates)
+    wg.make()
+    params = wg._last_wedge()
+
+    return params
+
+
+def makeLongWedge(pair: str, timeframe: str, x_dates: list, limit: int=200):
+    x_dates = np.array(x_dates) / 10000  # to increase precision
+    params = remakeWedge(pair, timeframe, limit)
+    print('params', params)
+
+    upper_band = np.array([])
+    lower_band = np.array([])
+
+    if params['upper_a']:  # If wedge exists
+        upper_band = params['upper_a'] * x_dates + params['upper_b']
+        lower_band = params['lower_a'] * x_dates + params['lower_b']
+
+        s = np.sum([u > l for u, l in zip(upper_band, lower_band)])
+        upper_band, lower_band = upper_band[:s], lower_band[:s]
+
+    return {'upper_band': upper_band.tolist(), 'lower_band': lower_band.tolist(),
+            'middle_band': [], 'info': []}
