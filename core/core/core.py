@@ -6,6 +6,15 @@ import config
 from flask import Flask, request, jsonify
 from core.services import dbservice, dataservice, exchanges
 
+# Sentry setup
+import sentry_sdk
+from sentry_sdk.integrations.flask import FlaskIntegration
+
+sentry_sdk.init(
+    dsn="https://000bf6ba6f0f41a6a1cbb8b74f494d4a@sentry.io/1359679",
+    integrations=[FlaskIntegration()]
+)
+
 app = Flask(__name__)
 
 # Logger
