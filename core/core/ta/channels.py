@@ -1,248 +1,186 @@
 import numpy as np
 import talib #pylint: skip-file
 import config
+from core.services.dbservice import Chart, make_session
+from core.services.internal import import_numpy, generate_dates
 
-config = config.BaseConfig()
+Config = config.BaseConfig()
+session = make_session()
 
+class Channel():
+    def __init__(self, pair, timeframe, close, x_dates):
+        self.pair = pair
+        self.timeframe = timeframe
+        self.close = close
+        self.x_dates = np.array(x_dates) / 10000 # to increase precision
+        self.type = 'channel'
+        self.margin = Config.MARGIN
+        self.start = Config.MAGIC_LIMIT
 
-def channel(data: dict, sma_type: int = 50):
-    margin = config.MARGIN
-    start = config.MAGIC_LIMIT
-    close = data.get('close')[start:]
-    limit = close.size
-    
-    sma = talib.SMA(data.get('close'), timeperiod = sma_type)
-    sma = (close - sma[start:]) / sma[start:]
-    sma = np.where(sma >=0, 1., -1.)
-    filter_value =5
-    f1 = np.where(talib.SMA(sma, timeperiod = filter_value)[filter_value:] >= 0.0, 1., -1.)
-    f2 = np.where(talib.SMA(f1, timeperiod = 2) == 0.0 , 1., 0.)
-    points, = np.where(f2>0)
-    ch_points = np.array([0] + (points+filter_value).tolist())
-
-    def _make(start, end, close):
-        x = np.arange(start, end)
-        y = close[start:end]
-        lm = np.poly1d(np.polyfit(x,y, 1))
-        std = np.std(close[start:end])     
-        return lm, std
-    
-    
-    # If price was below / above the SMA then ch_points could contain only 1 point
-    if len(ch_points) < 2:
-        if ch_points == []:
-            s, e = 0, limit
-        elif ch_points[0] < limit/2.0:
-            s, e = ch_points[0], limit
-        else:
-            s, e = 0, ch_points[0]
-
-    else:
-        # Find longest channel
-        lenghts = ch_points[1:] - ch_points[:-1]
-        s_position = np.where(lenghts == np.max(lenghts))[0][0]
-        s, e = ch_points[s_position], ch_points[s_position+1]
-    
-    # Calculate channel and slope
-    lm, std =  _make(s,e, close)
-    slope = lm[1]
-    
-    # Prepare channel
-    x = np.arange(close.size + margin)
-    up_channel= lm(x) + 2 * std
-    bottom_channel = lm(x) - 2 * std
-    
-     # TOKENS
-    info = []
-    p = ( close[-1] - bottom_channel[-1-margin] ) / (up_channel[-1-margin]-bottom_channel[-1-margin]) 
-
-    # Price Tokens
-    if p > 1:
-        info.append('PRICE_BREAK_UP')
-    elif p < 0:
-        info.append('PRICE_BREAK_DOWN')
-    elif p > 0.95:
-        info.append('PRICE_ONBAND_UP')
-    elif p < 0.05:
-        info.append('PRICE_ONBAND_DOWN')
-    else:
-        info.append('PRICE_BETWEEN')
-
-    n_last_points = 10
-    if np.sum(close[-n_last_points:] > up_channel[-n_last_points-margin : -margin]) > 0 and close[-1] < up_channel[-1-margin]:
-        info.append('FALSE_BREAK_UP')
-    elif np.sum(close[-n_last_points:] < bottom_channel[-n_last_points-margin : -margin]) > 0 and close[-1] > bottom_channel[-1-margin]:
-        info.append('FLASE_BREAK_DOWN')
-
-    # Drirection Tokens
-    if slope < -0.2:
-        info.append('DIRECTION_DOWN')
-    elif slope > 0.2:
-        info.append('DIRECTION_UP')
-    else:
-        info.append('DIRECTION_HORIZONTAL')
-
-    return {'upper_band': up_channel.tolist(), 'lower_band': bottom_channel.tolist(), 'middle_band':[], 'info': info}
-    
-
-def parabola(data: dict):
-    #margin = config.MARGIN
-    start = config.MAGIC_LIMIT
-
-    close = data.get('close')[start:]
-    open = data.get('open')[start:]
-    avg = (close + open)/2
-
-    M = np.max(avg)
-    dist = M-avg
-    index1, = np.where(avg == M)
-    index2, = np.where(dist == np.max(dist))
-    l = [index1[0], index2[0]]
-    l.sort()
-    point1, point2 = l
-    
-    # fit parabola
-    x = np.arange(point1, point2)
-    y = avg[point1: point2]
-    parabola = np.poly1d(np.polyfit(x,y,2))
-    std = np.std(y)
-    
-    # prepare channel
-    x = np.arange(avg.size)
-    upperband = parabola(x) + std
-    lowerband = parabola(x) - std
-
-    return {'middle_band': [],
-            'upper_band': upperband.tolist(),
-            'lower_band': lowerband.tolist(),
-            'info': []}
-            
-
-def wedge(data: dict):
-    margin = config.MARGIN
-    start = config.MAGIC_LIMIT
-
-    close, low, high = data['close'][start:], data['low'][start:], data['high'][start:]
-    close_size = close.size
-
-    def make_wedge(t):
-        lower_band, upper_band, width, info = np.array([]), np.array([]), np.array([]), []
+    def _last_channel(self):
+        last = session.query(Chart).filter_by(type = self.type, timeframe = self.timeframe,
+                                                pair = self.pair).order_by(Chart.id.desc()).first()
+        params = None
+        if last is not None:
+            params = last.params
         
-        if t == 'falling':
-            f0 = talib.MAXINDEX
-            f1 = np.max
-            f2 = talib.MININDEX
-            f3 = np.min
+        return params
+
+    def _save_channel(self, params):
+        ch = Chart( pair = self.pair, timeframe = self.timeframe, 
+                    type = self.type, params = params)
+        session.add(ch)
+        session.commit()
+
+    def _compare(self, params):
+
+        candles2check = 20
+        slope = params['slope']
+        coef = params['coef']
+        std = params['std']
+        up_channel= slope * self.x_dates[-candles2check:] + coef + 2 * std
+        bottom_channel = slope * self.x_dates[-candles2check:] + coef - 2 * std
+
+        # Check price position
+        price = self.close[-candles2check:]
+        above = price > up_channel
+        below = price < bottom_channel
+
+        threshold = 0.8
+        if np.sum(above)/candles2check > threshold or np.sum(below)/candles2check> threshold:
+            return True
         else:
-            f0 = talib.MININDEX
-            f1 = np.min
-            f2 = talib.MAXINDEX
-            f3 = np.max
+            return False
 
-        lower_band, upper_band = np.array([]), np.array([])
-        point1 = f0(close, timeperiod=close_size)[-1]
-    
-        end = close_size-5
-        threshold = 10
-        if point1 < close_size - 30:
-            # Band 1
-            a_values = np.divide(np.array(close[point1 + threshold : end+1]) - close[point1], np.arange(point1 + threshold, end+1) - point1)
-            a1 = f1(a_values)
-            b1 = close[point1] - a1 * point1
+    def make(self):
+        new_params = self._channel(self.close, self.x_dates)
+        params = self._last_channel()
 
-            # End point
-            point2, = np.where(a_values == a1)[0]
-            point2 = ( point1 + threshold ) + point2 
+        # Compare channels
+        if params: # if no previous history
+            # Check if price is out of the channel
+            if self._compare(params):
+                params = new_params
+                self._save_channel(params)
+        else:
+            params = new_params
+            self._save_channel(params)
 
-            # Mid point
-            point3 = point1 + f2(close[point1 : point2], timeperiod=len(close[point1: point2]))[-1]
-            point3_value = close[point3]
-            
-            # Band 2
-            a_values = np.divide(np.array(close[point3+5 : end+1]) - point3_value, np.arange(point3+5, end+1) - point3)
-            a2 = f3(a_values)
-            b2 = close[point3] - a2 * point3
+        # Prepare channel
+        slope = params['slope']
+        coef = params['coef']
+        std = params['std']
+        up_channel= slope * self.x_dates + coef + 2 * std
+        bottom_channel = slope * self.x_dates + coef - 2 * std
+        
+        # TOKENS
+        short_close = self.close[self.start:]
+        info = self._tokens(short_close, up_channel, bottom_channel, slope)
+        
+        return {'upper_band': up_channel.tolist(), 'lower_band': bottom_channel.tolist(), 
+                'middle_band':[], 'info': info}
 
-            # Create upper and lower band
-            if t == 'falling':
-                upper,lower = np.array([a1, b1]), np.array([a2, b2])
-                upper_band = a1 * np.arange(close_size) + b1
-                lower_band = a2 * np.arange(close_size) + b2
+    def _tokens(self, close, upper_band, lower_band, slope):
+        margin = self.margin
+        info = []
+        p = ( close[-1] - lower_band[-1-margin] ) / (upper_band[-1-margin]-lower_band[-1-margin]) 
+
+        # Price Tokens
+        if p > 1:
+            info.append('PRICE_BREAK_UP')
+        elif p < 0:
+            info.append('PRICE_BREAK_DOWN')
+        elif p > 0.95:
+            info.append('PRICE_ONBAND_UP')
+        elif p < 0.05:
+            info.append('PRICE_ONBAND_DOWN')
+        else:
+            info.append('PRICE_BETWEEN')
+
+        n_last_points = 10
+        if np.sum(close[-n_last_points:] > upper_band[-n_last_points-margin : -margin]) > 0 and close[-1] < upper_band[-1-margin]:
+            info.append('FALSE_BREAK_UP')
+        elif np.sum(close[-n_last_points:] < lower_band[-n_last_points-margin : -margin]) > 0 and close[-1] > lower_band[-1-margin]:
+            info.append('FLASE_BREAK_DOWN')
+
+        # Drirection Tokens
+        if slope < -0.2:
+            info.append('DIRECTION_DOWN')
+        elif slope > 0.2:
+            info.append('DIRECTION_UP')
+        else:
+            info.append('DIRECTION_HORIZONTAL')
+        
+        return info
+
+    def _channel(self, close, x_dates, sma_type: int = 50):
+        margin = self.margin
+        start = self.start
+        limit = close.size
+        short_close = close[start:]
+
+        sma = talib.SMA(close, timeperiod = sma_type)
+        sma = (short_close - sma[start:]) / sma[start:]
+        sma = np.where(sma >=0, 1., -1.)
+        filter_value =5
+        f1 = np.where(talib.SMA(sma, timeperiod = filter_value)[filter_value:] >= 0.0, 1., -1.)
+        f2 = np.where(talib.SMA(f1, timeperiod = 2) == 0.0 , 1., 0.)
+        points, = np.where(f2>0)
+        ch_points = np.array([0] + (points+filter_value).tolist())
+
+        
+        # If price was below / above the SMA then ch_points could contain only 1 point
+        if len(ch_points) < 2:
+            if ch_points == []:
+                s, e = 0, limit
+            elif ch_points[0] < limit/2.0:
+                s, e = ch_points[0], limit
             else:
-                upper,lower = np.array([a2, b2]), np.array([a1, b1])
-                upper_band = a2 * np.arange(close_size) + b2
-                lower_band = a1 * np.arange(close_size) + b1
+                s, e = 0, ch_points[0]
+        else:
+            # Find longest channel
+            lenghts = ch_points[1:] - ch_points[:-1]
+            s_position = np.where(lenghts == np.max(lenghts))[0][0]
+            s, e = ch_points[s_position], ch_points[s_position+1]
+        
+        # Calculate channel and slope
+        x = x_dates[:-margin][s: e]
+        y = short_close[s: e]
 
-            # Shape Tokens
-            width = upper_band - lower_band 
-            if width[-1]/width[0] > 0.90:
-                info.append('SHAPE_PARALLEL')
-            elif width[-1]/width[0] < 0.5:
-                info.append('SHAPE_TRIANGLE')
-            else:
-                info.append('SHAPE_CONTRACTING')
+        lm = np.poly1d(np.polyfit(x,y, 1))
+        std = np.std(short_close[s:e])     
 
-            # Break Tokens
-            if close[-1] > upper_band[-1]:
-                info.append('PRICE_BREAK_UP')
-            elif close[-1] < lower_band[-1]:
-                info.append('PRICE_BREAK_DOWN')
+        return {'slope': lm[1], 'coef': lm[0], 'std': std, 'last_tsmp': x_dates[-margin]}
 
-            # Price Tokens
-            if 1 >= (close[-1]-lower_band[-1])/width[-1] >= 0.95:
-                info.append('PRICE_ONBAND_UP')
-            elif 0 <= (close[-1]-lower_band[-1])/width[-1] <= 0.05:
-                info.append('PRICE_ONBAND_DOWN')
-            else:
-                info.append('PRICE_BETWEEN')
 
-            n_last_points = 10
-            if np.sum(close[-n_last_points:] > upper_band[-n_last_points:]) > 0 and close[-1] < upper_band[-1]:
-                info.append('BOUNCE_UPPER')
-            elif np.sum(close[-n_last_points:] < lower_band[-n_last_points:]) > 0 and close[-1] > lower_band[-1]:
-                info.append('BOUNCE_LOWER')
-            
-            # Direction Tokens
-            wedge_dir = ((lower_band[-1] + .5*width[-1]) - (lower_band[0] + .5*width[0])) / lower_band.size
-            if wedge_dir > 0.35:
-                info.append('DIRECTION_UP')
-            elif wedge_dir < -0.35:
-                info.append('DIRECTION_DOWN')
-            else:
-                info.append('DIRECTION_HORIZONTAL')
+# Long channels
+def remakeChannel(pair, timeframe, limit=200):
+    start = Config.MAGIC_LIMIT
+    margin = Config.MARGIN
 
-            # Wedge extension
-            cross_point = close_size
-            for i in range(margin):
-                new_point_up = np.sum(upper * [close_size+i, 1])
-                new_point_down = np.sum(lower * [close_size+i, 1])
-                if new_point_up > new_point_down:
-                    cross_point += i
-                    upper_band = np.append(upper_band, new_point_up)
-                    lower_band = np.append(lower_band, new_point_down)
+    # Get data
+    data = import_numpy(pair, timeframe, limit)
+    close = data['close'][start:]
+    x_dates = generate_dates(data['date'], timeframe, margin)
 
-            # Position Tokens
-            # TODO: maybe we should count bounces?
-            price_pos = (close_size - point1) / (cross_point - point1)
-            if (price_pos > .85) and ('SHAPE_TRIANGLE' in info):
-                info.append('ABOUT_END')
+    ch = Channel(pair, timeframe, close, x_dates)
+    ch.make()
+    params = ch._last_channel()
 
-        return upper_band, lower_band, width, info
+    return params
 
-    # Falling wedge
-    upper_band, lower_band, width, info = make_wedge('falling')
 
-    # Check if wedge makes sense
-    if width.size > 0  and width[0] - width[-1] < 0: 
-        # Rising wedge
-        upper_band, lower_band, width, info = make_wedge('raising')
-        # Check if wedge makes sense
-        if width.size > 0  and width[0] - width[-1] < 0:
-            lower_band, upper_band = np.array([]), np.array([])
-            info = []
-      
+def makeLongChannel(pair: str, timeframe:str, x_dates:list, limit:int=200):
+    x_dates = np.array(x_dates) / 10000  # to increase precision
+    params = remakeChannel(pair, timeframe, limit)
 
-    return {'upper_band': upper_band.tolist(),
-            'middle_band': [],
-            'lower_band': lower_band.tolist(),
-            'info': info}
+    slope = params['slope']
+    coef = params['coef']
+    std = params['std']
+
+    band = slope * x_dates + coef
+    upper_band = band + std
+    lower_band = band - std
+
+    return {'upper_band': upper_band.tolist(), 'lower_band': lower_band.tolist(),
+            'middle_band': [], 'info': []}

@@ -4,12 +4,11 @@ import traceback
 import config
 
 from flask import Flask, request, jsonify
-from time import sleep
-from influxdb import InfluxDBClient
-from core.services import dbservice, dataservice
+from core.services import dbservice, dataservice, exchanges
+
+# Sentry setup
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
-from sentry_sdk import capture_exception
 
 sentry_sdk.init(
     dsn="https://000bf6ba6f0f41a6a1cbb8b74f494d4a@sentry.io/1359679",
@@ -18,11 +17,10 @@ sentry_sdk.init(
 
 app = Flask(__name__)
 
-
 # Logger
-logging.basicConfig(level = logging.DEBUG,
-                    filename = 'app.log',
-                    format = '%(asctime)s - core - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.DEBUG,
+                    filename='app.log',
+                    format='%(asctime)s - core - %(levelname)s - %(message)s')
 console = logging.StreamHandler()
 console.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - core - %(levelname)s - %(message)s')
@@ -30,23 +28,13 @@ console.setFormatter(formatter)
 app.logger.addHandler(console)
 
 
-
 # Config
 conf = config.BaseConfig()
+dbservice.connect_influx(app)
+dbservice.prepare_postgres()
 
-# Wait for connection to InfluxDB
-status = True
-while status:
-    try:
-        client = InfluxDBClient(conf.HOST, conf.PORT, 'root', 'root', conf.DBNAME)
-        client.create_database(conf.DBNAME)
-        status = False
-    except:
-        app.logger.info('Waiting for InfluxDB...')
-        sleep(3)
 
 # API
-
 @app.route('/<pair>', methods=['GET'])
 def data_service(pair: str):
     if request.method == 'GET':
@@ -54,7 +42,7 @@ def data_service(pair: str):
         limit = request.args.get('limit', default=15, type=int)
         untill = request.args.get('untill', default=None, type=int)
 
-        app.logger.info('Request for {} {} limit {} untill {}'.format(pair, timeframe, limit, untill))
+        app.logger.info(f'Request for {pair} {timeframe} limit {limit} untill {untill}')
 
         data = dataservice.PairData(app, pair, timeframe, limit, untill)
         output, code = data.prepare()
@@ -68,14 +56,9 @@ def data_service(pair: str):
 def exchange_service():
     if request.method == 'GET':
         pair = request.args.get('pair', default='BTCUSD', type=str)
-        exchange = dbservice.check_exchange(pair)
+        exchange = exchanges.check_exchange(pair)
         return jsonify(exchange)
     else:
-        return 404
-
-@app.route('/events', methods=['GET'])
-def event_service():
-    if request.method == 'GET':
         return 404
 
 
@@ -88,27 +71,12 @@ def fill_service():
 
         if pair and exchange:
             try:
-                return dbservice.pair_fill(app, pair, exchange, force)
+                return exchanges.pair_fill(app, pair, exchange, force)
             except:
                 app.logger.warning(traceback.format_exc())
                 return 'Request failed', 500
         else:
             return 'Pair or exchange not provided', 500
-    else:
-        return 404
-
-
-@app.route('/log', methods=['GET'])
-def log_service():
-    if request.method == 'GET':
-        try:
-            with open('app.log') as log:
-                text = ""
-                for line in log:
-                    text += line
-            return '<pre>{}</pre>'.format(text)
-        except:
-            return 'No logfile', 500
     else:
         return 404
 

@@ -1,4 +1,4 @@
-FROM python:3.6
+FROM python:3.6.7
 
 # TA-lib dependencies
 RUN curl -s -L http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz | tar -xz && \
