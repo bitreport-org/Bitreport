@@ -15,7 +15,6 @@ from sentry_sdk.integrations.flask import FlaskIntegration
 conf = config.BaseConfig
 dictConfig(conf.LOGGER)
 
-print('Prod setup: ', conf.PROD, type(conf.PROD), conf.PROD==True)
 
 if conf.PROD:
     sentry_sdk.init(
