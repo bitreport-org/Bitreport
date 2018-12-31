@@ -41,7 +41,7 @@ def bitfinex_fill(app, client, pair: str, force: bool = False):
             elif timeframe == '168h':
                 timeframeR = '7D'
 
-            url = 'https://api.bitfinex.com/v2/candles/trade:{}:t{}/hist?limit={}'.format(timeframeR, pair, limit)
+            url = f'https://api.bitfinex.com/v2/candles/trade:{timeframeR}:t{pair}/hist?limit={limit}'
             request = requests.get(url)
             response = request.json()
 
@@ -64,11 +64,11 @@ def bitfinex_fill(app, client, pair: str, force: bool = False):
                     count += 1
                 try:
                     client.write_points(points)
-                    m = 'SUCCEDED write {} / {} records for {}'.format(count, len(response), name)
+                    m = f'SUCCEDED write {count} / {len(response)} records for {name}'
                     app.logger.info(m)
                     status = True
                 except:
-                    m = 'FAILED to write records for {}'.format(name)
+                    m = f'FAILED to write records for {name}'
                     app.logger.warning(m)
                     return False
 
@@ -85,16 +85,16 @@ def bitfinex_fill(app, client, pair: str, force: bool = False):
                                 "INTO {} FROM {}1h WHERE time <= '{}' GROUP BY time({})".format(pair+tf, pair, time_now,  tf)
                         client.query(query)
                     except:
-                        m = 'FAILED {} downsample {} error: \n {}'.format(tf, pair, traceback.format_exc())
+                        m = f'FAILED {tf} downsample {pair} error: \n {traceback.format_exc()}'
                         app.logger.warning(m)
                         pass
 
             else:
-                m = 'FAILED {} Bitfinex response: {}'.format(name, response[-1])
+                m = f'FAILED {name} Bitfinex response: {response[-1]}'
                 app.logger.warning(m)
                 status = False
         else:
-            app.logger.warning('Data is up to date for {}'.format(pair))
+            app.logger.info('Data is up to date for {pair}')
             status = False
 
     return status
@@ -119,7 +119,7 @@ def bittrex_fill(app, client, pair: str, force: bool = False):
     for tf, btf in zip(timeframes, bittrex_tf):
         name = pair + tf
         try:
-            url = 'https://bittrex.com/Api/v2.0/pub/market/GetTicks?marketName={}&tickInterval={}'.format(req_pair, btf)
+            url = f'https://bittrex.com/Api/v2.0/pub/market/GetTicks?marketName={req_pair}&tickInterval={btf}'
             request = requests.get(url)
             response = request.json()
 
@@ -145,11 +145,11 @@ def bittrex_fill(app, client, pair: str, force: bool = False):
                         count +=1
                     try:
                         client.write_points(points)
-                        m = 'SUCCEDED write {} / {} records for {}'.format(count, len(candle_list), name)
+                        m = f'SUCCEDED write {count} / {len(candle_list)} records for {name}'
                         app.logger.info(m)
                         status = True
                     except:
-                        m = 'FAILED to write records for {}'.format(name)
+                        m = f'FAILED to write records for {name}'
                         app.logger.warning(m)
                         return False
 
@@ -165,20 +165,20 @@ def bittrex_fill(app, client, pair: str, force: bool = False):
                             client.query(query)
 
                         except:
-                            m = 'FAILED {} downsample {} error: \n {}'.format( tf, pair, traceback.format_exc())
+                            m = f'FAILED {tf} downsample {pair} error: \n {traceback.format_exc()}'
                             app.logger.warning(m)
                             pass
                 else:
-                    m = 'FAILED write {}'.format(name)
+                    m = f'FAILED write {name}'
                     app.logger.warning(m)
                     pass
 
             else:
-                m = 'FAILED {} Bitrex response: {}'.format(name, response.get('message','no message'))
+                m = f"FAILED {name} Bitrex response: {response.get('message','no message')}"
                 app.logger.warning(m)
 
         except:
-            m = 'FAILED Bitrex api request for {}'.format(name)
+            m = f'FAILED Bitrex api request for {name}'
             app.logger.warning(m)
             status = False
 
@@ -221,7 +221,7 @@ def binance_fill(app, client, pair: str, force: bool = False):
                 timeframeR = '1w'
 
             # max last 500 candles
-            url = 'https://api.binance.com/api/v1/klines?symbol={}&interval={}&limit={}'.format(req_pair, timeframeR, min(int(limit)+1, 500))
+            url = f'https://api.binance.com/api/v1/klines?symbol={req_pair}&interval={timeframeR}&limit={min(int(limit)+1, 500)}'
             request = requests.get(url)
             response = request.json()
 
@@ -245,12 +245,12 @@ def binance_fill(app, client, pair: str, force: bool = False):
                     count += 1
                 try:
                     client.write_points(points, retention_policy = 'autogen')
-                    m = 'SUCCEDED write {} / {} records for {}'.format(count, len(response), name)
+                    m = f'SUCCEDED write {count} / {len(response)} records for {name}'
                     app.logger.info(m)
                     status = True
                     
                 except:
-                    m = 'FAILED to write records for {}'.format(name)
+                    m = f'FAILED to write records for {name}'
                     app.logger.warning(m)
                     return False
 
@@ -342,11 +342,11 @@ def poloniex_fill(app, client, pair: str, force: bool = False):
                     count += 1
                 try:
                     client.write_points(points)
-                    m = 'SUCCEDED write {} / {} records for {}'.format(count, len(response), name)
+                    m = f'SUCCEDED write {count} / {len(response)} records for {name}'
                     app.logger.info(m)
                     status = True
                 except:
-                    m = 'FAILED to write records for {}'.format(name)
+                    m = f'FAILED to write records for {name}'
                     app.logger.warning(m)
                     return False
 
@@ -361,11 +361,11 @@ def poloniex_fill(app, client, pair: str, force: bool = False):
                                 "INTO {} FROM {} WHERE time <= '{}' GROUP BY time({})" .format(pair+tf, pair+timeframe, time_now,  tf)
                         client.query(query)
                     except:
-                        m = 'FAILED {} downsample {} error: \n {}'.format( tf, pair, traceback.format_exc())
+                        m = f'FAILED {tf} downsample {pair} error: \n {traceback.format_exc()}'
                         app.logger.warning(m)
                         pass
             else:
-                m = 'FAILED {} Poloniex response: {}'.format(name, response.get('error', 'no error'))
+                m = f'FAILED {name} Poloniex response: {response.get("error", "no error")}'
                 app.logger.warning(m)
                 status = False
 
@@ -392,7 +392,7 @@ def pair_fill(app, pair, exchange, force):
 
     # Check if filler exists
     if not filler:
-        m = '{} exchange does not exist'.format(exchange)
+        m = f'{exchange} exchange does not exist'
         app.logger.warning(m)
         return 'Failed', 500
 
@@ -401,7 +401,7 @@ def pair_fill(app, pair, exchange, force):
         
     if result:
         toc = time.time()
-        m = '{} filled from {} fill time: {:.2f} ms'.format( pair, exchange, (toc-tic)*1000)
+        m = f'{pair} filled from {exchange} fill time: {(toc-tic)*1000:.2f} ms'
         app.logger.info(m)
         return 'Success', 200
 
@@ -412,7 +412,7 @@ def pair_fill(app, pair, exchange, force):
 def check_exchange(pair: str):
     history = []
     #Bitfinex
-    url = 'https://api.bitfinex.com/v2/candles/trade:{}:t{}/hist?limit={}'.format('1D', pair, 1000)
+    url = f'https://api.bitfinex.com/v2/candles/trade:1D:t{pair}/hist?limit=100'
     request = requests.get(url)
     response = request.json()
     if isinstance(response, list) and response != []:
@@ -424,7 +424,7 @@ def check_exchange(pair: str):
     if end_pair == 'USD':
         end_pair = end_pair + 'T'
     req_pair = end_pair + '-' + start_pair
-    url = 'https://bittrex.com/Api/v2.0/pub/market/GetTicks?marketName={}&tickInterval=24h'.format(req_pair)
+    url = f'https://bittrex.com/Api/v2.0/pub/market/GetTicks?marketName={req_pair}&tickInterval=24h'
     request = requests.get(url)
     response = request.json()
     if response.get('success', False):
@@ -439,7 +439,7 @@ def check_exchange(pair: str):
     if end_pair == 'USD':
         end_pair = end_pair + 'T'
     req_pair = start_pair + end_pair
-    url = 'https://api.binance.com/api/v1/klines?symbol={}&interval={}&limit={}'.format(req_pair, '1d', 500)
+    url = f'https://api.binance.com/api/v1/klines?symbol={req_pair}&interval=1d&limit=500'
     request = requests.get(url)
     response = request.json()
     if isinstance(response,list):
@@ -451,7 +451,7 @@ def check_exchange(pair: str):
     if end_pair == 'USD':
         end_pair = end_pair + 'T'
     req_pair = end_pair + '_' + start_pair
-    url = 'https://poloniex.com/public?command=returnChartData&currencyPair={}&start=339361693&end=9999999999&period=86400'.format(req_pair)
+    url = f'https://poloniex.com/public?command=returnChartData&currencyPair={req_pair}&start=339361693&end=9999999999&period=86400'
     request = requests.get(url)
     response = request.json()
     if isinstance(response, list):

@@ -57,7 +57,7 @@ class PairData:
             data = internal.import_numpy(self.pair, self.timeframe, self.limit + self.magic_limit)
 
         if not data:
-            self.app.logger.warning('Empty database response {}'.format(self.pair+self.timeframe))
+            self.app.logger.warning(f'Empty database response {self.pair+self.timeframe}')
             return False, dict(), dict()
 
         # Add data

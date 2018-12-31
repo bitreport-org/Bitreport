@@ -44,7 +44,7 @@ def import_numpy_untill(pair, timeframe, limit, untill):
     port = conf.PORT
     client = InfluxDBClient(host, port, 'root', 'root', db)
     # Perform query and return JSON data
-    query = "SELECT * FROM {} WHERE time <= {} ORDER BY time DESC LIMIT {}".format(pair+timeframe, untill*1000000000, limit)
+    query = f"SELECT * FROM {pair+timeframe} WHERE time <= {untill*1000000000} ORDER BY time DESC LIMIT {limit}"
     params = 'db={}&q={}&epoch=s'.format(db, query)
     try:
         r = client.request('query', params=params).json()['results'][0]['series'][0]
