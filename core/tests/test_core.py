@@ -25,9 +25,9 @@ class TestData(object):
 
 	def test_get_pair_0(self):
 		# Assure a response and that if 200 then it is a dictionary
-		response = getpair(self.pair,self.timeframe, self.limit)
+		response = getpair(self.pair, self.timeframe, self.limit)
 		assert response.status_code == 200
-		
+
 		response = response.json()
 		assert isinstance(response,dict)
 
@@ -37,22 +37,22 @@ class TestData(object):
 		assert response.status_code == 200
 		response = response.json()
 		assert isinstance(response, dict)
-		
+
 		keys = response.keys()
 		required_keys = ['dates', 'indicators']
 		for k in keys:
 			assert k in required_keys
-		
+
 		assert len(keys) == len(required_keys)
 
 	def test_get_pair_2(self):
 		# Assure that there is price and it has required keys and that the price data has equal lenght
 		response = getpair(self.pair,self.timeframe, self.limit)
 		assert response.status_code == 200
-		
+
 		response = response.json()
 		assert isinstance(response, dict)
-		
+
 		candles = response['indicators']['price']
 		keys = candles.keys()
 		required_keys = ['close', 'open', 'high', 'low', 'info']
@@ -65,13 +65,13 @@ class TestData(object):
 		# Assure that dates are in interval of timeframe
 		response = getpair(self.pair,self.timeframe, self.limit)
 		assert response.status_code == 200
-		
+
 		response = response.json()
 		assert isinstance(response, dict)
 		dates = response.get('dates', [])
 		assert dates[1]-dates[0] == 3600 * int(self.timeframe[:-1])
-	
-	
+
+
 class TestTA(object):
 	pair = 'BTCUSD'
 	timeframe = '3h'
@@ -111,7 +111,7 @@ class TestTA(object):
 		response = response.json()
 		indicators = response.get('indicators', {})
 		keys = indicators.keys()
-		required_keys =  ['channel', 'wedge', 'levels', 'channel12']
+		required_keys =  ['channel', 'wedge', 'levels', 'channel12', 'wedge12']
 
 		for k in required_keys:
 			assert k in keys
@@ -125,7 +125,7 @@ class TestTA(object):
 		assert isinstance(response, dict)
 		
 		indicators = response.get('indicators')
-		keys_to_check = ['channel', 'wedge', 'BB', 'KC', 'channel12']
+		keys_to_check = ['channel', 'wedge', 'BB', 'KC', 'channel12', 'wedge12']
 
 		for k in keys_to_check:
 			key_list = indicators.get(k).keys() 
