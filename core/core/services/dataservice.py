@@ -178,9 +178,11 @@ class PairData:
 
         # Levels
         try:
-            indicators_values.update(levels = levels.prepareLevels(self.data))
+            lvl = levels.Levels(self.pair, self.timeframe, close, dates)
+            indicators_values['levels'] = lvl.make()
         except:
             logging.error(traceback.format_exc())
-            indicators_values.update(levels = {'support':[], 'resistance':[], 'auto': [], 'info':[]})
+            indicators_values.update(levels={'support': [], 'resistance': [], 'auto': [], 'info': []})
             pass
+
         return indicators_values

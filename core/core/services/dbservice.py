@@ -38,6 +38,16 @@ class Chart(Base):
     params = Column(JSON)
 
 
+class Level(Base):
+    __tablename__ = Conf.LVL_TABLE
+    id = Column(Integer, primary_key=True)
+    pair = Column(String)
+    timeframe = Column(String)
+    tsmp = Column(Integer)
+    type = Column(String)
+    value = Column(Integer)
+
+
 def prepare_postgres():
     # Postgres setup
     con = connect(user=Conf.POSTGRES_USER, host=Conf.POSTGRES_USER, dbname='postgres')

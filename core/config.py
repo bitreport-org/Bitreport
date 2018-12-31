@@ -12,6 +12,7 @@ class BaseConfig(object):
     POSTGRES_DATABSE = 'core'
     POSTGRES_USER = 'postgres'
     CHART_TABLE = 'charting'
+    LVL_TABLE = 'levels'
     LOGGER = {
                 'version': 1,
                 'formatters': {'default': {
