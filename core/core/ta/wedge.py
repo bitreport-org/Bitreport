@@ -1,15 +1,11 @@
 import numpy as np
 import talib #pylint: skip-file
 import config
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from core.services.dbservice import Chart
+from core.services.dbservice import Chart, make_session
 from core.services.internal import import_numpy, generate_dates
 
 Config = config.BaseConfig()
-engine = create_engine(Config.POSTGRES_URI)
-Session = sessionmaker(bind=engine)
-session = Session()
+session = make_session()
 
 
 class Wedge():
@@ -71,7 +67,7 @@ class Wedge():
         params = self._last_wedge()
         
         # Compare channels
-        if params['upper_a']:
+        if params and params['upper_a']:
             # Check if price is out of the channel
             if self._compare(params):
                 params = new_params
@@ -81,7 +77,7 @@ class Wedge():
             self._save_wedge(params)
 
         # Prepare channel
-        if params['upper_a']: # If wedge exists
+        if params and params['upper_a']:  # If wedge exists
             upper_band, lower_band = self._plot(params)
             info = self._tokens(upper_band, lower_band, short_close)
         else:
@@ -212,7 +208,6 @@ def remakeWedge(pair, timeframe, limit=200):
 def makeLongWedge(pair: str, timeframe: str, x_dates: list, limit: int=200):
     x_dates = np.array(x_dates) / 10000  # to increase precision
     params = remakeWedge(pair, timeframe, limit)
-    print('params', params)
 
     upper_band = np.array([])
     lower_band = np.array([])

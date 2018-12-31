@@ -1,15 +1,11 @@
 import numpy as np
 import talib #pylint: skip-file
 import config
-from sqlalchemy import create_engine, MetaData
-from sqlalchemy.orm import sessionmaker
-from core.services.dbservice import Chart
+from core.services.dbservice import Chart, make_session
 from core.services.internal import import_numpy, generate_dates
 
 Config = config.BaseConfig()
-engine = create_engine(Config.POSTGRES_URI)
-Session = sessionmaker(bind=engine)
-session = Session()
+session = make_session()
 
 class Channel():
     def __init__(self, pair, timeframe, close, x_dates):
@@ -177,7 +173,6 @@ def remakeChannel(pair, timeframe, limit=200):
 def makeLongChannel(pair: str, timeframe:str, x_dates:list, limit:int=200):
     x_dates = np.array(x_dates) / 10000  # to increase precision
     params = remakeChannel(pair, timeframe, limit)
-    print('params', params)
 
     slope = params['slope']
     coef = params['coef']
