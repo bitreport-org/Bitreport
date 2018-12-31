@@ -1,7 +1,4 @@
-import os
-
 class BaseConfig(object):
-    PROD = int(os.environ.get("PRODUCTION", '0'))
     DBNAME = 'pairs'
     HOST = 'influx'
     PORT = 8086

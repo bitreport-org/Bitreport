@@ -11,7 +11,7 @@ services:
     build: ./core
     environment:
       - PYTHONUNBUFFERED=1
-      - PRODUCTION=0
+      - FLASK_ENV=development
     depends_on:
       - influx
     ports:

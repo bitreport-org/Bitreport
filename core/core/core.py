@@ -15,15 +15,14 @@ from sentry_sdk.integrations.flask import FlaskIntegration
 conf = config.BaseConfig
 dictConfig(conf.LOGGER)
 
+app = Flask(__name__)
 
-if conf.PROD:
+# Enable Sentry in production
+if app.config['ENV'] == 'production':
     sentry_sdk.init(
         dsn="https://000bf6ba6f0f41a6a1cbb8b74f494d4a@sentry.io/1359679",
         integrations=[FlaskIntegration()]
     )
-
-
-app = Flask(__name__)
 
 # DB connections
 dbservice.connect_influx()
