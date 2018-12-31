@@ -9,6 +9,9 @@ volumes:
 services:
   core:
     build: ./core
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PRODUCTION=0
     depends_on:
       - influx
     ports:

@@ -25,6 +25,9 @@ services:
 
   core:
     build: ./core
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PRODUCTION=1
     depends_on:
       - influx
     ports:
