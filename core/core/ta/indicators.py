@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 import talib #pylint: skip-file
 import numpy as np
-import os
 import config
 
-from sklearn.externals import joblib
 from scipy import stats
 
 config = config.BaseConfig()
@@ -18,7 +16,7 @@ def BB(data, timeperiod=20):
     
     # TOKENS
     info = []
-    band_position = ( close - lowerband ) / (upperband -lowerband)
+    band_position = (close - lowerband) / (upperband -lowerband)
     p = band_position[-1] 
 
     if p > 1:
@@ -32,10 +30,14 @@ def BB(data, timeperiod=20):
     elif 0.40 <= p <= 0.60 :
         info.append('PRICE_BETWEEN')
 
+    # Check Squeeze
     width = upperband - lowerband
-    test_data = width[-15:] / np.max(width[-15:])
-    squeeze = joblib.load('{}/core/ta/clfs/squeeze01CLF15.pkl'.format(os.getcwd())) 
-    if squeeze.predict([test_data])[0] == 1:
+    period = 20
+    width = width[-period:]
+    x = np.arange(width.size)
+    slope = np.polyfit(x, width, 1)[0]
+
+    if width[-1] / width[0] < 0.8 and slope < 0:
         info.append('BANDS_SQUEEZE')
 
     upperband = upperband/m
