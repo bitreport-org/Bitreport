@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
 import traceback
 import config
-from logging.config import dictConfig
-
-from flask import Flask, request, jsonify
-from core.services import dbservice, dataservice, exchanges
-
-# Sentry setup
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
+from logging.config import dictConfig
+from flask import Flask, request, jsonify
 
+from core.services import dbservice, dataservice, exchanges
 
 # Config
 conf = config.BaseConfig
@@ -42,7 +39,7 @@ def data_service(pair: str):
 
         return jsonify(output), code
     else:
-        return 404
+        return 405
 
 
 @app.route('/exchange', methods=['GET'])
@@ -52,7 +49,7 @@ def exchange_service():
         exchange = exchanges.check_exchange(pair)
         return jsonify(exchange)
     else:
-        return 404
+        return 405
 
 
 @app.route('/fill', methods=['POST'])
@@ -69,9 +66,9 @@ def fill_service():
                 app.logger.error(f'Fill failed: {traceback.format_exc()}')
                 return 'Request failed', 500
         else:
-            return 'Pair or exchange not provided', 500
+            return 'Pair or exchange not provided', 400
     else:
-        return 404
+        return 405
 
 
 @app.route("/")

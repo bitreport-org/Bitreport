@@ -28,7 +28,7 @@ class Levels(object):
         if mins != []:
             support = [np.min(close[p-r:p+r]) for p in mins]
 
-        levels = dict(resistance = resistance, support = support)
+        levels = dict(resistance=resistance, support=support)
 
         return levels
 
@@ -63,7 +63,6 @@ class Levels(object):
                     session.add(lvl)
 
         session.commit()
-
 
     def make(self):
         start = self.start

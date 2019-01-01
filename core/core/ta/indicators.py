@@ -150,7 +150,7 @@ def SMA(data):
         else:
             info.append('POSITION_DOWN_{}'.format(name.upper() ) )
 
-    #TOKENS
+    # TOKENS
     points2check = -10
     for i in range(points2check, 0):
         if dic['fast'][i] < dic['slow'][i] and dic['fast'][i-1] >= dic['slow'][i-1]:
@@ -164,7 +164,7 @@ def SMA(data):
             elif close[i] < real[i] and close[i-1] > real[i-1]:
                 info.append('CROSS_DOWN_{}'.format(name.upper()))
 
-    dic.update(info = info)
+    dic.update(info=info)
     return dic
 
 
@@ -191,7 +191,7 @@ def EMA(data):
         else:
             info.append('POSITION_DOWN_{}'.format(name.upper() ) )
 
-    #TOKENS
+    # TOKENS
     points2check = -10
     for i in range(points2check, 0):
         if dic['fast'][i] < dic['slow'][i] and dic['fast'][i-1] >= dic['slow'][i-1]:
@@ -205,7 +205,7 @@ def EMA(data):
             elif close[i] < real[i] and close[i-1] > real[i-1]:
                 info.append('CROSS_DOWN_{}'.format(name.upper()))
 
-    dic.update(info = info)
+    dic.update(info=info)
     return dic
 
 

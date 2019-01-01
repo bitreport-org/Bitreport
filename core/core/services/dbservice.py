@@ -45,7 +45,7 @@ class Level(Base):
     timeframe = Column(String)
     tsmp = Column(Integer)
     type = Column(String)
-    value = Column(Integer)
+    value = Column(Integer, index=True, unique=True)
 
 
 def prepare_postgres():

@@ -28,8 +28,8 @@ class PairData:
 
     def prepare(self):
         # Prepare price
-        status, price, volume = self._makePrice()
-        if not status:
+        price, volume = self._makePrice()
+        if not (price and volume):
             message = f'Empty database response {self.pair+self.timeframe}'
             logging.error(message)
             return message, 500
@@ -58,8 +58,7 @@ class PairData:
             data = internal.import_numpy(self.pair, self.timeframe, self.limit + self.magic_limit)
 
         if not data:
-            logging.error(f'Empty database response {self.pair+self.timeframe}')
-            return False, dict(), dict()
+            return None, None
 
         # Add data
         self.data = data
@@ -67,7 +66,7 @@ class PairData:
         # Candles
         price = dict(open=data['open'].tolist()[self.magic_limit:],
                      high=data['high'].tolist()[self.magic_limit:],
-                     close= data['close'].tolist()[self.magic_limit:],
+                     close=data['close'].tolist()[self.magic_limit:],
                      low=data['low'].tolist()[self.magic_limit:],
                     )
 
@@ -78,14 +77,11 @@ class PairData:
         info_volume = self._makeInfoVolume(volume_values)
         volume = dict(volume=volume_values.tolist()[self.magic_limit:], info=info_volume)
 
-        return True, price, volume
+        return price, volume
     
     def _makeInfoPrice(self):
         info_price = []
         close = self.data.get('close')[self.magic_limit:]
-        open = self.data.get('open')[self.magic_limit:]
-        high = self.data.get('high')[self.magic_limit:]
-        low = self.data.get('low')[self.magic_limit:]
 
         # Last moves tokens
         n = int(0.70*close.size) 
@@ -104,15 +100,6 @@ class PairData:
             info_price.append('MOVE_BIG_UP')
         elif s70 > 0 and s20 < 0 and s5 < 0:
             info_price.append('MOVE_BIG_DOWN')
-        
-        # Candles patterns tokens
-        p2check = -10
-        hammer = talib.CDLINVERTEDHAMMER(open[p2check:], high[p2check:], low[p2check:], close[p2check:])
-        star = talib.CDLSHOOTINGSTAR(open[p2check:], high[p2check:], low[p2check:], close[p2check:])
-        if np.sum(hammer) != 0 and np.where(hammer != 0)[0][-1] == 100:
-                info_price.append('INVERTED_HAMMER')
-        if np.sum(star) != 0 and np.where(hammer != 0)[0][-1] == -100:
-                info_price.append('SHOOTING_STAR')
 
         return info_price
 
