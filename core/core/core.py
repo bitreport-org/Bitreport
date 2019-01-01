@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-import logging
 import traceback
 import config
+from logging.config import dictConfig
 
 from flask import Flask, request, jsonify
 from core.services import dbservice, dataservice, exchanges
@@ -10,27 +10,22 @@ from core.services import dbservice, dataservice, exchanges
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
 
-sentry_sdk.init(
-    dsn="https://000bf6ba6f0f41a6a1cbb8b74f494d4a@sentry.io/1359679",
-    integrations=[FlaskIntegration()]
-)
+
+# Config
+conf = config.BaseConfig
+dictConfig(conf.LOGGER)
 
 app = Flask(__name__)
 
-# Logger
-logging.basicConfig(level=logging.DEBUG,
-                    filename='app.log',
-                    format='%(asctime)s - core - %(levelname)s - %(message)s')
-console = logging.StreamHandler()
-console.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - core - %(levelname)s - %(message)s')
-console.setFormatter(formatter)
-app.logger.addHandler(console)
+# Enable Sentry in production
+if app.config['ENV'] == 'production':
+    sentry_sdk.init(
+        dsn="https://000bf6ba6f0f41a6a1cbb8b74f494d4a@sentry.io/1359679",
+        integrations=[FlaskIntegration()]
+    )
 
-
-# Config
-conf = config.BaseConfig()
-dbservice.connect_influx(app)
+# DB connections
+dbservice.connect_influx()
 dbservice.prepare_postgres()
 
 
@@ -42,9 +37,7 @@ def data_service(pair: str):
         limit = request.args.get('limit', default=15, type=int)
         untill = request.args.get('untill', default=None, type=int)
 
-        app.logger.info(f'Request for {pair} {timeframe} limit {limit} untill {untill}')
-
-        data = dataservice.PairData(app, pair, timeframe, limit, untill)
+        data = dataservice.PairData(pair, timeframe, limit, untill)
         output, code = data.prepare()
 
         return jsonify(output), code
@@ -71,9 +64,9 @@ def fill_service():
 
         if pair and exchange:
             try:
-                return exchanges.pair_fill(app, pair, exchange, force)
+                return exchanges.pair_fill(pair, exchange, force)
             except:
-                app.logger.warning(traceback.format_exc())
+                app.logger.error(f'Fill failed: {traceback.format_exc()}')
                 return 'Request failed', 500
         else:
             return 'Pair or exchange not provided', 500

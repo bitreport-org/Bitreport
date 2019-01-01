@@ -3,6 +3,7 @@ import time
 import traceback
 import requests
 import config
+import logging
 
 from influxdb import InfluxDBClient
 from datetime import datetime as dt
@@ -11,8 +12,11 @@ from core.services import internal
 
 time_now = dt.now().strftime("%Y-%m-%dT%H:%M:%SZ")
 conf = config.BaseConfig()
+logging.basicConfig(level=logging.DEBUG,
+                        filename='app.log',
+                        format='%(asctime)s - core - %(levelname)s - %(message)s')
 
-def bitfinex_fill(app, client, pair: str, force: bool = False):
+def bitfinex_fill(client, pair: str, force: bool = False):
     status = False
 
     timeframes = ['1h', '3h', '6h', '12h', '24h', '168h']
@@ -65,11 +69,11 @@ def bitfinex_fill(app, client, pair: str, force: bool = False):
                 try:
                     client.write_points(points)
                     m = f'SUCCEDED write {count} / {len(response)} records for {name}'
-                    app.logger.info(m)
+                    logging.info(m)
                     status = True
                 except:
                     m = f'FAILED to write records for {name}'
-                    app.logger.warning(m)
+                    logging.error(m)
                     return False
 
                 if timeframeR == '1h':
@@ -86,21 +90,21 @@ def bitfinex_fill(app, client, pair: str, force: bool = False):
                         client.query(query)
                     except:
                         m = f'FAILED {tf} downsample {pair} error: \n {traceback.format_exc()}'
-                        app.logger.warning(m)
+                        logging.error(m)
                         pass
 
             else:
                 m = f'FAILED {name} Bitfinex response: {response[-1]}'
-                app.logger.warning(m)
+                logging.error(m)
                 status = False
         else:
-            app.logger.info('Data is up to date for {pair}')
+            logging.info('Data is up to date for {pair}')
             status = False
 
     return status
 
 
-def bittrex_fill(app, client, pair: str, force: bool = False):
+def bittrex_fill(client, pair: str, force: bool = False):
     status = False
     downsamples = {
         '1h': ['2h', '3h', '6h', '12h'],
@@ -146,11 +150,11 @@ def bittrex_fill(app, client, pair: str, force: bool = False):
                     try:
                         client.write_points(points)
                         m = f'SUCCEDED write {count} / {len(candle_list)} records for {name}'
-                        app.logger.info(m)
+                        logging.info(m)
                         status = True
                     except:
                         m = f'FAILED to write records for {name}'
-                        app.logger.warning(m)
+                        logging.error(m)
                         return False
 
                     # Data downsample
@@ -166,26 +170,26 @@ def bittrex_fill(app, client, pair: str, force: bool = False):
 
                         except:
                             m = f'FAILED {tf} downsample {pair} error: \n {traceback.format_exc()}'
-                            app.logger.warning(m)
+                            logging.error(m)
                             pass
                 else:
                     m = f'FAILED write {name}'
-                    app.logger.warning(m)
+                    logging.error(m)
                     pass
 
             else:
                 m = f"FAILED {name} Bitrex response: {response.get('message','no message')}"
-                app.logger.warning(m)
+                logging.error(m)
 
         except:
             m = f'FAILED Bitrex api request for {name}'
-            app.logger.warning(m)
+            logging.error(m)
             status = False
 
     return status
 
 
-def binance_fill(app, client, pair: str, force: bool = False):
+def binance_fill(client, pair: str, force: bool = False):
     status = False
     timeframes = ['1h', '2h', '6h', '12h', '24h', '168h']
     tf_distance = [3600, 2*3600, 6*3600, 12*3600, 24*3600, 168*3600 ]
@@ -246,12 +250,12 @@ def binance_fill(app, client, pair: str, force: bool = False):
                 try:
                     client.write_points(points, retention_policy = 'autogen')
                     m = f'SUCCEDED write {count} / {len(response)} records for {name}'
-                    app.logger.info(m)
+                    logging.info(m)
                     status = True
                     
                 except:
                     m = f'FAILED to write records for {name}'
-                    app.logger.warning(m)
+                    logging.error(m)
                     return False
 
                 # Downsampling
@@ -268,16 +272,16 @@ def binance_fill(app, client, pair: str, force: bool = False):
                         client.query(query)
                     except:
                         m = 'FAILED {} downsample {} error: \n {}'.format( tf, pair, traceback.format_exc())
-                        app.logger.warning(m)
+                        logging.error(m)
                         pass
             else:
                 m = 'FAILED {} Binance response: {}'.format(name, response.get('msg', 'no error'))
-                app.logger.warning(m)
+                logging.error(m)
 
     return status
 
 
-def poloniex_fill(app, client, pair: str, force: bool = False):
+def poloniex_fill(client, pair: str, force: bool = False):
     #Returns candlestick chart data. Required GET parameters are "currencyPair", "period"
     # (candlestick period in seconds; valid values are 300, 900, 1800, 7200, 14400, and 86400),
     # "start", and "end". "Start" and "end" are given in UNIX timestamp format and used to specify
@@ -343,11 +347,11 @@ def poloniex_fill(app, client, pair: str, force: bool = False):
                 try:
                     client.write_points(points)
                     m = f'SUCCEDED write {count} / {len(response)} records for {name}'
-                    app.logger.info(m)
+                    logging.info(m)
                     status = True
                 except:
                     m = f'FAILED to write records for {name}'
-                    app.logger.warning(m)
+                    logging.error(m)
                     return False
 
                 # Downsampling
@@ -362,17 +366,17 @@ def poloniex_fill(app, client, pair: str, force: bool = False):
                         client.query(query)
                     except:
                         m = f'FAILED {tf} downsample {pair} error: \n {traceback.format_exc()}'
-                        app.logger.warning(m)
+                        logging.error(m)
                         pass
             else:
                 m = f'FAILED {name} Poloniex response: {response.get("error", "no error")}'
-                app.logger.warning(m)
+                logging.error(m)
                 status = False
 
     return status
 
 
-def pair_fill(app, pair, exchange, force):
+def pair_fill(pair, exchange, force):
     tic = time.time()
     conf = config.BaseConfig()
     result = False
@@ -382,10 +386,10 @@ def pair_fill(app, pair, exchange, force):
 
     # Fillers
     fillers = dict(
-            bitfinex = bitfinex_fill,
-            bittrex = bittrex_fill,
-            binance = binance_fill,
-            poloniex = poloniex_fill
+            bitfinex=bitfinex_fill,
+            bittrex=bittrex_fill,
+            binance=binance_fill,
+            poloniex=poloniex_fill
             )
             
     filler = fillers.get(exchange, False)
@@ -393,17 +397,17 @@ def pair_fill(app, pair, exchange, force):
     # Check if filler exists
     if not filler:
         m = f'{exchange} exchange does not exist'
-        app.logger.warning(m)
-        return 'Failed', 500
+        logging.error(m)
+        return m, 500
 
     # Fill database
-    result = filler(app, client, pair, force)
+    result = filler(client, pair, force)
         
     if result:
         toc = time.time()
         m = f'{pair} filled from {exchange} fill time: {(toc-tic)*1000:.2f} ms'
-        app.logger.info(m)
-        return 'Success', 200
+        logging.info(m)
+        return m, 200
 
     else:
         return 'Pair not filled.', 500

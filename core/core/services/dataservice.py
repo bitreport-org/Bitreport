@@ -1,5 +1,6 @@
 import numpy as np
 import traceback
+import logging
 import talib #pylint: skip-file
 
 from scipy.stats import linregress
@@ -8,7 +9,7 @@ from core.ta import indicators, levels, channels, wedge
 
 # Data class
 class PairData:
-    def __init__(self, app, pair, timeframe, limit, untill=None):
+    def __init__(self, pair, timeframe, limit, untill=None):
         # to post data without NaN values indicators are calculated on period of length: limit + magic_limit
         # returned data has length = limit
         self.magic_limit = 79
@@ -16,7 +17,6 @@ class PairData:
 
         self.pair = pair
         self.timeframe = timeframe
-        self.app = app
 
         if limit <15:
             self.limit=15
@@ -31,6 +31,7 @@ class PairData:
         status, price, volume = self._makePrice()
         if not status:
             message = f'Empty database response {self.pair+self.timeframe}'
+            logging.error(message)
             return message, 500
 
         # Prepare dates
@@ -47,8 +48,8 @@ class PairData:
     
     def _makePrice(self):
         # Minimum response is 11 candles:
-        if self.limit <11:
-            self.limit=11
+        if self.limit < 11:
+            self.limit = 11
         
         # Data request
         if isinstance(self.untill, int):
@@ -57,7 +58,7 @@ class PairData:
             data = internal.import_numpy(self.pair, self.timeframe, self.limit + self.magic_limit)
 
         if not data:
-            self.app.logger.warning(f'Empty database response {self.pair+self.timeframe}')
+            logging.error(f'Empty database response {self.pair+self.timeframe}')
             return False, dict(), dict()
 
         # Add data
@@ -71,11 +72,11 @@ class PairData:
                     )
 
         info_price = self._makeInfoPrice()
-        price.update(info = info_price)
+        price.update(info=info_price)
 
         volume_values = data['volume']  # np.array
         info_volume = self._makeInfoVolume(volume_values)
-        volume = dict(volume = volume_values.tolist()[self.magic_limit:], info = info_volume)
+        volume = dict(volume=volume_values.tolist()[self.magic_limit:], info=info_volume)
 
         return True, price, volume
     
@@ -143,7 +144,7 @@ class PairData:
             try:
                 indicators_values[indicator.__name__] = indicator(self.data)
             except:
-                self.app.logger.warning(f'Indicator {indicator}, error: /n {traceback.format_exc()}')
+                logging.error(f'Indicator {indicator}, error: /n {traceback.format_exc()}')
                 pass
 
         # Channels
@@ -153,12 +154,12 @@ class PairData:
             ch = channels.Channel(self.pair, self.timeframe, close, dates)
             indicators_values['channel'] = ch.make()
         except:
-            self.app.logger.warning(f'Indicator channel, error: /n {traceback.format_exc()}')
+            logging.error(f'Indicator channel, error: /n {traceback.format_exc()}')
             pass
         try:
             indicators_values['channel12'] = channels.makeLongChannel(self.pair, '12h', dates)
         except:
-            self.app.logger.warning(f'Indicator channel12, error: /n {traceback.format_exc()}')
+            logging.error(f'Indicator channel12, error: /n {traceback.format_exc()}')
             pass
         
         # Wedges
@@ -166,20 +167,22 @@ class PairData:
             wg = wedge.Wedge(self.pair, self.timeframe, close, dates)
             indicators_values['wedge'] = wg.make()
         except:
-            self.app.logger.warning(f'Indicator wedge, error: /n {traceback.format_exc()}')
+            logging.error(f'Indicator wedge, error: /n {traceback.format_exc()}')
             pass
 
         try:
             indicators_values['wedge12'] = wedge.makeLongWedge(self.pair, '12h', dates)
         except:
-            self.app.logger.warning(f'Indicator wedge12, error: /n {traceback.format_exc()}')
+            logging.error(f'Indicator wedge12, error: /n {traceback.format_exc()}')
             pass
 
         # Levels
         try:
-            indicators_values.update(levels = levels.prepareLevels(self.data))
+            lvl = levels.Levels(self.pair, self.timeframe, close, dates)
+            indicators_values['levels'] = lvl.make()
         except:
-            self.app.logger.warning(traceback.format_exc())
-            indicators_values.update(levels = {'support':[], 'resistance':[], 'auto': [], 'info':[]})
+            logging.error(traceback.format_exc())
+            indicators_values.update(levels={'support': [], 'resistance': [], 'auto': [], 'info': []})
             pass
+
         return indicators_values
