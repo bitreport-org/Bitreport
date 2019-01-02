@@ -12,6 +12,7 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - FLASK_ENV=development
+    command: python run.py
     depends_on:
       - influx
     ports:
