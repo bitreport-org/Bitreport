@@ -1,34 +1,37 @@
 import numpy as np
 import traceback
 import logging
+import config
 import talib #pylint: skip-file
 
 from scipy.stats import linregress
 from core.services import internal
 from core.ta import indicators, levels, channels, wedge
 
+
 # Data class
 class PairData:
     def __init__(self, pair, timeframe, limit, untill=None):
         # to post data without NaN values indicators are calculated on period of length: limit + magic_limit
         # returned data has length = limit
-        self.magic_limit = 79
-        self.margin = 26
+        self.magic_limit = config.BaseConfig.MAGIC_LIMIT
+        self.margin = config.BaseConfig.MARGIN
 
         self.pair = pair
         self.timeframe = timeframe
 
-        if limit <15:
-            self.limit=15
+        if limit < 20:
+            self.limit = 20
         else:
             self.limit = limit
 
         self.untill = untill
+        self.dates = []
         self.output = dict()
 
     def prepare(self):
         # Prepare price
-        price, volume = self._makePrice()
+        price, volume = self._make_price()
         if not (price and volume):
             message = f'Empty database response {self.pair+self.timeframe}'
             logging.error(message)
@@ -36,21 +39,18 @@ class PairData:
 
         # Prepare dates
         dates = internal.generate_dates(self.data['date'], self.timeframe, self.margin)
-        self.output.update(dates=dates[self.magic_limit:])
+        self.dates = dates[self.magic_limit:]
 
         # Prepare indicators
-        indicators_dict = self._makeIndicators()
+        indicators_dict = self._make_indicators()
         indicators_dict.update(price=price)
         indicators_dict.update(volume=volume)
-        self.output.update(indicators=indicators_dict)
 
-        return self.output, 200
+        output = dict(dates=self.dates, indicators=indicators_dict)
+
+        return output, 200
     
-    def _makePrice(self):
-        # Minimum response is 11 candles:
-        if self.limit < 11:
-            self.limit = 11
-        
+    def _make_price(self):
         # Data request
         if isinstance(self.untill, int):
             data = internal.import_numpy_untill(self.pair, self.timeframe, self.limit + self.magic_limit, self.untill)
@@ -67,19 +67,17 @@ class PairData:
         price = dict(open=data['open'].tolist()[self.magic_limit:],
                      high=data['high'].tolist()[self.magic_limit:],
                      close=data['close'].tolist()[self.magic_limit:],
-                     low=data['low'].tolist()[self.magic_limit:],
-                    )
+                     low=data['low'].tolist()[self.magic_limit:])
 
-        info_price = self._makeInfoPrice()
+        info_price = self._make_price_info()
         price.update(info=info_price)
 
-        volume_values = data['volume']  # np.array
-        info_volume = self._makeInfoVolume(volume_values)
-        volume = dict(volume=volume_values.tolist()[self.magic_limit:], info=info_volume)
+        info_volume = self._make_volume_info(data['volume'])
+        volume = dict(volume=data['volume'].tolist()[self.magic_limit:], info=info_volume)
 
         return price, volume
     
-    def _makeInfoPrice(self):
+    def _make_price_info(self):
         info_price = []
         close = self.data.get('close')[self.magic_limit:]
 
@@ -103,7 +101,7 @@ class PairData:
 
         return info_price
 
-    def _makeInfoVolume(self, volume):
+    def _make_volume_info(self, volume):
         info_volume = []
         period_map = {'1h': 48, '2h': 24, '3h': 16, 
                     '6h': 28, '12h': 14, '24h': 14}
@@ -122,7 +120,7 @@ class PairData:
 
         return info_volume
 
-    def _makeIndicators(self):
+    def _make_indicators(self):
         indicators_values = dict()
 
         # Indicators 
@@ -136,7 +134,7 @@ class PairData:
 
         # Channels
         close = self.data.get('close', np.array([]))
-        dates = self.output.get('dates')
+        dates = self.dates
         try:
             ch = channels.Channel(self.pair, self.timeframe, close, dates)
             indicators_values['channel'] = ch.make()
