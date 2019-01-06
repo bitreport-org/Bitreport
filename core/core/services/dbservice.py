@@ -49,6 +49,8 @@ class Level(Base):
 
 
 def prepare_postgres():
+    print('Preparing database')
+
     # Postgres setup
     con = connect(user=Conf.POSTGRES_USER, host=Conf.POSTGRES_USER, dbname='postgres')
     con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
@@ -56,9 +58,13 @@ def prepare_postgres():
     cur.execute(f"select exists( \
                 SELECT datname FROM pg_catalog.pg_database WHERE lower(datname) = lower('{Conf.POSTGRES_DATABSE}') \
                 );")
-    status = cur.fetchone()
+    status, = cur.fetchone()
+
     if not status:
         cur.execute(f'CREATE DATABASE {Conf.POSTGRES_DATABSE}')
+        print(f'Database {Conf.POSTGRES_DATABSE} created')
+    else:
+        print(f'Database {Conf.POSTGRES_DATABSE} already exists')
 
     cur.close()
     con.close()
