@@ -1,11 +1,11 @@
-h1 New twitter_response
+h1 New twitter_image response
 
-= form_for @twitter_response, html: { class: 'ui form' } do |f|
-  - if @twitter_response.errors.any?
+= form_for @twitter_image, url: twitter_responses_url, html: { class: 'ui form' } do |f|
+  - if @twitter_image.errors.any?
     #error_explanation
-      h2 = "#{pluralize(@twitter_response.errors.count, "error")} prohibited this twitter_response from being saved:"
+      h2 = "#{pluralize(@twitter_image.errors.count, "error")} prohibited this twitter_image response from being saved:"
       ul
-        - @twitter_response.errors.full_messages.each do |message|
+        - @twitter_image.errors.full_messages.each do |message|
           li = message
 
   .ui.segment

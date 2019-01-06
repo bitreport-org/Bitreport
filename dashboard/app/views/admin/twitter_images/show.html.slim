@@ -7,7 +7,7 @@ h1= "#{@twitter_image.symbol} #{@twitter_image.timeframe} #{@twitter_image.times
       .ui.green.right.labeled.icon.button
         i.download.icon
         | Download Image
-    = link_to publish_twitter_response_url(@twitter_response), method: :post, confirm: 'This will automatically post to Twitter. Are you sure?' do
+    = link_to publish_twitter_response_url(@twitter_image), method: :post, confirm: 'This will automatically post to Twitter. Are you sure?' do
       div class=['ui', 'blue', 'right', 'labeled', 'icon', 'button', (@twitter_image.published_at ? 'disabled' : '')].join(' ')
         i.twitter.icon
         | Publish
