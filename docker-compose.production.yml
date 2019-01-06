@@ -31,6 +31,7 @@ services:
     command: gunicorn -b 0.0.0.0:80 -w 1 core:app
     depends_on:
       - influx
+      - postgres
     ports:
       - 5001:80
 

@@ -15,6 +15,7 @@ services:
     command: python run.py
     depends_on:
       - influx
+      - postgres
     ports:
       - 5001:80
     volumes:
