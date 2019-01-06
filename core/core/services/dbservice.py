@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import time
 import config
+import logging
 
 from influxdb import InfluxDBClient
 from sqlalchemy import Column, String, Integer, JSON, create_engine
@@ -62,9 +63,9 @@ def prepare_postgres():
 
     if not status:
         cur.execute(f'CREATE DATABASE {Conf.POSTGRES_DATABSE}')
-        print(f'Database {Conf.POSTGRES_DATABSE} created')
+        logging.info(f'Database {Conf.POSTGRES_DATABSE} created')
     else:
-        print(f'Database {Conf.POSTGRES_DATABSE} already exists')
+        logging.info(f'Database {Conf.POSTGRES_DATABSE} already exists')
 
     cur.close()
     con.close()
