@@ -19,13 +19,13 @@ class BtcWallet
   private
 
   def script
-    script = '' << OP_2
+    script = [OP_2]
     derived_addresses(id).each do |addr|
       script << bytes(addr) << addr
     end
     script << OP_2 << OP_CHECKMULTISIG
 
-    serialize(script)
+    serialize(script.join)
   end
 
   def bytes(str)

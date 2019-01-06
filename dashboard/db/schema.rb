@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2018_11_03_183830) do
+ActiveRecord::Schema.define(version: 2019_01_06_193901) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -47,13 +47,8 @@ ActiveRecord::Schema.define(version: 2018_11_03_183830) do
     t.bigint "pair_id"
     t.datetime "published_at"
     t.string "media_id"
-    t.index ["pair_id"], name: "index_twitter_images_on_pair_id"
-  end
-
-  create_table "twitter_responses", force: :cascade do |t|
-    t.bigint "twitter_image_id"
     t.string "in_reply_to"
-    t.index ["twitter_image_id"], name: "index_twitter_responses_on_twitter_image_id"
+    t.index ["pair_id"], name: "index_twitter_images_on_pair_id"
   end
 
   create_table "wallets", force: :cascade do |t|
@@ -62,5 +57,4 @@ ActiveRecord::Schema.define(version: 2018_11_03_183830) do
     t.datetime "updated_at", null: false
   end
 
-  add_foreign_key "twitter_responses", "twitter_images"
 end
