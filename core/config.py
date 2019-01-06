@@ -15,11 +15,19 @@ class BaseConfig(object):
                 'formatters': {'default': {
                     'format': '[%(asctime)s] - core - %(levelname)s : %(message)s',
                 }},
-                'handlers': {'wsgi': {
+                'handlers':
+                    {'wsgi': {
                     'class': 'logging.StreamHandler',
                     'stream': 'ext://flask.logging.wsgi_errors_stream',
                     'formatter': 'default'
-                }},
+                    },
+                    'file': {
+                        'class': 'logging.FileHandler',
+                        'filename': 'app.log',
+                        'mode': 'w',
+                        'formatter': 'default',
+                    }
+                },
                 'root': {
                     'level': 'INFO',
                     'handlers': ['wsgi']
