@@ -24,6 +24,3 @@ WORKDIR /app
 COPY . .
 
 EXPOSE 80
-
-# Run core.py when the container launches
-CMD ["gunicorn", "-b 0.0.0.0:80", "-w 1", "core:app"]

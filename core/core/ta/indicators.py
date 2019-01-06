@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 import talib #pylint: skip-file
 import numpy as np
-import os
 import config
 
-from sklearn.externals import joblib
 from scipy import stats
 
 config = config.BaseConfig()
@@ -18,7 +16,7 @@ def BB(data, timeperiod=20):
     
     # TOKENS
     info = []
-    band_position = ( close - lowerband ) / (upperband -lowerband)
+    band_position = (close - lowerband) / (upperband -lowerband)
     p = band_position[-1] 
 
     if p > 1:
@@ -32,10 +30,14 @@ def BB(data, timeperiod=20):
     elif 0.40 <= p <= 0.60 :
         info.append('PRICE_BETWEEN')
 
+    # Check Squeeze
     width = upperband - lowerband
-    test_data = width[-15:] / np.max(width[-15:])
-    squeeze = joblib.load('{}/core/ta/clfs/squeeze01CLF15.pkl'.format(os.getcwd())) 
-    if squeeze.predict([test_data])[0] == 1:
+    period = 20
+    width = width[-period:]
+    x = np.arange(width.size)
+    slope = np.polyfit(x, width, 1)[0]
+
+    if width[-1] / width[0] < 0.8 and slope < 0:
         info.append('BANDS_SQUEEZE')
 
     upperband = upperband/m
@@ -148,7 +150,7 @@ def SMA(data):
         else:
             info.append('POSITION_DOWN_{}'.format(name.upper() ) )
 
-    #TOKENS
+    # TOKENS
     points2check = -10
     for i in range(points2check, 0):
         if dic['fast'][i] < dic['slow'][i] and dic['fast'][i-1] >= dic['slow'][i-1]:
@@ -162,7 +164,7 @@ def SMA(data):
             elif close[i] < real[i] and close[i-1] > real[i-1]:
                 info.append('CROSS_DOWN_{}'.format(name.upper()))
 
-    dic.update(info = info)
+    dic.update(info=info)
     return dic
 
 
@@ -189,7 +191,7 @@ def EMA(data):
         else:
             info.append('POSITION_DOWN_{}'.format(name.upper() ) )
 
-    #TOKENS
+    # TOKENS
     points2check = -10
     for i in range(points2check, 0):
         if dic['fast'][i] < dic['slow'][i] and dic['fast'][i-1] >= dic['slow'][i-1]:
@@ -203,7 +205,7 @@ def EMA(data):
             elif close[i] < real[i] and close[i-1] > real[i-1]:
                 info.append('CROSS_DOWN_{}'.format(name.upper()))
 
-    dic.update(info = info)
+    dic.update(info=info)
     return dic
 
 
