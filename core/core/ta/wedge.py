@@ -93,7 +93,7 @@ class Wedge():
     def _wedge(self, close, x_dates):
         margin = self.margin
         close_size = close.size
-        end = close_size - 5
+        end = close_size - 20
         threshold = 10
         upper_a, lower_a, upper_b, lower_b = None, None, None, None
 
@@ -112,37 +112,35 @@ class Wedge():
 
         for t, funcs in types.items():
             f0, f1, f2, f3 = funcs
-            point1 = f0(close, timeperiod=close_size)[-1]
+            point1 = f0(close[:-40], timeperiod=close_size-40)[-1]
 
-            if point1 < close_size - 30:
-                # Band 1
-                a_values = np.divide(close[point1 + threshold : end+1] - close[point1], x_dates[point1 + threshold: end+1] - x_dates[point1])
-                a1 = f1(a_values)
-                b1 = close[point1] - a1 * x_dates[point1]
+            # Band 1
+            a_values = np.divide(close[point1 + threshold : end+1] - close[point1], x_dates[point1 + threshold: end+1] - x_dates[point1])
+            a1 = f1(a_values)
+            b1 = close[point1] - a1 * x_dates[point1]
 
-                # End point
-                point2, = np.where(a_values == a1)[0]
-                point2 = (point1 + threshold) + point2
+            # End point
+            point2, = np.where(a_values == a1)[0]
+            point2 = (point1 + threshold) + point2
 
-                # Mid point
-                point3 = point1 + f2(close[point1:point2], timeperiod=close[point1: point2].size)[-1]
+            # Mid point
+            point3 = point1 + f2(close[point1:point2], timeperiod=close[point1: point2].size)[-1]
 
-                # Band 2
-                a_values = np.divide(close[point3+5:end+1] - close[point3], x_dates[point3+5: end+1] - x_dates[point3])
-                a2 = f3(a_values)
-                b2 = close[point3] - a2 * x_dates[point3]
+            # Band 2
+            a_values = np.divide(close[point3+5:end+1] - close[point3], x_dates[point3+5: end+1] - x_dates[point3])
+            a2 = f3(a_values)
+            b2 = close[point3] - a2 * x_dates[point3]
 
-                # Create upper and lower band
-                if t == 'falling':
-                    upper_a, lower_a, upper_b, lower_b = a1, a2, b1, b2
-                else:
-                    upper_a, lower_a, upper_b, lower_b = a2, a1, b2, b1
+            # Create upper and lower band and check if wedge make sense
+            s, e = x_dates[0], x_dates[-1 - margin]
 
-                s, e = x_dates[0], x_dates[-1-margin]
-                if (upper_a - lower_a) * (s - e) >= 0:
-                    break
-            else:
-                upper_a, lower_a, upper_b, lower_b = None, None, None, None
+            if t == 'falling' and (a1 - a2) * (s - e) >= 0:
+                upper_a, lower_a, upper_b, lower_b = a1, a2, b1, b2
+                break
+            elif t == 'rising' and (a2 - a1) * (s - e) >= 0:
+                upper_a, lower_a, upper_b, lower_b = a2, a1, b2, b1
+                break
+
 
         return {'upper_a': upper_a, 'lower_a': lower_a, 'upper_b': upper_b, 'lower_b': lower_b}
 
