@@ -1,8 +1,6 @@
-# frozen_string_literal: true
-
 class TwitterImage < ApplicationRecord
   TIMEFRAMES = %w[1h 2h 3h 6h 12h 24h].freeze
-  attr_reader :price, :change, :url
+  attr_reader :price, :change
 
   include TwitterImageUploader[:image]
 
@@ -39,19 +37,6 @@ class TwitterImage < ApplicationRecord
     @raw_data ||= fetch_data
   end
 
-  def url=(val)
-    @url = URI(val)
-    self.in_reply_to = url.path.split('/').last
-  end
-
-  def cashtag=(val)
-    @cashtag = parsed_tag(val)
-  end
-
-  def cashtag
-    @cashtag ||= parsed_tag(fetch_cashtags.first)
-  end
-
   private
 
   def data_url
@@ -79,27 +64,5 @@ class TwitterImage < ApplicationRecord
       response = HTTParty.get(data_url)
       JSON.parse(response.body)
     end
-  end
-
-  def parsed_tag(val)
-    return if val.blank?
-    val = val.upcase
-    if val.length > 3 && %w[BTC USD].include?(val[-3..-1])
-      val
-    else
-      Pair.where('symbol LIKE ?', "#{val}%").pluck(:symbol).sample
-    end
-  end
-
-  def fetch_cashtags
-    return [] unless in_reply_to
-    client = Twitter::REST::Client.new do |config|
-      config.consumer_key = Settings.twitter.api_key
-      config.consumer_secret = Settings.twitter.api_secret
-      config.access_token = Settings.twitter.access_token
-      config.access_token_secret = Settings.twitter.access_token_secret
-    end
-    response = client.status(in_reply_to, include_entities: true)
-    response.symbols? ? response.symbols.map(&:text) : []
   end
 end

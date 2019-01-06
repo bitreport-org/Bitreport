@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module Admin
   class TwitterResponsesController < AdminController
     skip_before_action :verify_authenticity_token, if: :allowed_by_magic_token?
@@ -9,25 +7,21 @@ module Admin
     end
 
     def new
-      @twitter_image = TwitterImage.new
+      @twitter_response = TwitterResponse.new
     end
 
     def show
-      @twitter_image = TwitterImage.find(params[:id])
+      @twitter_response = TwitterResponse.find(params[:id])
+      @twitter_image = @twitter_response.twitter_image
     end
 
     def create
-      @twitter_image = TwitterImage.new(twitter_response_params)
+      @twitter_response = TwitterResponse.new(twitter_response_params)
 
-      @twitter_image.assign_attributes(symbol: @twitter_image.cashtag,
-                                       timeframe: @twitter_image.timeframe.presence ||
-                                                  TwitterImage::TIMEFRAMES.sample,
-                                       limit: rand(100..199),
-                                       indicators: [%w[RSI MACD].sample,
-                                                    [%w[SMA wedge],
-                                                     %w[BB wedge],
-                                                     %w[BB levels],
-                                                     %w[ICM levels]].sample].flatten)
+      @twitter_image = TwitterImage.new(symbol: @twitter_response.cashtag,
+                                        timeframe: @twitter_response.timeframe.presence || TwitterImage::TIMEFRAMES.sample,
+                                        limit: rand(100..199),
+                                        indicators: [%w[RSI MACD].sample, [%w[SMA wedge], %w[BB wedge], %w[BB levels], %w[ICM levels]].sample].flatten)
 
       @twitter_image.validate!
 
@@ -43,10 +37,12 @@ module Admin
       end.compact.join("\n")
       @twitter_image.image = @twitter_image.image_file
 
-      if @twitter_image.save
+      @twitter_response.twitter_image = @twitter_image
+
+      if @twitter_response.save
         respond_to do |format|
-          format.html { redirect_to twitter_response_path(@twitter_image) }
-          format.json { render json: { id: @twitter_image.id, preview: @twitter_image.reload.image_url(:original) } }
+          format.html { redirect_to @twitter_response }
+          format.json { render json: { id: @twitter_response.id, preview: @twitter_image.reload.image_url(:original) } }
         end
       else
         render :new
@@ -59,7 +55,8 @@ module Admin
     end
 
     def publish
-      @twitter_image = TwitterImage.find(params[:id])
+      @twitter_response = TwitterResponse.find(params[:id])
+      @twitter_image = @twitter_response.twitter_image
 
       client = Twitter::REST::Client.new do |config|
         config.consumer_key = Settings.twitter.api_key
@@ -69,11 +66,11 @@ module Admin
       end
       response = client.update_with_media(tweet_message,
                                           @twitter_image.image[:original].download,
-                                          in_reply_to_status_id: @twitter_image.in_reply_to,
+                                          in_reply_to_status_id: @twitter_response.in_reply_to,
                                           auto_populate_reply_metadata: true)
       @twitter_image.touch(:published_at)
       respond_to do |format|
-        format.html { redirect_to twitter_response_path(@twitter_image) }
+        format.html { redirect_to twitter_response_path(@twitter_response) }
         format.json { render json: { url: response.uri } }
       end
     end
@@ -100,7 +97,7 @@ module Admin
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def twitter_response_params
-      params.require(:twitter_image).permit(:url, :cashtag, :timeframe)
+      params.require(:twitter_response).permit(:url, :cashtag, :timeframe)
     end
   end
 end

@@ -171,7 +171,7 @@ class TextGenerator
       DIRECTION: {
         UP: ['pointing up', 'moving up'],
         DOWN: ['pointing down', 'moving down'],
-        HORIZONTAL: %w[sideways horizontal]
+        HORIZONTAL: ['sideways', 'horizontal']
       },
       ABOUT: {
         END: ['close to end']

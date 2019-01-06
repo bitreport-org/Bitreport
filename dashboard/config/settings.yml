@@ -15,6 +15,3 @@ twitter: # Create settings/development.local.yml and fill this there
   api_secret: ''
   access_token: ''
   access_token_secret: ''
-
-sentry:
-  dsn: ''

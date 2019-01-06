@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 class Plotter
   attr_reader :timestamps, :indicators, :levels, :step, :margin, :filename
 
@@ -132,8 +130,8 @@ class Plotter
       indicator = indicators[name]
       next unless indicator
       @plots << "using 1:2:3 notitle with filledcurves linecolor '#{info[:colors][0]}'" <<
-        "using 1:2 notitle with lines linecolor '#{info[:colors][1]}' lw 1.5" <<
-        "using 1:3 notitle with lines linecolor '#{info[:colors][1]}' lw 1.5"
+                "using 1:2 notitle with lines linecolor '#{info[:colors][1]}' lw 1.5" <<
+                "using 1:3 notitle with lines linecolor '#{info[:colors][1]}' lw 1.5"
       @data << timestamps.zip(indicator['upper_band'],
                               indicator['lower_band']).map { |candle| candle.join(' ') }.push('e') * 3
     end
@@ -142,9 +140,9 @@ class Plotter
   def prepare_ichimoku_bg
     return unless indicators['ICM']
     @plots << "using 1:2:3 notitle with filledcurves above linecolor '#dd#{GREEN}'" <<
-      "using 1:2:3 notitle with filledcurves below linecolor '#dd#{RED}'" <<
-      "using 1:2 notitle with lines linecolor '#88#{GREEN}' lw 1.5" <<
-      "using 1:3 notitle with lines linecolor '#88#{RED}' lw 1.5"
+              "using 1:2:3 notitle with filledcurves below linecolor '#dd#{RED}'" <<
+              "using 1:2 notitle with lines linecolor '#88#{GREEN}' lw 1.5" <<
+              "using 1:3 notitle with lines linecolor '#88#{RED}' lw 1.5"
     @data << timestamps.zip(indicators['ICM']['leading_span_a'],
                             indicators['ICM']['leading_span_b']).map { |candle| candle.join(' ') }.push('e') * 4
   end
@@ -180,8 +178,8 @@ class Plotter
       indicator = indicators[name]
       next unless indicator
       @plots << "using 1:2 title '#{info[:name]} #{info[:attributes][0]}' with lines lw 1.5 lc '#{info[:colors][0]}'" <<
-        "using 1:3 title '#{info[:name]} #{info[:attributes][1]}' with lines lw 1.5 lc '#{info[:colors][1]}'" <<
-        "using 1:4 title '#{info[:name]} #{info[:attributes][2]}' with lines lw 1.5 lc '#{info[:colors][2]}'"
+                "using 1:3 title '#{info[:name]} #{info[:attributes][1]}' with lines lw 1.5 lc '#{info[:colors][1]}'" <<
+                "using 1:4 title '#{info[:name]} #{info[:attributes][2]}' with lines lw 1.5 lc '#{info[:colors][2]}'"
       @data << timestamps.zip(indicator[info[:attributes][0]],
                               indicator[info[:attributes][1]],
                               indicator[info[:attributes][2]]).map { |candle| candle.join(' ') }.push('e') * 3
@@ -197,7 +195,7 @@ class Plotter
       v.include?('buy') ? lows[i] - @margin / 2 : highs[i] + @margin / 2
     end
     @plots << 'using 1:2:3 title "TD Sequential" with points pt 6 palette' <<
-      'using 1:2:3 notitle with points pt 7 palette'
+              'using 1:2:3 notitle with points pt 7 palette'
     @data << timestamps.zip(prices, vals).map { |candle| candle.join(' ') }.push('e')
     counts = [1]
     (1..indicators['TDS']['tds'].count).each do |i|
