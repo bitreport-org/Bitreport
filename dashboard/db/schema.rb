@@ -41,9 +41,8 @@ ActiveRecord::Schema.define(version: 2019_02_02_180740) do
     t.integer "limit", default: 100, null: false
     t.integer "timeframe", default: 6, null: false
     t.string "indicators", default: [], null: false, array: true
-    t.decimal "levels", default: [], null: false, array: true
     t.text "comment"
-    t.text "plot_data"
+    t.text "image_data"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["pair_id"], name: "index_reports_on_pair_id"

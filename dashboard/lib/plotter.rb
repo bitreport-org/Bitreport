@@ -25,10 +25,10 @@ class Plotter
     'ALLIGATOR' => { colors: %W[#70#{BLUE} #70#{GREEN} #70#{RED}], attributes: %w[jaw lips teeth], name: 'Alligator' }
   }.freeze
 
-  def initialize(timestamps, indicators, levels)
+  def initialize(timestamps:, indicators: {}, levels: {})
     @timestamps = timestamps
-    @indicators = indicators || {}
-    @levels = levels || {}
+    @indicators = indicators
+    @levels = levels
     @step = timestamps[1].to_i - timestamps[0].to_i
     @margin = (5 * (highs.max.to_f - lows.min.to_f) / 100)
     @filename = 'plot-' + SecureRandom.uuid + '.png'

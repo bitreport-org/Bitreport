@@ -7,9 +7,8 @@ class CreateReports < ActiveRecord::Migration[5.2]
       t.integer :limit, null: false, default: 100
       t.integer :timeframe, null: false, default: 6
       t.string :indicators, array: true, null: false, default: []
-      t.decimal :levels, array: true, null: false, default: []
       t.text :comment
-      t.text :plot_data
+      t.text :image_data
 
       t.timestamps
     end

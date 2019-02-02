@@ -8,6 +8,7 @@ Rails.application.routes.draw do
     resources :pairs, only: %i[index new create destroy] do
       put 'fill'
     end
+    get 'preview', to: 'previews#show'
   end
 
   namespace :api, constraints: { ip: /127\.0\.0\.1/ } do
