@@ -12,7 +12,7 @@ module Admin
     private
 
     def pair
-      @pair ||= Pair.find_by!(symbol: params[:pair])
+      @pair ||= Pair.find_by!(symbol: params[:symbol])
     end
   end
 end
