@@ -2,7 +2,7 @@
 
 require 'image_processing/vips'
 
-class TwitterImageUploader < Shrine
+class ImageUploader < Shrine
   plugin :pretty_location, namespace: '/'
   plugin :moving
   plugin :processing

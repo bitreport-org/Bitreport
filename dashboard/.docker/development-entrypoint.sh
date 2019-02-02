@@ -26,7 +26,7 @@ then
 
   echo "Preparing database"
 
-  bundle exec rails db:create db:migrate
+  bundle exec rails db:create db:migrate:with_data
 
   unlock_setup
 
