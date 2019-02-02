@@ -2,7 +2,7 @@ from keras.models import Model
 from keras.layers import Dense, Embedding, Dropout, Activation, Concatenate, Input, LSTM, CuDNNLSTM, concatenate, Reshape
 
 
-def prophet1(ts_input_shape=100,
+def Close_prophecy(ts_input_shape=100,
                 lstm_size = 32,
                 size_dense=64,
                 num_dense=2,
@@ -35,8 +35,8 @@ def prophet1(ts_input_shape=100,
 
     return model
 
-def prophet2(ts_input_shape_short=168,
-                ts_input_shape_long=7,
+
+def OHLC_prophecy(ts_input_shape,
                 lstm_size = 32,
                 lstm_dense = 32,
                 size_dense=64,
@@ -45,38 +45,27 @@ def prophet2(ts_input_shape_short=168,
                 p_optimizer='sgd',
                 use_gpu_specifics=False):
     """
-    Takes two time series as an input.
-    Shorter and longer timeframes on the same time period.
+    Uses OHLC input
     """
 
     # Declare inputs
-    ts_input_short = Input(shape=(ts_input_shape_short, 1))
-
-    ts_input_long = Input(shape=(ts_input_shape_long, 1))
+    net_input = Input(shape=(ts_input_shape, 4))
     
     # Build the ts_part of the network
     if use_gpu_specifics:
-        ts_lstm_long = CuDNNLSTM(lstm_size)(ts_input_long)
-        ts_lstm_short = CuDNNLSTM(lstm_size)(ts_input_short)
+        lstm_out = CuDNNLSTM(lstm_size)(net_input)
     else:
-        ts_lstm_short = LSTM(lstm_size)(ts_input_short)
-        ts_lstm_long = LSTM(lstm_size)(ts_input_long)
-
+        lstm_out= LSTM(lstm_size)(net_input)
 
     # Denses
-    ts_dense_short = Dense(lstm_dense)(ts_lstm_short)
-    ts_dense_long = Dense(lstm_dense)(ts_lstm_long)
-
-    merged_magic = concatenate([ts_dense_short, ts_dense_long])
-
-    ts_dense = Dense(size_dense)(merged_magic)
+    dense_out = Dense(size_dense)(lstm_out)
     for _ in range(num_dense):
-        ts_dense = Dense(size_dense)(ts_dense)
+        dense_out = Dense(size_dense)(dense_out)
 
     # Output dense
-    output = Dense(1, activation='linear')(ts_dense)
+    output = Dense(1, activation='linear')(dense_out)
     
-    model = Model(inputs=[ts_input_short, ts_input_long], outputs=output)
+    model = Model(inputs=ts_input, outputs=output)
     model.compile(loss=p_loss, optimizer=p_optimizer)
 
     return model
