@@ -5,7 +5,7 @@ class Pair < ApplicationRecord
 
   has_many :reports
 
-  validates :symbol, presence: true, uniqueness: true
+  validates :symbol, presence: true, uniqueness: true, format: /\A[A-Z0-9]+\z/
   validates :name, presence: true
   validates :exchange, presence: true, inclusion: { in: EXCHANGES }
   validates :tags, length: { minimum: 1 } # , format: /\A([#$])[a-z](\w+)\z/i
@@ -18,6 +18,10 @@ class Pair < ApplicationRecord
   end
 
   def tags=(val)
-    super(val.split(' ').map(&:strip))
+    super(val.is_a?(String) ? val.split(' ').map(&:strip) : val)
+  end
+
+  def self.find_matching(val)
+    where('symbol LIKE ?', "#{val.upcase}%").first!
   end
 end

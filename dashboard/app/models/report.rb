@@ -9,4 +9,5 @@ class Report < ApplicationRecord
   validates :timeframe, presence: true, inclusion: { in: [1, 2, 3, 6, 12, 24].freeze }
   validates :indicators, presence: true
   validates :comment, presence: true
+  validates :image, presence: true
 end

@@ -9,6 +9,7 @@ class ImageUploader < Shrine
   plugin :versions
   plugin :delete_raw
   plugin :delete_promoted
+  plugin :determine_mime_type
 
   process(:store) do |io|
     original = io.download

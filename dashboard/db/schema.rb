@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_02_02_180740) do
+ActiveRecord::Schema.define(version: 2019_02_03_162330) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -37,7 +37,7 @@ ActiveRecord::Schema.define(version: 2019_02_02_180740) do
   end
 
   create_table "reports", force: :cascade do |t|
-    t.bigint "pair_id"
+    t.bigint "pair_id", null: false
     t.integer "limit", default: 100, null: false
     t.integer "timeframe", default: 6, null: false
     t.string "indicators", default: [], null: false, array: true
@@ -54,8 +54,9 @@ ActiveRecord::Schema.define(version: 2019_02_02_180740) do
     t.datetime "published_at"
     t.string "media_id"
     t.string "in_reply_to"
-    t.bigint "reports_id"
-    t.index ["reports_id"], name: "index_twitter_posts_on_reports_id"
+    t.bigint "report_id", null: false
+    t.string "tweet_id"
+    t.index ["report_id"], name: "index_twitter_posts_on_report_id"
   end
 
   create_table "wallets", force: :cascade do |t|
@@ -64,4 +65,6 @@ ActiveRecord::Schema.define(version: 2019_02_02_180740) do
     t.datetime "updated_at", null: false
   end
 
+  add_foreign_key "reports", "pairs"
+  add_foreign_key "twitter_posts", "reports"
 end

@@ -85,11 +85,19 @@ group :development, :test do
   gem 'byebug', platform: :mri
   # RSpec for Rails-3+
   gem 'rspec-rails'
+  # Factory Bot ♥ Rails https://thoughtbot.com/services/ruby-on-rails
+  gem 'factory_bot_rails'
+  # A library for generating fake data such as names, addresses, and phone numbers.
+  gem 'faker'
 end
 
 group :test do
   # The instafailing RSpec progress bar formatter
   gem 'fuubar'
+  # Library for stubbing and setting expectations on HTTP requests in Ruby.
+  gem 'webmock'
+  # In-memory storage for Shrine
+  gem 'shrine-memory'
 end
 
 group :development do
