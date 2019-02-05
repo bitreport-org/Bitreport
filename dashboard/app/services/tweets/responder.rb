@@ -4,38 +4,63 @@ module Tweets
   class Responder < Service
     validates :tweet_id, :tweet_text, presence: true
 
-    def initialize(tweet_id:, tweet_text:)
+    def initialize(tweet_id:, tweet_text:, screen_name: nil)
       @tweet_id = tweet_id
       @tweet_text = tweet_text
+      @screen_name = screen_name
     end
 
     private
 
-    attr_reader :tweet_id, :tweet_text
+    attr_reader :tweet_id, :tweet_text, :screen_name
 
     def run
-      return unless symbols
+      return if screen_name == 'Bitreport_org'
+      return unless symbols.any?
 
-      # Pass report to some twitter poster service
+      # TODO: Pass report to some twitter poster service
       report = Reports::Creator.new(pair: pair, timeframe: 6, indicators: %w[RSI wedge]).call
       new_tweet = publish(report)
       TwitterPost.create!(report: report, in_reply_to: tweet_id, tweet_id: new_tweet.id)
+    rescue Service::ValidationError => e # we should actually look what's inside :P
+      send_instructions
+      Raven.capture_exception(e) if defined?(Raven)
     end
 
     def pair
-      @pair ||= Pair.find_matching(symbols.first)
+      @pair ||= Pairs::Finder.new(symbol: symbols.first).call
     end
 
     def symbols
-      @symbols ||= tweet_text.scan(/\$(\w+)/).flatten
+      @symbols ||= tweet_text.scan(/\$(\w+)/).flatten # Twitter already return this as "entities" xD
     end
 
     def publish(report)
       return Twitter::Tweet.new(id: 0) unless Settings.twitter.post_to_twitter
 
-      @posted_tweet ||= client.update_with_media("Hi. Here is your report for #{pair.symbol}",
-                                                 report.image[:original].download,
-                                                 in_reply_to_status_id: tweet_id)
+      client.update_with_media(formatted("Hi. Here is your report for #{pair.symbol}"),
+                               report.image[:original].download,
+                               tweet_params)
+    end
+
+    def send_instructions
+      return Twitter::Tweet.new(id: 0) unless Settings.twitter.post_to_twitter
+
+      client.update(formatted("Hi. It seems like we had some trouble with your request. Our developers will take a look at it now"),
+                    tweet_params)
+    end
+
+    def formatted(text)
+      return text if screen_name.blank?
+
+      "@#{screen_name} #{text}"
+    end
+
+    def tweet_params
+      @tweet_params ||= {
+        in_reply_to_status_id: tweet_id,
+        auto_populate_reply_metadata: screen_name.blank?
+      }
     end
 
     # TODO: Extract twitter client globally

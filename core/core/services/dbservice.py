@@ -31,7 +31,7 @@ def connect_influx():
 
 class Chart(Base):
     __tablename__ = Conf.CHART_TABLE
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     pair = Column(String)
     timeframe = Column(String)
     last_tsmp = Column(Integer)
@@ -41,7 +41,7 @@ class Chart(Base):
 
 class Level(Base):
     __tablename__ = Conf.LVL_TABLE
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     pair = Column(String)
     timeframe = Column(String)
     tsmp = Column(Integer)

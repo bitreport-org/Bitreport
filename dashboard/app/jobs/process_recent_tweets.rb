@@ -4,7 +4,9 @@ class ProcessRecentTweets < ApplicationJob
   def perform
     Rails.logger.info('Processing new Tweets')
     recent_mentions.each do |tweet|
-      RespondToTweet.perform_later(tweet_id: tweet.id, text: tweet.text)
+      RespondToTweet.perform_later(tweet_id: tweet.id,
+                                   text: tweet.text,
+                                   user_screen_name: tweet.user.screen_name)
     end
   end
 

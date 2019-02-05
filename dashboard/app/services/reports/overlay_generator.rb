@@ -13,15 +13,15 @@ module Reports
       @comment = comment
     end
 
+    private
+
+    attr_reader :pair, :plot, :timeframe, :comment
+
     def run
       image = Tempfile.new(%w[plot .png], encoding: 'ascii-8bit')
       image.write(generate)
       image
     end
-
-    private
-
-    attr_reader :pair, :plot, :timeframe, :comment
 
     def generate
       image = Vips::Image.new_from_file(background, access: :sequential).insert(@plot, 0, 110)

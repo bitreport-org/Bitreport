@@ -4,6 +4,8 @@ module Reports
   class Creator < Service
     validates :pair, :timeframe, :indicators, presence: true
 
+    before_execute :add_default_indicators
+
     def initialize(pair:, timeframe:, indicators:)
       @pair = pair
       @timeframe = timeframe
@@ -14,14 +16,12 @@ module Reports
 
     attr_reader :pair, :timeframe, :indicators
 
-    before_execute :add_default_indicators
+    def run
+      Report.create!(pair: pair, timeframe: timeframe, indicators: indicators, comment: comment, image: image)
+    end
 
     def add_default_indicators
       @indicators = (%w[price volume] + indicators).uniq.compact
-    end
-
-    def run
-      Report.create!(pair: pair, timeframe: timeframe, indicators: indicators, comment: comment, image: image)
     end
 
     def chart_data

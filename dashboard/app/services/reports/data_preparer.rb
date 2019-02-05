@@ -4,6 +4,8 @@ module Reports
   class DataPreparer < Service
     validates :pair, presence: true
 
+    before_execute :request_data_fill
+
     def initialize(pair:, timeframe:)
       @pair = pair
       @timeframe = timeframe
@@ -11,22 +13,20 @@ module Reports
 
     private
 
-    before_execute :request_data_fill
-
     attr_reader :pair, :timeframe
 
     def run
       Rails.cache.fetch(data_url, expires_in: 15.minutes) { fetch_data }
     end
 
-    def data_url
-      "http://core/#{pair.symbol}?timeframe=#{timeframe}h&limit=200"
-    end
-
     def request_data_fill
       return if pair.last_updated_at > timeframe.to_i.hours.ago
 
-      pair.request_data_fill
+      Pairs::Filler.new(pair: pair).call
+    end
+
+    def data_url
+      "http://core/#{pair.symbol}?timeframe=#{timeframe}h&limit=200"
     end
 
     def fetch_data
