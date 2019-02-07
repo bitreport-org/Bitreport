@@ -13,6 +13,6 @@ class CreateReports < ActiveRecord::Migration[5.2]
       t.timestamps
     end
 
-    add_reference :twitter_images, :report, foreign_key: true, null: false
+    add_reference :twitter_images, :report, foreign_key: true
   end
 end

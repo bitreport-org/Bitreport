@@ -2,10 +2,12 @@
 
 class ReferenceReportsFromTwitterImages < ActiveRecord::Migration[5.2]
   class TwitterImage < ActiveRecord::Base
+    belongs_to :pair
     belongs_to :report
   end
 
   class Report < ActiveRecord::Base
+    belongs_to :pair
   end
 
   def up
