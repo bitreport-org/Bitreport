@@ -6,7 +6,7 @@ class ProcessRecentTweets < ApplicationJob
     recent_mentions.each do |tweet|
       RespondToTweet.perform_later(tweet_id: tweet.id,
                                    text: tweet.text,
-                                   user_screen_name: tweet.user.screen_name)
+                                   screen_name: tweet.user.screen_name)
     end
   end
 
