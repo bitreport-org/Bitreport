@@ -15,4 +15,9 @@ $ docker-compose -f docker-compose.production.yml up -d --build # Now start all 
 ```
 If nothing died in the process your app should now be running in the latest version (or more specifically, the one you had on your local computer).
 
+Also don't forget to run any migrations:
+```sh
+$ docker-compose -f docker-compose.production.yml run --rm dashboard bundle exec rake db:migrate:with_data
+```
+
 Now it's time to close the terminal session in order not to mess up anything :flushed:
