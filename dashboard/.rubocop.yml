@@ -1,5 +1,34 @@
 require:
   - rubocop-rspec
 
+AllCops:
+  Exclude:
+    - db/schema.rb
+    - db/data_schema.rb
+
 Rails:
   Enabled: true
+
+Metrics/BlockLength:
+  Exclude:
+    - spec/**/*
+    - db/**/*
+
+Metrics/LineLength:
+  Max: 100
+  Exclude:
+    - db/**/*
+
+Metrics/MethodLength:
+  Exclude:
+    - db/**/*
+
+Rails/ApplicationRecord:
+  Exclude:
+    - db/**/*
+
+Rails/BulkChangeTable:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false

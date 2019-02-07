@@ -10,17 +10,22 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2018_11_03_183830) do
+ActiveRecord::Schema.define(version: 2019_02_05_230827) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "data_migrations", primary_key: "version", id: :string, force: :cascade do |t|
+  end
 
   create_table "pairs", force: :cascade do |t|
     t.string "symbol", null: false
     t.string "name"
     t.string "exchange"
     t.datetime "last_updated_at"
-    t.string "tags", null: false, array: true
+    t.string "tags", array: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["symbol"], name: "index_pairs_on_symbol"
   end
 
@@ -33,27 +38,27 @@ ActiveRecord::Schema.define(version: 2018_11_03_183830) do
     t.index ["endpoint"], name: "index_push_devices_on_endpoint"
   end
 
-  create_table "twitter_images", force: :cascade do |t|
-    t.string "symbol", null: false
-    t.string "timeframe", null: false
-    t.integer "limit"
-    t.string "indicators", array: true
-    t.string "levels", array: true
-    t.string "patterns", array: true
+  create_table "reports", force: :cascade do |t|
+    t.bigint "pair_id", null: false
+    t.integer "limit", default: 100, null: false
+    t.integer "timeframe", default: 6, null: false
+    t.string "indicators", default: [], null: false, array: true
     t.text "comment"
     t.text "image_data"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.bigint "pair_id"
-    t.datetime "published_at"
-    t.string "media_id"
-    t.index ["pair_id"], name: "index_twitter_images_on_pair_id"
+    t.index ["pair_id"], name: "index_reports_on_pair_id"
   end
 
-  create_table "twitter_responses", force: :cascade do |t|
-    t.bigint "twitter_image_id"
+  create_table "twitter_posts", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "published_at"
+    t.string "media_id"
     t.string "in_reply_to"
-    t.index ["twitter_image_id"], name: "index_twitter_responses_on_twitter_image_id"
+    t.bigint "report_id", null: false
+    t.string "tweet_id"
+    t.index ["report_id"], name: "index_twitter_posts_on_report_id"
   end
 
   create_table "wallets", force: :cascade do |t|
@@ -62,5 +67,6 @@ ActiveRecord::Schema.define(version: 2018_11_03_183830) do
     t.datetime "updated_at", null: false
   end
 
-  add_foreign_key "twitter_responses", "twitter_images"
+  add_foreign_key "reports", "pairs"
+  add_foreign_key "twitter_posts", "reports"
 end

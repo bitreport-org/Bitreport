@@ -17,3 +17,4 @@ test:
 production:
   <<: *default
   database: dashboard_production
+  pool: 75

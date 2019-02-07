@@ -22,18 +22,20 @@ module Admin
 
     # This one is temporary
     def fill
-      @pair = Pair.find(params[:id])
-      @pair.request_data_fill
+      pair.request_data_fill
       redirect_to pairs_path, notice: 'Pair filled'
     end
 
     def destroy
-      @pair = Pair.find(params[:id])
-      @pair.destroy
+      pair.destroy!
       redirect_to pairs_path, notice: 'Pair destroyed.'
     end
 
     private
+
+    def pair
+      @pair ||= Pair.find(params[:id])
+    end
 
     def pair_params
       params.require(:pair).permit(:symbol, :name, :tags, :exchange)

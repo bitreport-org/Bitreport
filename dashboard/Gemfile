@@ -7,7 +7,7 @@ git_source(:github) do |repo_name|
   "https://github.com/#{repo_name}.git"
 end
 
-ruby '~> 2.5.1'
+ruby '~> 2.5.3'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails'
@@ -15,14 +15,12 @@ gem 'rails'
 gem 'pg'
 # Use Puma as the app server
 gem 'puma'
-# Use SCSS for stylesheets
-gem 'sass-rails'
+# Integrate SassC-Ruby with Rails
+gem 'sassc-rails'
 # Use Uglifier as compressor for JavaScript assets
 gem 'uglifier'
 # Use CoffeeScript for .coffee assets and views
 gem 'coffee-rails'
-# See https://github.com/rails/execjs#readme for more supported runtimes
-# gem 'therubyracer', platforms: :ruby
 
 # for railties app_generator_test
 gem 'bootsnap', require: false
@@ -37,9 +35,6 @@ gem 'jbuilder'
 gem 'redis'
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
-
-# Manage Users with Devise
-gem 'devise'
 
 # For getting rid of erb
 gem 'slim-rails'
@@ -74,15 +69,37 @@ gem 'sidekiq'
 # Lightweight job scheduler extension for Sidekiq
 gem 'sidekiq-scheduler'
 
-gem 'sinatra'
 # Semantic UI, converted to Sass and ready to drop into Rails & Compass
 gem 'semantic-ui-sass', github: 'doabit/semantic-ui-sass'
+
+# Migrate and update data alongside your database structure.
+gem 'data_migrate'
+
+group :production do
+  # Raven is a Ruby client for Sentry
+  gem "sentry-raven"
+end
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug', platform: :mri
   # RSpec for Rails-3+
   gem 'rspec-rails'
+  # Factory Bot ♥ Rails https://thoughtbot.com/services/ruby-on-rails
+  gem 'factory_bot_rails'
+  # A library for generating fake data such as names, addresses, and phone numbers.
+  gem 'faker'
+  # A runtime developer console and IRB alternative with powerful introspection capabilities
+  gem 'pry'
+end
+
+group :test do
+  # The instafailing RSpec progress bar formatter
+  gem 'fuubar'
+  # Library for stubbing and setting expectations on HTTP requests in Ruby.
+  gem 'webmock'
+  # In-memory storage for Shrine
+  gem 'shrine-memory'
 end
 
 group :development do
@@ -98,7 +115,6 @@ group :development do
   # A Ruby static code analyzer and formatter, based on the community Ruby style guide
   gem 'rubocop', require: false
   gem 'rubocop-rspec', require: false
+  # Patch-level verification for Bundler
+  gem 'bundler-audit', require: false
 end
-
-# Windows does not include zoneinfo files, so bundle the tzinfo-data gem
-gem 'tzinfo-data', platforms: %i[mingw mswin x64_mingw jruby]
