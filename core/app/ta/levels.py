@@ -1,8 +1,7 @@
 import numpy as np
 import statsmodels.api as sm
 import config
-from core.services.dbservice import Level, make_session
-
+from app.services import Level, make_session
 from scipy.signal import argrelmin, argrelmax
 
 config = config.BaseConfig()

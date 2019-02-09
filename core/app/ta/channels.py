@@ -1,8 +1,7 @@
 import numpy as np
 import talib #pylint: skip-file
 import config
-from core.services.dbservice import Chart, make_session
-from core.services.internal import import_numpy, generate_dates
+from app.services import Chart, make_session, get_candles, generate_dates
 
 Config = config.BaseConfig()
 session = make_session()
@@ -154,12 +153,12 @@ class Channel():
 
 
 # Long channels
-def remakeChannel(pair, timeframe, limit=200):
+def remakeChannel(influx, pair, timeframe, limit=200):
     start = Config.MAGIC_LIMIT
     margin = Config.MARGIN
 
     # Get data
-    data = import_numpy(pair, timeframe, limit)
+    data = get_candles(influx, pair, timeframe, limit)
     close = data['close'][start:]
     x_dates = generate_dates(data['date'], timeframe, margin)
 
@@ -170,9 +169,9 @@ def remakeChannel(pair, timeframe, limit=200):
     return params
 
 
-def makeLongChannel(pair: str, timeframe:str, x_dates:list, limit:int=200):
+def makeLongChannel(influx, pair: str, timeframe:str, x_dates:list, limit:int=200):
     x_dates = np.array(x_dates) / 10000  # to increase precision
-    params = remakeChannel(pair, timeframe, limit)
+    params = remakeChannel(influx, pair, timeframe, limit)
 
     slope = params['slope']
     coef = params['coef']

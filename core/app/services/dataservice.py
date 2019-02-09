@@ -2,16 +2,16 @@ import numpy as np
 import traceback
 import logging
 import config
-import talib #pylint: skip-file
 
 from scipy.stats import linregress
-from core.services import internal
-from core.ta import indicators, levels, channels, wedge
+from app.services import get_candles, generate_dates, get_function_list
+from app.ta import indicators, levels, channels, wedge
 
 
 # Data class
 class PairData:
-    def __init__(self, pair, timeframe, limit, untill=None):
+    def __init__(self, influx, pair, timeframe, limit, untill=None):
+        self.influx = influx
         # to post data without NaN values indicators are calculated on period of length: limit + magic_limit
         # returned data has length = limit
         self.magic_limit = config.BaseConfig.MAGIC_LIMIT
@@ -38,7 +38,7 @@ class PairData:
             return message, 500
 
         # Prepare dates
-        dates = internal.generate_dates(self.data['date'], self.timeframe, self.margin)
+        dates = generate_dates(self.data['date'], self.timeframe, self.margin)
         self.dates = dates[self.magic_limit:]
 
         # Prepare indicators
@@ -47,15 +47,11 @@ class PairData:
         indicators_dict.update(volume=volume)
 
         output = dict(dates=self.dates, indicators=indicators_dict)
-
         return output, 200
     
     def _make_price(self):
         # Data request
-        if isinstance(self.untill, int):
-            data = internal.import_numpy_untill(self.pair, self.timeframe, self.limit + self.magic_limit, self.untill)
-        else:
-            data = internal.import_numpy(self.pair, self.timeframe, self.limit + self.magic_limit)
+        data = get_candles(self.influx, self.pair, self.timeframe, self.limit + self.magic_limit, self.untill)
 
         if not data:
             return None, None
@@ -124,7 +120,7 @@ class PairData:
         indicators_values = dict()
 
         # Indicators 
-        indicators_list = internal.get_function_list(indicators)
+        indicators_list = get_function_list(indicators)
         for indicator in indicators_list:
             try:
                 indicators_values[indicator.__name__] = indicator(self.data)
@@ -142,7 +138,7 @@ class PairData:
             logging.error(f'Indicator channel, error: /n {traceback.format_exc()}')
             pass
         try:
-            indicators_values['channel12'] = channels.makeLongChannel(self.pair, '12h', dates)
+            indicators_values['channel12'] = channels.makeLongChannel(self.influx, self.pair, '12h', dates)
         except:
             logging.error(f'Indicator channel12, error: /n {traceback.format_exc()}')
             pass
@@ -156,7 +152,7 @@ class PairData:
             pass
 
         try:
-            indicators_values['wedge12'] = wedge.makeLongWedge(self.pair, '12h', dates)
+            indicators_values['wedge12'] = wedge.makeLongWedge(self.influx, self.pair, '12h', dates)
         except:
             logging.error(f'Indicator wedge12, error: /n {traceback.format_exc()}')
             pass

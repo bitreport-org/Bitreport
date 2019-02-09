@@ -7,7 +7,7 @@ from influxdb import InfluxDBClient
 from sqlalchemy import Column, String, Integer, JSON, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.engine import url
+from sqlalchemy.engine import  url
 
 from psycopg2 import connect
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
@@ -27,6 +27,7 @@ def connect_influx():
         except:
             print('Waiting for InfluxDB...')
             time.sleep(4)
+    return client
 
 
 class Chart(Base):
@@ -67,11 +68,10 @@ def prepare_postgres():
     else:
         logging.info(f'Database {Conf.POSTGRES_DATABSE} already exists')
 
+    # cur.execute('DROP TABLE IF EXISTS charting;')
     cur.close()
     con.close()
 
-    # sql = 'DROP TABLE IF EXISTS charting;'
-    # result = engine.execute(sql)
     db_uri = url.URL('postgresql', username=Conf.POSTGRES_USER, host=Conf.POSTGRES_USER, database=Conf.POSTGRES_DATABSE)
     engine = create_engine(db_uri)
     session = sessionmaker()

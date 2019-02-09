@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-import traceback
 import config
-import sentry_sdk
-from sentry_sdk.integrations.flask import FlaskIntegration
+import os
 from logging.config import dictConfig
 from flask import Flask, request, jsonify
 
-from core.services import dbservice, dataservice, exchanges
+from app.services import sentry_up, prepare_postgres, connect_influx, dataservice
+import app.exchanges as exchanges
 
 # Config
 conf = config.BaseConfig
@@ -15,15 +14,12 @@ dictConfig(conf.LOGGER)
 app = Flask(__name__)
 
 # Enable Sentry in production
-if app.config['ENV'] == 'production':
-    sentry_sdk.init(
-        dsn="https://000bf6ba6f0f41a6a1cbb8b74f494d4a@sentry.io/1359679",
-        integrations=[FlaskIntegration()]
-    )
+sentry_up(app.config['ENV'])
 
 # DB connections
-dbservice.connect_influx()
-dbservice.prepare_postgres()
+if not bool(int(os.environ['TEST'])):
+    influx = connect_influx()
+    prepare_postgres()
 
 
 # API
@@ -33,7 +29,7 @@ def data_service(pair: str):
     limit = request.args.get('limit', default=15, type=int)
     untill = request.args.get('untill', default=None, type=int)
 
-    data = dataservice.PairData(pair, timeframe, limit, untill)
+    data = dataservice.PairData(influx, pair, timeframe, limit, untill)
     output, code = data.prepare()
 
     return jsonify(output), code
@@ -42,25 +38,21 @@ def data_service(pair: str):
 @app.route('/exchange', methods=['GET'])
 def exchange_service():
     pair = request.args.get('pair', default='BTCUSD', type=str)
-    exchange = exchanges.check_exchange(pair)
-    return jsonify(exchange)
-
+    exchange, code = exchanges.check_exchange(pair)
+    return jsonify(exchange), code
 
 
 @app.route('/fill', methods=['POST'])
 def fill_service():
     pair = request.args.get('pair', default=None, type=str)
-    force = request.args.get('force', default=False, type=bool)
+    # force = request.args.get('force', default=False, type=bool)
     exchange = request.args.get('exchange', default=None, type=str)
 
-    if pair and exchange:
-        try:
-            return exchanges.pair_fill(pair, exchange, force)
-        except:
-            app.logger.error(f'Fill failed: {traceback.format_exc()}')
-            return 'Request failed', 500
-    else:
-        return 'Pair or exchange not provided', 400
+    if not pair or not exchange:
+        return jsonify(msg='Pair or exchange not provided'), 404
+
+    msg, code = exchanges.fill_pair(influx, pair, exchange)
+    return jsonify(msg=msg), code
 
 
 @app.route("/")
