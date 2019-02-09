@@ -1,5 +1,11 @@
-import requests, os
+import requests
 import pytest
+from app.services.internal import get_function_list
+from app.ta import  indicators
+
+indicators_names = [x.__name__ for x in get_function_list(indicators)]
+charting_names = ['wedge', 'levels', 'channel']
+required_indicators = ['price', 'volume'] + charting_names + indicators_names
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -28,10 +34,7 @@ class TestTA(object):
         assert 'indicators' in response.keys()
 
         keys = response['indicators'].keys()
-        # TODO: import this from indicators
-        req_keys = ['price', 'volume', 'ADX', 'ALLIGATOR', 'AROON', 'BB', 'EMA', 'EWO', 'ICM', 'KC', 'MACD', 'MOM',
-                    'OBV', 'RSI', 'SAR', 'SMA', 'STOCH', 'STOCHRSI', 'TDS', 'channel', 'wedge', 'levels'] # 'channel12', 'wedge12']
-        for k in req_keys:
+        for k in required_indicators:
             assert k in keys, f'Indicator {k} is absent.'
 
     def test_price_json(self, response):
@@ -43,8 +46,7 @@ class TestTA(object):
         for x in ['open', 'low', 'high', 'close']:
             assert x in keys, f'Key {x} is not present in price'
 
-
-    def test_idicators_info(self, response):
+    def test_indicators_info(self, response):
         assert isinstance(response, dict)
         assert 'indicators' in response.keys()
         keys = response['indicators'].keys()
@@ -56,8 +58,7 @@ class TestTA(object):
         assert isinstance(response, dict)
         keys = response.keys()
         assert 'indicators' in keys
-        channels = ['channel', 'wedge', 'levels'] #, 'channel12', 'wedge12']
-        for ch in channels:
+        for ch in charting_names:
             if ch in keys:
                 assert isinstance(ch, dict), 'Indicator is not a dictionary'
                 assert 'upper_band' in ch.keys(), 'No upperband in channel!'

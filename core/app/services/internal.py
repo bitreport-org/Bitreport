@@ -5,7 +5,6 @@ import types
 
 conf = config.BaseConfig()
 
-
 def get_candles(influx, pair, timeframe, limit, untill=None):
     mesurement = pair + timeframe
     if untill and isinstance(untill, int):
@@ -29,7 +28,6 @@ def get_candles(influx, pair, timeframe, limit, untill=None):
     return candles_dict
 
 
-
 def generate_dates(date, timeframe, margin):
     # Generate timestamps for future
     map = { 'm': 60, 'h': 3600,'W': 648000}
@@ -39,4 +37,4 @@ def generate_dates(date, timeframe, margin):
 
 
 def get_function_list(module):
-    return [module.__dict__.get(a) for a in dir(module) if isinstance(module.__dict__.get(a), types.FunctionType)]
+    return [getattr(module, a) for a in module.__all__]

@@ -2,6 +2,7 @@
 import time
 import config
 import logging
+import os
 
 from influxdb import InfluxDBClient
 from sqlalchemy import Column, String, Integer, JSON, create_engine

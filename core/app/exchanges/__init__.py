@@ -1,19 +1,11 @@
-import logging
-
+# -*- coding: utf-8 -*-
 from .binance import Binance
 from .bitfinex import Bitfinex
 from .bittrex import Bittrex
+from .poloniex import  Poloniex
 
-# -*- coding: utf-8 -*-
+import logging
 import requests
-import config
-
-from datetime import datetime as dt
-
-
-
-time_now = dt.now().strftime("%Y-%m-%dT%H:%M:%SZ")
-conf = config.BaseConfig()
 
 # Bitfinex 1h, 3h, 6h, 12h, 24h
 # Binance 1h, 2h, 6h, 12h, 24h

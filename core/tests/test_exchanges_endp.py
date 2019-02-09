@@ -8,7 +8,7 @@ class TestExchangesEndp():
         response = make_request('BTCUSD')
         assert response.status_code == 200, 'Server faliure!'
         assert  isinstance(response.json(), str)
-        assert response.json() in ['bitfinex', 'binance', 'poloniex', 'bittrex']
+        assert response.json() in ['bitfinex', 'binance', 'poloniex', 'bittrex', 'poloniex']
 
     def test_error(self):
         response = make_request('btcweuewrwerwewsd')

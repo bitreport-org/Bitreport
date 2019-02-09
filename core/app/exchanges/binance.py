@@ -7,7 +7,7 @@ from datetime import datetime as dt
 from app.exchanges.helpers import insert_candles
 
 
-class Binance():
+class Binance:
     def __init__(self, influx_client):
         self.influx = influx_client
         self.name = 'Binance'
@@ -38,7 +38,7 @@ class Binance():
             pass
 
     def get_candles(self, pair, timeframe):
-        mesurement = pair + timeframe
+        measurement = pair + timeframe
         pair_formated = self.pair_format(pair)
 
         # Map timeframes for Binance
@@ -58,15 +58,15 @@ class Binance():
 
 
         if not isinstance(response, list):
-            logging.error('FAILED {} Binance response: {}'.format(mesurement, response.get('msg', 'no error')))
+            logging.error('FAILED {} Binance response: {}'.format(measurement, response.get('msg', 'no error')))
             return False
 
         # Make candles
         points = []
         for row in response:
             json_body = {
-                "measurement": mesurement,
-                "time": int(1000 * row[0]),
+                "measurement": measurement,
+                "time": int(row[0]),
                 "fields": {
                     "open": float(row[1]),
                     "close": float(row[4]),
@@ -77,7 +77,7 @@ class Binance():
             }
             points.append(json_body)
 
-        result = insert_candles(self.influx, points, mesurement)
+        result = insert_candles(self.influx, points, measurement, time_precision='ms')
 
         if timeframe == '1h':
             self.downsample_3h(pair)

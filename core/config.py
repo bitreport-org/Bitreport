@@ -6,14 +6,14 @@ class BaseConfig(object):
     EVENT_LIMIT = 3
     MARGIN=26
     POSTGRES_HOST = 'postgres'
-    POSTGRES_DATABSE = 'app'
+    POSTGRES_DATABSE = 'core'
     POSTGRES_USER = 'postgres'
     CHART_TABLE = 'charting'
     LVL_TABLE = 'levels'
     LOGGER = {
                 'version': 1,
                 'formatters': {'default': {
-                    'format': '[%(asctime)s] - app - %(levelname)s : %(message)s',
+                    'format': '[%(asctime)s] - core - %(levelname)s : %(message)s',
                 }},
                 'handlers':
                     {'wsgi': {

@@ -7,7 +7,7 @@ from datetime import datetime as dt
 
 from app.exchanges.helpers import check_last_tmstmp, insert_candles
 
-class Bitfinex():
+class Bitfinex:
     def __init__(self, influx_client):
         self.influx = influx_client
         self.name='Bitfinex'
@@ -31,7 +31,7 @@ class Bitfinex():
                 pass
 
     def get_candles(self, pair, timeframe):
-        mesurement = pair + timeframe
+        measurement = pair + timeframe
 
         timeframeR = timeframe
         if timeframe == '24h':
@@ -39,7 +39,7 @@ class Bitfinex():
         elif timeframe == '168h':
             timeframeR = '7D'
 
-        start = (check_last_tmstmp(self.influx, mesurement)) * 1000 # ms
+        start = (check_last_tmstmp(self.influx, measurement)) * 1000 # ms
         end = (int(time.time()) + 100) * 1000 # ms
 
         url = f'https://api.bitfinex.com/v2/candles/trade:{timeframeR}:t{pair}/hist?start={start}&end={end}&limit=5000'
@@ -61,8 +61,8 @@ class Bitfinex():
         points = []
         for row in response:
             json_body = {
-                "measurement": mesurement,
-                "time": int(1000000 * row[0]),
+                "measurement": measurement,
+                "time": int(row[0]),
                 "fields": {
                     "open": float(row[1]),
                     "close": float(row[2]),
@@ -73,7 +73,7 @@ class Bitfinex():
             }
             points.append(json_body)
 
-        result = insert_candles(self.influx, points, mesurement)
+        result = insert_candles(self.influx, points, measurement, time_precision="ms")
 
         if timeframe == '1h':
             self.downsample_2h(pair)
@@ -83,6 +83,7 @@ class Bitfinex():
     def fill(self, pair):
         for tf in ['1h', '3h', '6h', '12h', '24h']:
             status = self.get_candles(pair, tf)
-            logging.error(f'Failed to fill {pair}:{tf}')
+            if not status:
+                logging.error(f'Failed to fill {pair}:{tf}')
             time.sleep(2)
         return status
