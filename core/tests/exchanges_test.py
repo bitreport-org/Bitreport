@@ -41,7 +41,7 @@ class TestErrorExchange:
     def raise_error(self, exchange):
         influx.create_database('test')
         status = exchange(influx).get_candles('wefsdfwenown', '1h')
-        assert status==False
+        assert status == False
         influx.drop_database('test')
 
     def test_bitfinex(self):
@@ -62,9 +62,15 @@ class TestFillPair:
         influx.drop_database('test')
         influx.create_database('test')
 
-        ex = check_exchange(pair)
+        ex, code= check_exchange(influx, pair)
         status = fill_pair(influx, pair, ex)
         assert status, f'Failed to fill {pair}'
+        self.check_influx(pair)
+
+    def check_influx(self, pair):
+        msr = [x.get('name') for x in influx.get_list_measurements()]
+        for tf in ['1h', '2h', '3h', '6h', '12h', '24h']:
+            assert pair + tf in msr, f'Measurement {pair+tf} is not present.'
 
     def test_bitfinex(self):
         self.fill('BTCUSD')

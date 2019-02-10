@@ -42,9 +42,6 @@ class Bittrex:
         measurement = pair + timeframe
         pair_formated = self.pair_format(pair)
 
-        # start = helper.check_last_tmstmp(self.influx, pair, timeframe)
-        # end = int(time.time()) + 100
-
         timeframes = {'1h': 'hour', '24h': 'day'}
         btf = timeframes.get(timeframe, '1h')
 
@@ -79,6 +76,23 @@ class Bittrex:
                     self.downsample(pair, '1h', tf)
 
         return result
+
+    def check(self, pair):
+        pair_formated = self.pair_format(pair)
+        url = f'https://bittrex.com/Api/v2.0/pub/market/GetTicks?marketName={pair_formated}&tickInterval=day'
+        request = requests.get(url)
+        response = request.json()
+
+        # Check if response was successful
+        if ('success' not in response.keys()):
+            logging.error(f"FAILED Bitrex response: {response.get('message','no message')}")
+            return self.name.lower(), 0
+
+        rows = response.get('result', [])
+        if not isinstance(rows, list):
+            return self.name.lower(), 0
+
+        return self.name.lower(), len(rows)
 
     def fill(self, pair):
         for tf in ['1h', '24h']:

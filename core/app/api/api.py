@@ -37,14 +37,13 @@ def create_app():
     @app.route('/exchange', methods=['GET'])
     def exchange_service():
         pair = request.args.get('pair', default='BTCUSD', type=str)
-        exchange, code = exchanges.check_exchange(pair)
+        exchange, code = exchanges.check_exchange(influx, pair)
         return jsonify(exchange), code
 
 
     @app.route('/fill', methods=['POST'])
     def fill_service():
         pair = request.args.get('pair', default=None, type=str)
-        # force = request.args.get('force', default=False, type=bool)
         exchange = request.args.get('exchange', default=None, type=str)
 
         if not pair or not exchange:
@@ -56,6 +55,6 @@ def create_app():
 
     @app.route("/")
     def hello():
-        return "Wrong place, is it?"
+        return jsonify(msg="Wrong place, is it?")
 
     return app

@@ -5,6 +5,7 @@ class BaseConfig(object):
     MAGIC_LIMIT = 79
     EVENT_LIMIT = 3
     MARGIN=26
+    SENTRY_URL = "https://000bf6ba6f0f41a6a1cbb8b74f494d4a@sentry.io/1359679"
     POSTGRES_HOST = 'postgres'
     POSTGRES_DATABSE = 'core'
     POSTGRES_USER = 'postgres'

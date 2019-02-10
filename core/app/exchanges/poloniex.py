@@ -38,12 +38,10 @@ class Poloniex:
             pass
 
     def get_candles(self, pair, timeframe):
-        result = False
         measurement = pair + timeframe
         pair_formated = self.pair_format(pair)
 
         start = check_last_tmstmp(self.influx, measurement)
-        # end = int(time.time()) + 100
 
         # Here we map our possible timeframes 1h, 2h, 3h, 6h, 12h to
         # format acceptable by Poloniex API
@@ -90,6 +88,19 @@ class Poloniex:
                 self.downsample(pair, '2h', tf)
 
         return result
+
+    def check(self, pair):
+        req_pair = self.pair_format(pair)
+        url = f'https://poloniex.com/public?command=returnChartData&currencyPair={req_pair}&start=339361693&end=9999999999&period=86400'
+        request = requests.get(url)
+        response = request.json()
+
+        # Check if response was successful
+        if request.status_code != 200 or not isinstance(response, list):
+            logging.error(f"FAILED Poloniex response: {response}")
+            return self.name.lower(), 0
+
+        return self.name.lower(), len(response)
 
     def fill(self, pair):
         for tf in ['30m', '2h', '24h']:

@@ -48,9 +48,6 @@ class Binance:
         elif timeframe == '168h':
             timeframeR = '1w'
 
-        # start = helper.check_last_tmstmp(self.influx, pair, timeframe)
-        # end = int(time.time()) + 100
-
         # max last 500 candles
         url = f'https://api.binance.com/api/v1/klines?symbol={pair_formated}&interval={timeframeR}&limit=500'
         request = requests.get(url)
@@ -58,7 +55,7 @@ class Binance:
 
 
         if not isinstance(response, list):
-            logging.error('FAILED {} Binance response: {}'.format(measurement, response.get('msg', 'no error')))
+            logging.error(f"FAILED {measurement} Binance response: {response.get('msg', 'no error')}")
             return False
 
         # Make candles
@@ -83,6 +80,20 @@ class Binance:
             self.downsample_3h(pair)
 
         return result
+
+    def check(self, pair):
+        # max last 500 candles
+        pair_formated = self.pair_format(pair)
+        url = f'https://api.binance.com/api/v1/klines?symbol={pair_formated}&interval=1d&limit=500'
+        request = requests.get(url)
+        response = request.json()
+
+        if not isinstance(response, list):
+            logging.error(f"FAILED Binance response: {response.get('msg', 'no error')}")
+            return self.name.lower(), 0
+
+        return self.name.lower(), len(response)
+
 
     def fill(self, pair):
         for tf in  ['1h', '2h', '6h', '12h', '24h']:
