@@ -49,10 +49,10 @@ class TestTA(object):
     def test_indicators_info(self, response):
         assert isinstance(response, dict)
         assert 'indicators' in response.keys()
-        keys = response['indicators'].keys()
-        for k in keys:
-            assert isinstance(k, dict), f'Indicator {k} is not a dictionary'
-            assert 'info' in k.keys()
+        indctrs = response['indicators']
+        for k, i in indctrs.items():
+            assert isinstance(i, dict), f'Indicator {k} is not a dictionary'
+            assert 'info' in i.keys()
 
     def test_channels(self, response):
         assert isinstance(response, dict)
