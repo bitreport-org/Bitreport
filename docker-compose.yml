@@ -12,7 +12,6 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - FLASK_ENV=development
-      - TEST=0
     command: python run.py
     depends_on:
       - influx

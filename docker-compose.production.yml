@@ -28,7 +28,6 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - FLASK_ENV=production
-      - TEST=0
     command: gunicorn -b 0.0.0.0:80 -w 1 app.core:app
     depends_on:
       - influx
