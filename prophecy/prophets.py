@@ -37,25 +37,24 @@ def Close_prophecy(ts_input_shape=100,
 
 
 def OHLC_prophecy(ts_input_shape,
-                lstm_size = 32,
-                lstm_dense = 32,
-                size_dense=64,
-                num_dense=2,
-                p_loss='mean_squared_error',
-                p_optimizer='sgd',
-                use_gpu_specifics=False):
+                  lstm_size=32,
+                  size_dense=64,
+                  num_dense=2,
+                  p_loss='mean_squared_error',
+                  p_optimizer='adam',
+                  use_gpu_specifics=False):
     """
     Uses OHLC input
     """
 
     # Declare inputs
     net_input = Input(shape=(ts_input_shape, 4))
-    
+
     # Build the ts_part of the network
     if use_gpu_specifics:
         lstm_out = CuDNNLSTM(lstm_size)(net_input)
     else:
-        lstm_out= LSTM(lstm_size)(net_input)
+        lstm_out = LSTM(lstm_size)(net_input)
 
     # Denses
     dense_out = Dense(size_dense)(lstm_out)
@@ -64,8 +63,8 @@ def OHLC_prophecy(ts_input_shape,
 
     # Output dense
     output = Dense(1, activation='linear')(dense_out)
-    
-    model = Model(inputs=ts_input, outputs=output)
+
+    model = Model(inputs=net_input, outputs=output)
     model.compile(loss=p_loss, optimizer=p_optimizer)
 
     return model
