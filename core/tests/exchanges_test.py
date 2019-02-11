@@ -12,8 +12,8 @@ class TestFillExchange:
         influx.create_database('test')
 
         pair = 'BTCUSD'
-        assert exchange(influx).get_candles(pair, '1h'), f'Failed to fill 1h from {exchange.name}'
-        assert exchange(influx).get_candles(pair, '24h'), f'Failed to fill 24h from {exchange.name}'
+        assert exchange(influx).fetch_candles(pair, '1h'), f'Failed to fill 1h from {exchange.name}'
+        assert exchange(influx).fetch_candles(pair, '24h'), f'Failed to fill 24h from {exchange.name}'
 
         candles = get_candles(influx, pair, '1h', 100)
         assert candles['volume'].size == 100
@@ -40,7 +40,7 @@ class TestFillExchange:
 class TestErrorExchange:
     def raise_error(self, exchange):
         influx.create_database('test')
-        status = exchange(influx).get_candles('wefsdfwenown', '1h')
+        status = exchange(influx).fetch_candles('wefsdfwenown', '1h')
         assert status == False
         influx.drop_database('test')
 

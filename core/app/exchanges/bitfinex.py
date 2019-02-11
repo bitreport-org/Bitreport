@@ -30,7 +30,7 @@ class Bitfinex:
                 logging.error(f'FAILED 2h downsample {pair} error: \n {traceback.format_exc()}')
                 pass
 
-    def get_candles(self, pair, timeframe):
+    def fetch_candles(self, pair, timeframe):
         measurement = pair + timeframe
 
         timeframeR = timeframe
@@ -89,7 +89,7 @@ class Bitfinex:
         if not isinstance(response, list):
             logging.error('Bitfinex response is not a list.')
             return self.name.lower(), 0
-        if len(response)>0 and response[0]=='error':
+        if len(response)>0 and response[0]=='error' or request.status_code != 200:
             logging.error(f'Bitfinex response failed: {response}')
             return self.name.lower(), 0
         if len(response)==0:
@@ -100,7 +100,7 @@ class Bitfinex:
 
     def fill(self, pair):
         for tf in ['1h', '3h', '6h', '12h', '24h']:
-            status = self.get_candles(pair, tf)
+            status = self.fetch_candles(pair, tf)
             if not status:
                 logging.error(f'Failed to fill {pair}:{tf}')
             time.sleep(2)

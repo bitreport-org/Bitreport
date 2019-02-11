@@ -37,7 +37,7 @@ class Bittrex:
             logging.error(f'FAILED {to_tf} downsample {pair} error: \n {traceback.format_exc()}')
             pass
 
-    def get_candles(self, pair, timeframe):
+    def fetch_candles(self, pair, timeframe):
         result = False
         measurement = pair + timeframe
         pair_formated = self.pair_format(pair)
@@ -50,7 +50,7 @@ class Bittrex:
         response = request.json()
 
         # Check if response was successful
-        if 'success' not in response.keys():
+        if 'success' not in response.keys() or request.status_code != 200:
             logging.error(f"FAILED {measurement} Bitrex response: {response.get('message','no message')}")
             return False
 
@@ -96,7 +96,7 @@ class Bittrex:
 
     def fill(self, pair):
         for tf in ['1h', '24h']:
-            status = self.get_candles(pair, tf)
+            status = self.fetch_candles(pair, tf)
             if not status:
                 logging.error(f'Failed to fill {pair}:{tf}')
             time.sleep(2)

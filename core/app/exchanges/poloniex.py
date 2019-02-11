@@ -37,7 +37,7 @@ class Poloniex:
             logging.error(f'FAILED {to_tf} downsample {pair} error: \n {traceback.format_exc()}')
             pass
 
-    def get_candles(self, pair, timeframe):
+    def fetch_candles(self, pair, timeframe):
         measurement = pair + timeframe
         pair_formated = self.pair_format(pair)
 
@@ -104,7 +104,7 @@ class Poloniex:
 
     def fill(self, pair):
         for tf in ['30m', '2h', '24h']:
-            status = self.get_candles(pair, tf)
+            status = self.fetch_candles(pair, tf)
             if not status:
                 logging.error(f'Failed to fill {pair}:{tf}')
             time.sleep(2)

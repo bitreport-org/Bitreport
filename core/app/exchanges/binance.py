@@ -37,7 +37,7 @@ class Binance:
             logging.error(f'FAILED 3h downsample {pair} error: \n {traceback.format_exc()}')
             pass
 
-    def get_candles(self, pair, timeframe):
+    def fetch_candles(self, pair, timeframe):
         measurement = pair + timeframe
         pair_formated = self.pair_format(pair)
 
@@ -54,7 +54,7 @@ class Binance:
         response = request.json()
 
 
-        if not isinstance(response, list):
+        if not isinstance(response, list) or request.status_code != 200:
             logging.error(f"FAILED {measurement} Binance response: {response.get('msg', 'no error')}")
             return False
 
@@ -97,7 +97,7 @@ class Binance:
 
     def fill(self, pair):
         for tf in  ['1h', '2h', '6h', '12h', '24h']:
-            status = self.get_candles(pair, tf)
+            status = self.fetch_candles(pair, tf)
             if not status:
                 logging.error(f'Failed to fill {pair}:{tf}')
             time.sleep(2)
