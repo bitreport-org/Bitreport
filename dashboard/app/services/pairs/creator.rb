@@ -31,7 +31,7 @@ module Pairs
     def extract_exchange
       return if Pair::EXCHANGES.include?(exchange)
 
-      @exchange = HTTParty.get('http://core/exchange', query: { pair: full_symbol }).strip
+      @exchange = HTTParty.get('http://core/exchange', query: { pair: full_symbol }).strip # We don't parse it, because it's not a JSON
     end
 
     def request_data_fill

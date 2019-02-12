@@ -32,8 +32,12 @@ RSpec.describe Tweets::Responder do
       context 'when screen_name is set to self' do
         let(:screen_name) { 'Bitreport_org' }
 
+        it 'raises validation error' do
+          expect { service.call }.to raise_error(Service::ValidationError)
+        end
+
         it 'does not post anything on Twitter' do
-          service.call
+          service.call rescue Service::ValidationError
           expect(twitter_stub).not_to have_been_requested
         end
       end
@@ -66,8 +70,12 @@ RSpec.describe Tweets::Responder do
         context 'when screen_name is set to self' do
           let(:screen_name) { 'Bitreport_org' }
 
+          it 'raises validation error' do
+            expect { service.call }.to raise_error(Service::ValidationError)
+          end
+
           it 'does not post anything on Twitter' do
-            service.call
+            service.call rescue Service::ValidationError
             expect(twitter_stub).not_to have_been_requested
           end
         end
@@ -78,8 +86,8 @@ RSpec.describe Tweets::Responder do
           stub_core_exchange_failure
         end
 
-        it 'does not create a TwitterPost' do
-          expect { service.call }.not_to change(TwitterPost, :count)
+        it 'creates a TwitterPost' do
+          expect { service.call }.to change(TwitterPost, :count).by(1)
         end
 
         it 'creates a post on Twitter' do

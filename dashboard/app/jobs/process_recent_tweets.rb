@@ -4,7 +4,8 @@ class ProcessRecentTweets < ApplicationJob
   def perform
     Rails.logger.info('Processing new Tweets')
     recent_mentions.each do |tweet|
-      next if TwitterPost.where(in_reply_to: tweet.id).any?
+      next if tweet.user.screen_name == 'Bitreport_org'
+
       RespondToTweet.perform_later(tweet_id: tweet.id,
                                    text: tweet.text,
                                    screen_name: tweet.user.screen_name)
