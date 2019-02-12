@@ -6,7 +6,6 @@ from flask import Flask, request, jsonify
 from app.services import sentry_up, prepare_postgres, connect_influx, dataservice
 import app.exchanges as exchanges
 
-
 # Setup logger
 dictConfig(config.BaseConfig.LOGGER)
 

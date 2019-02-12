@@ -11,6 +11,7 @@ class Binance:
     def __init__(self, influx_client):
         self.influx = influx_client
         self.name = 'Binance'
+        self.next_request_time = 9999999999999999
 
     def pair_format(self, pair):
         end_pair = pair[-3:]
@@ -100,5 +101,4 @@ class Binance:
             status = self.fetch_candles(pair, tf)
             if not status:
                 logging.error(f'Failed to fill {pair}:{tf}')
-            time.sleep(2)
         return status

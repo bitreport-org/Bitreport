@@ -107,5 +107,4 @@ class Poloniex:
             status = self.fetch_candles(pair, tf)
             if not status:
                 logging.error(f'Failed to fill {pair}:{tf}')
-            time.sleep(2)
         return status
