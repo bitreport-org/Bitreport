@@ -27,28 +27,28 @@ class portfolio:
 
     def _buy(self, price):
         self.coins = self.budget / price * (1 - self.fee)
-        self.market = self.coins * price
         self.budget = 0
 
     def _sell(self, price):
         self.budget = self.coins * price * (1 - self.fee)
-        self.market = self.budget
         self.coins = 0
 
     def _decide(self, price, prediction, epoch):
         if prediction >= price and self.coins == 0:
-            predicted_market_value = (self.budget / price * (1 - self.fee)) * prediction
-            if predicted_market_value >= self.market:
+            trade_cost = self.budget * self.fee
+            potential_profit = self.budget * (prediction - price)
+            if potential_profit > trade_cost:
                 self._buy(price)
                 print(f'Epoch: {epoch} : BUY - actual: {price} predicted: {prediction}')
                 self.history.append(('buy', price, prediction, self.coins, self.budget))
 
         if prediction < price and self.coins != 0:
-            # predicted_market_value = self.coins * price * (1-self.fee)
-            # if predicted_market_value >= self.market:
-            self._sell(price)
-            print(f'Epoch: {epoch} : SELL - actual: {price} predicted: {prediction}')
-            self.history.append(('sell', price, prediction, self.coins, self.budget))
+            trade_cost = self.coins * price * self.fee
+            potentail_loss = self.coins * (price - prediction)
+            if potentail_loss > trade_cost:
+                self._sell(price)
+                print(f'Epoch: {epoch} : SELL - actual: {price} predicted: {prediction}')
+                self.history.append(('sell', price, prediction, self.coins, self.budget))
 
     def simulate(self, df: pd.DataFrame, size):
         # TODO: assert smth ! !
@@ -60,7 +60,6 @@ class portfolio:
 
             if i == 0:
                 self._buy(recent_price)
-            #                 print(f'First transaction - coins: {self.coins}, budget: {self.budget}')
 
             output, M, m = self._process(window)
             output = self._reshape(output, size)
@@ -70,12 +69,10 @@ class portfolio:
             y.append(recent_price)
             y_hat.append(predicted_price)
             self._decide(recent_price, predicted_price, epoch=i)
-            # print(f'Present status - coins: {self.coins}, budget: {self.budget}')
 
         # make last trade
         if self.coins != 0:
             self._sell(recent_price)
-            # print(f'Last transaction - coins: {self.coins}, budget: {self.budget}')
 
         #  For plots
         self.y = y[1:]
@@ -93,7 +90,7 @@ class portfolio:
         print(f'Decision points: {self.epochs}')
         print( f"Decisions made : {len(self.history)}, \
                 buy: {len([x for x in self.history if x[0]=='buy'])} \
-                sell: {len([x for x in self.history if x[0]=='buy'])}")
+                sell: {len([x for x in self.history if x[0]=='sell'])}")
 
     def plot_history(self):
         coins = [x[3] for x in self.history if x[3] != 0]
