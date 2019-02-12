@@ -26,7 +26,7 @@ def connect_influx():
             client.create_database(Conf.DBNAME)
             status = False
         except:
-            print('Waiting for InfluxDB...')
+            logging.info('Waiting for InfluxDB...')
             time.sleep(4)
     return client
 
@@ -52,7 +52,7 @@ class Level(Base):
 
 
 def prepare_postgres():
-    print('Preparing database')
+    logging.info('Preparing postgres...')
 
     # Postgres setup
     con = connect(user=Conf.POSTGRES_USER, host=Conf.POSTGRES_USER, dbname='postgres')

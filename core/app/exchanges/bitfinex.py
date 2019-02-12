@@ -30,7 +30,7 @@ class Bitfinex:
                 logging.error(f'FAILED 2h downsample {pair} error: \n {traceback.format_exc()}')
                 pass
 
-    def get_candles(self, pair, timeframe):
+    def fetch_candles(self, pair, timeframe):
         measurement = pair + timeframe
 
         timeframeR = timeframe
@@ -80,10 +80,27 @@ class Bitfinex:
 
         return result
 
+    def check(self, pair):
+        url = f'https://api.bitfinex.com/v2/candles/trade:1D:t{pair}/hist?limit=5000'
+        request = requests.get(url)
+        response = request.json()
+
+        # Check if response was successful
+        if not isinstance(response, list):
+            logging.error('Bitfinex response is not a list.')
+            return self.name.lower(), 0
+        if len(response)>0 and response[0]=='error' or request.status_code != 200:
+            logging.error(f'Bitfinex response failed: {response}')
+            return self.name.lower(), 0
+        if len(response)==0:
+            logging.error(f'Bitfinex empty response.')
+            return self.name.lower(), 0
+
+        return self.name.lower(), len(response)
+
     def fill(self, pair):
         for tf in ['1h', '3h', '6h', '12h', '24h']:
-            status = self.get_candles(pair, tf)
+            status = self.fetch_candles(pair, tf)
             if not status:
                 logging.error(f'Failed to fill {pair}:{tf}')
-            time.sleep(2)
         return status

@@ -3,7 +3,7 @@ from influxdb import InfluxDBClient
 
 influx = InfluxDBClient('0.0.0.0', 5002, 'root', 'root', 'pairs')
 
-class TestFillEndp():
+class TestFillEndp:
     # TODO: assert some number of candles in influx
     def fill(self, pair, exchange):
         rs = requests.post(f'http://0.0.0.0:5001/fill?pair={pair}&exchange={exchange}')
@@ -17,11 +17,11 @@ class TestFillEndp():
 
     def test_no_pair(self):
         response = requests.post('http://0.0.0.0:5001/fill?exchange=bitfinex')
-        assert response.status_code==404, 'Wrong code'
+        assert response.status_code == 404, 'Wrong code'
 
     def test_no_exchange(self):
         response = requests.post('http://0.0.0.0:5001/fill?pair=BTCUSD')
-        assert response.status_code==404, 'Wrong code'
+        assert response.status_code == 404, 'Wrong code'
 
     def test_bitfinex(self):
         self.fill('BTCUSD', 'bitfinex')

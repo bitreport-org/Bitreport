@@ -37,13 +37,11 @@ class Poloniex:
             logging.error(f'FAILED {to_tf} downsample {pair} error: \n {traceback.format_exc()}')
             pass
 
-    def get_candles(self, pair, timeframe):
-        result = False
+    def fetch_candles(self, pair, timeframe):
         measurement = pair + timeframe
         pair_formated = self.pair_format(pair)
 
         start = check_last_tmstmp(self.influx, measurement)
-        # end = int(time.time()) + 100
 
         # Here we map our possible timeframes 1h, 2h, 3h, 6h, 12h to
         # format acceptable by Poloniex API
@@ -91,10 +89,22 @@ class Poloniex:
 
         return result
 
+    def check(self, pair):
+        req_pair = self.pair_format(pair)
+        url = f'https://poloniex.com/public?command=returnChartData&currencyPair={req_pair}&start=339361693&end=9999999999&period=86400'
+        request = requests.get(url)
+        response = request.json()
+
+        # Check if response was successful
+        if request.status_code != 200 or not isinstance(response, list):
+            logging.error(f"FAILED Poloniex response: {response}")
+            return self.name.lower(), 0
+
+        return self.name.lower(), len(response)
+
     def fill(self, pair):
         for tf in ['30m', '2h', '24h']:
-            status = self.get_candles(pair, tf)
+            status = self.fetch_candles(pair, tf)
             if not status:
                 logging.error(f'Failed to fill {pair}:{tf}')
-            time.sleep(2)
         return status

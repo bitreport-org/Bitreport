@@ -11,6 +11,7 @@ class Binance:
     def __init__(self, influx_client):
         self.influx = influx_client
         self.name = 'Binance'
+        self.next_request_time = 9999999999999999
 
     def pair_format(self, pair):
         end_pair = pair[-3:]
@@ -37,7 +38,7 @@ class Binance:
             logging.error(f'FAILED 3h downsample {pair} error: \n {traceback.format_exc()}')
             pass
 
-    def get_candles(self, pair, timeframe):
+    def fetch_candles(self, pair, timeframe):
         measurement = pair + timeframe
         pair_formated = self.pair_format(pair)
 
@@ -48,17 +49,14 @@ class Binance:
         elif timeframe == '168h':
             timeframeR = '1w'
 
-        # start = helper.check_last_tmstmp(self.influx, pair, timeframe)
-        # end = int(time.time()) + 100
-
         # max last 500 candles
         url = f'https://api.binance.com/api/v1/klines?symbol={pair_formated}&interval={timeframeR}&limit=500'
         request = requests.get(url)
         response = request.json()
 
 
-        if not isinstance(response, list):
-            logging.error('FAILED {} Binance response: {}'.format(measurement, response.get('msg', 'no error')))
+        if not isinstance(response, list) or request.status_code != 200:
+            logging.error(f"FAILED {measurement} Binance response: {response.get('msg', 'no error')}")
             return False
 
         # Make candles
@@ -84,10 +82,23 @@ class Binance:
 
         return result
 
+    def check(self, pair):
+        # max last 500 candles
+        pair_formated = self.pair_format(pair)
+        url = f'https://api.binance.com/api/v1/klines?symbol={pair_formated}&interval=1d&limit=500'
+        request = requests.get(url)
+        response = request.json()
+
+        if not isinstance(response, list):
+            logging.error(f"FAILED Binance response: {response.get('msg', 'no error')}")
+            return self.name.lower(), 0
+
+        return self.name.lower(), len(response)
+
+
     def fill(self, pair):
         for tf in  ['1h', '2h', '6h', '12h', '24h']:
-            status = self.get_candles(pair, tf)
+            status = self.fetch_candles(pair, tf)
             if not status:
                 logging.error(f'Failed to fill {pair}:{tf}')
-            time.sleep(2)
         return status
