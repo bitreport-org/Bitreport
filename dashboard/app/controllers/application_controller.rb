@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class ApplicationController < ActionController::Base
-  before_action :set_raven_context, if: -> { defined?(Raven) }
+  before_action :set_raven_context
   protect_from_forgery with: :exception
 
   private
