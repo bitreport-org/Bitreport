@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class RespondToTweet < ApplicationJob
-  discard_on StandardError
+  discard_on Service::ValidationError
 
   def perform(tweet_id:, text:, screen_name:)
     Rails.logger.debug("Responding to @#{screen_name}'s (#{tweet_id}): #{text}")
