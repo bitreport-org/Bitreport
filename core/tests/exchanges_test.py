@@ -1,5 +1,5 @@
 from influxdb import InfluxDBClient
-from app.exchanges import check_exchange, fill_pair, Bitfinex, Bittrex, Binance, Poloniex
+from app.exchanges import fill_pair, Bitfinex, Bittrex, Binance, Poloniex
 from app.services import get_candles
 
 influx = InfluxDBClient('0.0.0.0', 5002, 'root', 'root', 'test')
@@ -62,8 +62,7 @@ class TestFillPair:
         influx.drop_database('test')
         influx.create_database('test')
 
-        ex, code= check_exchange(influx, pair)
-        status = fill_pair(influx, pair, ex)
+        status = fill_pair(influx, pair)
         assert status, f'Failed to fill {pair}'
         self.check_influx(pair)
 

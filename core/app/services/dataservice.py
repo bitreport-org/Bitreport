@@ -10,7 +10,7 @@ from app.ta import indicators, levels, channels, wedge
 
 # Data class
 class PairData:
-    def __init__(self, influx, pair, timeframe, limit, untill=None):
+    def __init__(self, influx, pair, timeframe, limit):
         self.influx = influx
         # to post data without NaN values indicators are calculated on period of length: limit + magic_limit
         # returned data has length = limit
@@ -25,7 +25,6 @@ class PairData:
         else:
             self.limit = limit
 
-        self.untill = untill
         self.dates = []
         self.output = dict()
 
@@ -51,7 +50,7 @@ class PairData:
     
     def _make_price(self):
         # Data request
-        data = get_candles(self.influx, self.pair, self.timeframe, self.limit + self.magic_limit, self.untill)
+        data = get_candles(self.influx, self.pair, self.timeframe, self.limit + self.magic_limit)
 
         if not data:
             return None, None

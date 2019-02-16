@@ -32,6 +32,13 @@ services:
     volumes:
       - influx-data:/var/lib/influxdb
 
+  chronograf:
+    image: chronograf:1.5-alpine
+    ports:
+      - 8080:8888
+    depends_on:
+      - influx
+
   dashboard:
     build:
       context: ./dashboard

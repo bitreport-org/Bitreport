@@ -29,7 +29,7 @@ class Bittrex:
                         min(low) AS low, 
                         last(close) AS close, 
                         sum(volume) AS volume 
-                        INTO {pair+to_tf} FROM {pair+from_tf} WHERE time <= '{time_now}' GROUP BY time({to_tf})
+                        INTO {pair+to_tf} FROM {pair+from_tf} WHERE time <= '{time_now}' GROUP BY time({to_tf}), *
 
                 """
             self.influx.query(query)
@@ -60,6 +60,7 @@ class Bittrex:
             for row in rows:
                 json_body = {
                     "measurement": measurement,
+                    "tags": {'exchange' : self.name.lower()},
                     "time": row['T'],
                     "fields": {
                         "open": float(row['O']),
@@ -70,7 +71,7 @@ class Bittrex:
                     }
                 }
                 points.append(json_body)
-            result = insert_candles(self.influx, points, measurement, time_precision="s")
+            result = insert_candles(self.influx, points, measurement, self.name, time_precision="s")
             if timeframe == '1h':
                 for tf in ['2h', '3h', '6h', '12h']:
                     self.downsample(pair, '1h', tf)
@@ -98,5 +99,5 @@ class Bittrex:
         for tf in ['1h', '24h']:
             status = self.fetch_candles(pair, tf)
             if not status:
-                logging.error(f'Failed to fill {pair}:{tf}')
+                return False
         return status

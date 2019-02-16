@@ -11,7 +11,6 @@ class Binance:
     def __init__(self, influx_client):
         self.influx = influx_client
         self.name = 'Binance'
-        self.next_request_time = 9999999999999999
 
     def pair_format(self, pair):
         end_pair = pair[-3:]
@@ -30,7 +29,7 @@ class Binance:
                         min(low) AS low, 
                         last(close) AS close, 
                         sum(volume) AS volume 
-                        INTO {pair}3h FROM {pair}1h WHERE time <= '{time_now}' GROUP BY time(3h)
+                        INTO {pair}3h FROM {pair}1h WHERE time <= '{time_now}' GROUP BY time(3h), *
 
                 """
             self.influx.query(query)
@@ -64,6 +63,7 @@ class Binance:
         for row in response:
             json_body = {
                 "measurement": measurement,
+                "tags": {'exchange' : self.name.lower()},
                 "time": int(row[0]),
                 "fields": {
                     "open": float(row[1]),
@@ -75,30 +75,16 @@ class Binance:
             }
             points.append(json_body)
 
-        result = insert_candles(self.influx, points, measurement, time_precision='ms')
+        result = insert_candles(self.influx, points, measurement, self.name, time_precision='ms')
 
         if timeframe == '1h':
             self.downsample_3h(pair)
 
         return result
 
-    def check(self, pair):
-        # max last 500 candles
-        pair_formated = self.pair_format(pair)
-        url = f'https://api.binance.com/api/v1/klines?symbol={pair_formated}&interval=1d&limit=500'
-        request = requests.get(url)
-        response = request.json()
-
-        if not isinstance(response, list):
-            logging.error(f"FAILED Binance response: {response.get('msg', 'no error')}")
-            return self.name.lower(), 0
-
-        return self.name.lower(), len(response)
-
-
     def fill(self, pair):
         for tf in  ['1h', '2h', '6h', '12h', '24h']:
             status = self.fetch_candles(pair, tf)
             if not status:
-                logging.error(f'Failed to fill {pair}:{tf}')
+                return False
         return status

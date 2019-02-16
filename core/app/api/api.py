@@ -4,7 +4,7 @@ from logging.config import dictConfig
 from flask import Flask, request, jsonify
 
 from app.services import sentry_up, prepare_postgres, connect_influx, dataservice
-import app.exchanges as exchanges
+from app.exchanges import fill_pair
 
 # Setup logger
 dictConfig(config.BaseConfig.LOGGER)
@@ -25,30 +25,21 @@ def create_app():
     def data_service(pair: str):
         timeframe = request.args.get('timeframe', default='1h', type=str)
         limit = request.args.get('limit', default=15, type=int)
-        untill = request.args.get('untill', default=None, type=int)
 
-        data = dataservice.PairData(influx, pair, timeframe, limit, untill)
+        data = dataservice.PairData(influx, pair, timeframe, limit)
         output, code = data.prepare()
 
         return jsonify(output), code
 
 
-    @app.route('/exchange', methods=['GET'])
-    def exchange_service():
-        pair = request.args.get('pair', default='BTCUSD', type=str)
-        exchange, code = exchanges.check_exchange(influx, pair)
-        return jsonify(exchange), code
-
-
     @app.route('/fill', methods=['POST'])
     def fill_service():
         pair = request.args.get('pair', default=None, type=str)
-        exchange = request.args.get('exchange', default=None, type=str)
 
-        if not pair or not exchange:
-            return jsonify(msg='Pair or exchange not provided'), 404
+        if not pair:
+            return jsonify(msg='Pair not provided'), 404
 
-        msg, code = exchanges.fill_pair(influx, pair, exchange)
+        msg, code = fill_pair(influx, pair)
         return jsonify(msg=msg), code
 
 

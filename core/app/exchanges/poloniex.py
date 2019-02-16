@@ -29,7 +29,7 @@ class Poloniex:
                         min(low) AS low, 
                         last(close) AS close, 
                         sum(volume) AS volume 
-                        INTO {pair+to_tf} FROM {pair+from_tf} WHERE time <= '{time_now}' GROUP BY time({to_tf})
+                        INTO {pair+to_tf} FROM {pair+from_tf} WHERE time <= '{time_now}' GROUP BY time({to_tf}), *
 
                 """
             self.influx.query(query)
@@ -66,6 +66,7 @@ class Poloniex:
         for row in response:
             json_body = {
                 "measurement": measurement,
+                "tags": {'exchange' : self.name.lower()},
                 "time": int(row['date']),
                 "fields": {
                     "open": float(row['open']),
@@ -77,7 +78,7 @@ class Poloniex:
             }
             points.append(json_body)
 
-        result = insert_candles(self.influx, points, measurement, time_precision='s')
+        result = insert_candles(self.influx, points, measurement, self.name, time_precision='s')
 
         if timeframe == '30m':
             for tf in ['1h', '3h']:
@@ -89,22 +90,9 @@ class Poloniex:
 
         return result
 
-    def check(self, pair):
-        req_pair = self.pair_format(pair)
-        url = f'https://poloniex.com/public?command=returnChartData&currencyPair={req_pair}&start=339361693&end=9999999999&period=86400'
-        request = requests.get(url)
-        response = request.json()
-
-        # Check if response was successful
-        if request.status_code != 200 or not isinstance(response, list):
-            logging.error(f"FAILED Poloniex response: {response}")
-            return self.name.lower(), 0
-
-        return self.name.lower(), len(response)
-
     def fill(self, pair):
         for tf in ['30m', '2h', '24h']:
             status = self.fetch_candles(pair, tf)
             if not status:
-                logging.error(f'Failed to fill {pair}:{tf}')
+                return False
         return status
