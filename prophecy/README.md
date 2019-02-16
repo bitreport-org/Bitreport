@@ -2,7 +2,56 @@
 ‘The Inner Eye does not See upon command!'
 We shall See..
 
-## Model 11.02.19
+## Henry - model 13.02.19 
+This model is much more simplier as it contains only LSTM and one output Dense. 
+
+
+Model file: `size50future3_130219.h5`
+Model name: - 
+```python
+def OHLC_prophecy(ts_input_shape,
+                lstm_size = 32,
+                loss='mean_squared_error',
+                optimizer='sgd'):
+    net_input = Input(shape=(ts_input_shape, 5))
+    lstm_out= LSTM(lstm_size)(net_input)
+    output = Dense(1, activation='linear')(lstm_out)
+    model = Model(inputs=[net_input], outputs=output)
+    model.compile(loss=loss, optimizer=optimizer)
+    return model
+```
+
+
+```
+INFO:
+Size: 50
+Dimensions: 5 (OHLCV)
+Prediction range: 3
+Trained on: LTCUSD 1,3,6 + reversed (124 189 samples)
+Validated on: train test split (13 799 samples)
+
+
+LOSS:
+training   (min:    0.010, max:    0.011, cur:    0.010)
+validation (min:    0.011, max:    0.011, cur:    0.011)
+
+SCORES:
+mse: 0.008467491274861539
+mae: 0.060108381368809534
+r2: 0.9072175644940398
+
+
+PARAMS:
+epochs= 5,
+lstm_size=5
+p_loss='mean_squared_error',
+p_optimizer='adam',
+```
+
+## Model 11.02.19 [OUTDATED]
+This model was trained with reversed timeline so it was useless.
+
+
 Model file: `size20future1_110219.h5`
 
 Model name: `prophets.OHLC_prophecy`
@@ -28,7 +77,7 @@ p_loss='mean_squared_error',
 p_optimizer='adam',
 ```
 
-## Portfolio
+# Portfolio
 Portfolio simulator is a simple model for market simulations. 
 ```python
 from porfolio import portfolio
