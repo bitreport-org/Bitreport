@@ -34,6 +34,8 @@ services:
 
   chronograf:
     image: chronograf:1.5-alpine
+    environment:
+      - LOG_LEVEL=error
     ports:
       - 8080:8888
     depends_on:

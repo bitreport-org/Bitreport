@@ -1,32 +1,31 @@
 # -*- coding: utf-8 -*-
-import config
+from config import BaseConfig
 from logging.config import dictConfig
 from flask import Flask, request, jsonify
 
-from app.services import sentry_up, prepare_postgres, connect_influx, dataservice
+from app.services import sentry_up, prepare_postgres, connect_influx, data_service
 from app.exchanges import fill_pair
 
 # Setup logger
-dictConfig(config.BaseConfig.LOGGER)
+dictConfig(BaseConfig.LOGGER)
 
 def create_app():
-    # DB connections
-    influx = connect_influx()
-    prepare_postgres()
-
     app = Flask(__name__)
     app.logger.info('Welcome to BitReport core!')
+    ENV = app.config['ENV']
 
-    # Enable Sentry in production
-    sentry_up(app.config['ENV'])
+    # DB connections and Sentry setup
+    influx = connect_influx()
+    prepare_postgres()
+    sentry_up(ENV)
 
     # API
     @app.route('/<pair>', methods=['GET'])
-    def data_service(pair: str):
+    def pair_service(pair: str):
         timeframe = request.args.get('timeframe', default='1h', type=str)
         limit = request.args.get('limit', default=15, type=int)
 
-        data = dataservice.PairData(influx, pair, timeframe, limit)
+        data = data_service.PairData(influx, pair, timeframe, limit)
         output, code = data.prepare()
 
         return jsonify(output), code
