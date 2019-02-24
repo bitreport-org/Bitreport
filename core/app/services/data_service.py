@@ -10,32 +10,41 @@ from app.ta import indicators, levels, channels, wedge
 
 # Data class
 class PairData:
-    def __init__(self, influx, pair, timeframe, limit, untill=None):
+    def __init__(self, influx, pair: str, timeframe: str, limit: int):
         self.influx = influx
-        # to post data without NaN values indicators are calculated on period of length: limit + magic_limit
+        # to return data without NaN values indicators are calculated on period of length: limit + magic_limit
         # returned data has length = limit
         self.magic_limit = config.BaseConfig.MAGIC_LIMIT
         self.margin = config.BaseConfig.MARGIN
 
         self.pair = pair
         self.timeframe = timeframe
+        self.limit = max(limit, 20)
 
-        if limit < 20:
-            self.limit = 20
-        else:
-            self.limit = limit
-
-        self.untill = untill
         self.dates = []
         self.output = dict()
 
     def prepare(self):
-        # Prepare price
-        price, volume = self._make_price()
-        if not (price and volume):
+        # Data request
+        self.data = get_candles(self.influx, self.pair, self.timeframe, self.limit + self.magic_limit)
+
+        if not self.data:
             message = f'Empty database response {self.pair+self.timeframe}'
             logging.error(message)
             return message, 500
+
+        # Price data and information
+        price = dict(open=self.data['open'].tolist()[self.magic_limit:],
+                     high=self.data['high'].tolist()[self.magic_limit:],
+                     close=self.data['close'].tolist()[self.magic_limit:],
+                     low=self.data['low'].tolist()[self.magic_limit:])
+
+        info_price = self._make_price_info()
+        price.update(info=info_price)
+
+        # Volume data and information
+        info_volume = self._make_volume_info(self.data['volume'])
+        volume = dict(volume=self.data['volume'].tolist()[self.magic_limit:], info=info_volume)
 
         # Prepare dates
         dates = generate_dates(self.data['date'], self.timeframe, self.margin)
@@ -46,36 +55,15 @@ class PairData:
         indicators_dict.update(price=price)
         indicators_dict.update(volume=volume)
 
-        output = dict(dates=self.dates, indicators=indicators_dict)
-        return output, 200
-    
-    def _make_price(self):
-        # Data request
-        data = get_candles(self.influx, self.pair, self.timeframe, self.limit + self.magic_limit, self.untill)
+        response = dict(dates=self.dates, indicators=indicators_dict)
+        return response, 200
 
-        if not data:
-            return None, None
 
-        # Add data
-        self.data = data
-
-        # Candles
-        price = dict(open=data['open'].tolist()[self.magic_limit:],
-                     high=data['high'].tolist()[self.magic_limit:],
-                     close=data['close'].tolist()[self.magic_limit:],
-                     low=data['low'].tolist()[self.magic_limit:])
-
-        info_price = self._make_price_info()
-        price.update(info=info_price)
-
-        info_volume = self._make_volume_info(data['volume'])
-        volume = dict(volume=data['volume'].tolist()[self.magic_limit:], info=info_volume)
-
-        return price, volume
-    
     def _make_price_info(self):
         info_price = []
         close = self.data.get('close')[self.magic_limit:]
+
+        # TODO: remove this useless token
 
         # Last moves tokens
         n = int(0.70*close.size) 
@@ -97,11 +85,9 @@ class PairData:
 
         return info_price
 
-    def _make_volume_info(self, volume):
+    def _make_volume_info(self, volume: np.array):
         info_volume = []
-        period_map = {'1h': 48, '2h': 24, '3h': 16, 
-                    '6h': 28, '12h': 14, '24h': 14}
-        check_period = period_map.get(self.timeframe, 24)
+        check_period = int(0.35 * self.limit)
 
         # Volume tokens
         threshold = np.percentile(volume, 80)
@@ -109,9 +95,9 @@ class PairData:
             info_volume.append('VOLUME_SPIKE')
         
         slope = linregress(np.arange(volume[check_period:].size), volume[check_period:]).slope
-        if slope < 0.0:
+        if slope < -0.05:
             info_volume.append('VOLUME_DIRECTION_DOWN')
-        else:
+        elif slope > 0.05:
             info_volume.append('VOLUME_DIRECTION_UP')
 
         return info_volume
@@ -119,7 +105,7 @@ class PairData:
     def _make_indicators(self):
         indicators_values = dict()
 
-        # Indicators 
+        # Indicators
         indicators_list = get_function_list(indicators)
         for indicator in indicators_list:
             try:

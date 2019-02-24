@@ -5,12 +5,24 @@ import types
 
 conf = config.BaseConfig()
 
-def get_candles(influx, pair, timeframe, limit, untill=None):
+def get_candles(influx, pair, timeframe, limit):
     mesurement = pair + timeframe
-    if untill and isinstance(untill, int):
-        q = f'SELECT * FROM {mesurement} WHERE time <= {untill} ORDER BY time ASC LIMIT {limit};'
-    else:
-        q = f'SELECT * FROM {mesurement} ORDER BY time ASC LIMIT {limit};'
+
+    q = f"""
+    SELECT
+    mean(close) AS close, 
+    mean(high) AS high, 
+    mean(low) AS low, 
+    mean(open) AS open, 
+    mean(volume) AS volume
+    FROM {mesurement}
+    WHERE time > now() - {(limit-1) * int(timeframe[:-1])}h
+    AND ("exchange" = 'binance'
+    OR "exchange" = 'bitfinex'
+    OR "exchange" = 'poloniex'
+    OR "exchange" = 'bittrex') 
+    GROUP BY  time({timeframe}) FILL(null)
+    """
 
     r = influx.query(q, epoch='s')
     df = pd.DataFrame(list(r.get_points(measurement=mesurement)))

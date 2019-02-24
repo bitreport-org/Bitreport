@@ -2,8 +2,6 @@
 import time
 import config
 import logging
-import os
-
 from influxdb import InfluxDBClient
 from sqlalchemy import Column, String, Integer, JSON, create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -15,24 +13,24 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 
 Base = declarative_base()
-Conf = config.BaseConfig()
 
-def connect_influx():
+
+def connect_influx(conf = config.Production):
     # Wait for connection to InfluxDB
     status = True
     while status:
         try:
-            client = InfluxDBClient(Conf.HOST, Conf.PORT, 'root', 'root', Conf.DBNAME)
-            client.create_database(Conf.DBNAME)
+            client = InfluxDBClient(conf.INFLUX_HOST, conf.INFLUX_PORT, 'root', 'root', conf.INFLUX_DBNAME)
+            client.create_database(conf.INFLUX_DBNAME)
             status = False
         except:
             logging.info('Waiting for InfluxDB...')
-            time.sleep(4)
+            time.sleep(3)
     return client
 
 
 class Chart(Base):
-    __tablename__ = Conf.CHART_TABLE
+    __tablename__ = config.BaseConfig.CHART_TABLE
     id = Column(Integer, primary_key=True, autoincrement=True)
     pair = Column(String)
     timeframe = Column(String)
@@ -42,7 +40,7 @@ class Chart(Base):
 
 
 class Level(Base):
-    __tablename__ = Conf.LVL_TABLE
+    __tablename__ = config.BaseConfig.LVL_TABLE
     id = Column(Integer, primary_key=True, autoincrement=True)
     pair = Column(String)
     timeframe = Column(String)
@@ -51,36 +49,36 @@ class Level(Base):
     value = Column(Integer, index=True, unique=True)
 
 
-def prepare_postgres():
+def prepare_postgres(conf = config.Production):
     logging.info('Preparing postgres...')
 
     # Postgres setup
-    con = connect(user=Conf.POSTGRES_USER, host=Conf.POSTGRES_USER, dbname='postgres')
+    con = connect(user=conf.POSTGRES_USER, host=conf.POSTGRES_HOST, dbname='postgres')
     con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     cur = con.cursor()
     cur.execute(f"select exists( \
-                SELECT datname FROM pg_catalog.pg_database WHERE lower(datname) = lower('{Conf.POSTGRES_DATABSE}') \
+                SELECT datname FROM pg_catalog.pg_database WHERE lower(datname) = lower('{conf.POSTGRES_DATABSE}') \
                 );")
     status, = cur.fetchone()
 
     if not status:
-        cur.execute(f'CREATE DATABASE {Conf.POSTGRES_DATABSE}')
-        logging.info(f'Database {Conf.POSTGRES_DATABSE} created')
+        cur.execute(f'CREATE DATABASE {conf.POSTGRES_DATABSE}')
+        logging.info(f'Database {conf.POSTGRES_DATABSE} created')
     else:
-        logging.info(f'Database {Conf.POSTGRES_DATABSE} already exists')
+        logging.info(f'Database {conf.POSTGRES_DATABSE} already exists')
 
     # cur.execute('DROP TABLE IF EXISTS charting;')
     cur.close()
     con.close()
 
-    db_uri = url.URL('postgresql', username=Conf.POSTGRES_USER, host=Conf.POSTGRES_USER, database=Conf.POSTGRES_DATABSE)
+    db_uri = url.URL('postgresql', username=conf.POSTGRES_USER, host=conf.POSTGRES_HOST, database=conf.POSTGRES_DATABSE)
     engine = create_engine(db_uri)
     session = sessionmaker()
     session.configure(bind=engine)
     Base.metadata.create_all(engine)
 
-def make_session():
-    db_uri = url.URL('postgresql', username=Conf.POSTGRES_USER, host=Conf.POSTGRES_USER, database=Conf.POSTGRES_DATABSE)
+def make_session(conf = config.Production):
+    db_uri = url.URL('postgresql', username=conf.POSTGRES_USER, host=conf.POSTGRES_HOST, database=conf.POSTGRES_DATABSE)
     engine = create_engine(db_uri)
     Session = sessionmaker(bind=engine)
     session = Session()

@@ -10,10 +10,10 @@ def check_last_tmstmp(influx, measurement):
     return int(df.time.values)
 
 
-def insert_candles(influx, candles, measurement, time_precision=None):
+def insert_candles(influx, candles, measurement, exchange_name, time_precision=None):
     result = influx.write_points(candles, time_precision=time_precision)
     if result:
-        logging.info(f'SUCCEDED write  records for {measurement}')
+        logging.info(f'SUCCEDED write  records for {measurement} from {exchange_name}')
     else:
-        logging.error(f'FAILED to write records for {measurement}')
+        logging.error(f'FAILED to write records for {measurement} from {exchange_name}')
     return result
