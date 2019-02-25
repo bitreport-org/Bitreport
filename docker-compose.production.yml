@@ -32,8 +32,6 @@ services:
     depends_on:
       - influx
       - postgres
-    ports:
-      - 5001:80
 
   influx:
     environment:
@@ -41,8 +39,6 @@ services:
       - INFLUXDB_DATA_QUERY_LOG_ENABLED=false
       - INFLUXDB_HTTP_LOG_ENABLED=false
     image: influxdb:1.5.2-alpine
-    ports:
-      - 5002:8086
     volumes:
       - influx-data:/var/lib/influxdb
 
