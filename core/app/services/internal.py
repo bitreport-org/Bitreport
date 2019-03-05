@@ -21,7 +21,7 @@ def get_candles(influx, pair, timeframe, limit):
     OR "exchange" = 'bitfinex'
     OR "exchange" = 'poloniex'
     OR "exchange" = 'bittrex') 
-    GROUP BY  time({timeframe}) FILL(null)
+    GROUP BY  time({timeframe}) FILL(none)
     """
 
     r = influx.query(q, epoch='s')

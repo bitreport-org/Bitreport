@@ -1,7 +1,8 @@
 import numpy as np
-import talib #pylint: skip-file
 import config
 from app.services import Chart, make_session, get_candles, generate_dates
+from app.ta.peaks import detect_peaks
+from sklearn.metrics import mean_squared_error as mse
 
 Config = config.BaseConfig()
 session = make_session()
@@ -33,12 +34,15 @@ class Wedge():
         session.add(ch)
         session.commit()
 
-    def _compare(self, params):
-        margin = self.margin
+    def _check_last_wedge(self):
+        params = self._last_wedge()
+
+        if not params:
+            return False, [], []
 
         candles2check = 20
-        upper_band = params['upper_a'] * self.x_dates[:-margin] + params['upper_b']
-        lower_band = params['lower_a'] * self.x_dates[:-margin] + params['lower_b']
+        upper_band = params['upper_a'] * self.x_dates[:-self.margin] + params['upper_b']
+        lower_band = params['lower_a'] * self.x_dates[:-self.margin] + params['lower_b']
 
         # Check price position
         price = self.close[-candles2check:]
@@ -47,101 +51,176 @@ class Wedge():
 
         threshold = 0.8
         if np.sum(above)/candles2check > threshold or np.sum(below)/candles2check > threshold:
-            return True
+            return False, [], []
         else:
-            return False
+            return True, upper_band, lower_band
 
-    def _plot(self, params):
-        # Creates wedge till it crosses
-        upper_band = params['upper_a'] * self.x_dates + params['upper_b']
-        lower_band = params['lower_a'] * self.x_dates + params['lower_b']
-
+    def _shorten(self, upper_band, lower_band):
         s = np.sum([u > l for u, l in zip(upper_band, lower_band)])
         return upper_band[:s], lower_band[:s]
 
+    def _make_sense(self, band_up, band_down):
+        ws = band_up[0] - band_down[0]
+        we = band_up[-1] - band_down[-1]
+        if ws >= we :
+            return True
+        return False
+
     def make(self):
-        short_close = self.close[self.start:]
+        close = self.close[self.start:]
 
-        new_params = self._wedge(short_close, self.x_dates)
-        params = self._last_wedge()
-        
-        # Compare channels
-        if params and params['upper_a']:
-            # Check if price is out of the channel
-            if self._compare(params):
-                params = new_params
-                self._save_wedge(params)
-        else:
-            params = new_params
+        # Check if last wedge still make sense
+        actual, band_up, band_down = self._check_last_wedge()
+        if actual:
+            info = self._tokens(band_up, band_down, close)
+            return {'upper_band': band_up.tolist(),
+                     'middle_band': [],
+                     'lower_band': band_down.tolist(),
+                     'info': info}
+
+        # Make no sense? Create new wedge:
+        assert  close.size == self.x_dates[:-self.margin].size, 'x, y differs'
+
+        band_up, band_down, params = self.wedge(close, self.x_dates[:-self.margin])
+        band_up, band_down = self._shorten(band_up, band_down)
+
+        if self._make_sense(band_up, band_down):
             self._save_wedge(params)
-
-        # Prepare channel
-        if params and params['upper_a']:  # If wedge exists
-            upper_band, lower_band = self._plot(params)
-            info = self._tokens(upper_band, lower_band, short_close)
+            info = self._tokens(band_up, band_down, close)
+            return {'upper_band': band_up.tolist(),
+                     'middle_band': [],
+                     'lower_band': band_down.tolist(),
+                     'info': info}
         else:
-            upper_band = np.array([])
-            lower_band = np.array([])
-            info = []
-
-        return {'upper_band': upper_band.tolist(),
-                'middle_band': [],
-                'lower_band': lower_band.tolist(),
-                'info': info}
-
-    def _wedge(self, close, x_dates):
-        margin = self.margin
-        close_size = close.size
-        end = close_size - 20
-        threshold = 10
-        upper_a, lower_a, upper_b, lower_b = None, None, None, None
-
-        types = {
-                'falling': (
-                    talib.MAXINDEX,
-                    np.max,
-                    talib.MININDEX,
-                    np.min),
-                'rising': (
-                    talib.MININDEX,
-                    np.min,
-                    talib.MAXINDEX,
-                    np.max)
-                }
-
-        for t, funcs in types.items():
-            f0, f1, f2, f3 = funcs
-            point1 = f0(close[:-40], timeperiod=close_size-40)[-1]
-
-            # Band 1
-            a_values = np.divide(close[point1 + threshold : end+1] - close[point1], x_dates[point1 + threshold: end+1] - x_dates[point1])
-            a1 = f1(a_values)
-            b1 = close[point1] - a1 * x_dates[point1]
-
-            # End point
-            point2, = np.where(a_values == a1)[0]
-            point2 = (point1 + threshold) + point2
-
-            # Mid point
-            point3 = point1 + f2(close[point1:point2], timeperiod=close[point1: point2].size)[-1]
-
-            # Band 2
-            a_values = np.divide(close[point3+5:end+1] - close[point3], x_dates[point3+5: end+1] - x_dates[point3])
-            a2 = f3(a_values)
-            b2 = close[point3] - a2 * x_dates[point3]
-
-            # Create upper and lower band and check if wedge make sense
-            s, e = x_dates[0], x_dates[-1 - margin]
-
-            if t == 'falling' and (a1 - a2) * (s - e) >= 0:
-                upper_a, lower_a, upper_b, lower_b = a1, a2, b1, b2
-                break
-            elif t == 'rising' and (a2 - a1) * (s - e) >= 0:
-                upper_a, lower_a, upper_b, lower_b = a2, a1, b2, b1
-                break
+            return {'upper_band': [],
+                     'middle_band': [],
+                     'lower_band': [],
+                     'info': []}
 
 
-        return {'upper_a': upper_a, 'lower_a': lower_a, 'upper_b': upper_b, 'lower_b': lower_b}
+    def _score_up(self, close, band, start):
+        assert close.size == band.size, 'Size differs'
+        s = np.sum((close <= band))
+
+        n = close.size
+        return s / n, mse(close[start:], band[start:])
+
+    def _score_down(self, close, band, start):
+        assert close.size == band.size, 'Size differs'
+        s = np.sum((close >= band))
+        n = close.size
+        return s / n, mse(close[start:], band[start:])
+
+    def _make_bands(self, x_close, close, xs, ys, start, t):
+        if t == 'up':
+            comp = self._score_up
+        else:
+            comp = self._score_down
+        bands = []
+        for i, (x, y) in enumerate(zip(xs[:-1], ys[:-1])):
+            nx, ny = xs[i + 1], ys[i + 1]
+            slope = (ny - y) / (nx - x)
+            coef = y - slope * x
+            b = slope * x_close + coef
+
+            s, smse = comp(close, b, start)
+            bands.append({'score': s, 'mse': smse,
+                          'band': b, 'params': (slope, coef)})
+
+        return bands
+
+    def _simple_band(self, x_close, close, type_, skip_n_last=20, peak_dist=15):
+        if type_ == 'up':
+            f1, f2 = np.argmax, np.max
+        else:
+            f1, f2 = np.argmin, np.min
+
+        x = f1(close[:-skip_n_last])
+        y = close[x]
+
+        if x < 0.75 * close.size:
+            slope = (close[x + peak_dist:-skip_n_last] - y) / (x_close[x + peak_dist: close.size - skip_n_last] - x)
+            a = f2(slope)
+            coef = y - a * x
+            b = a * x_close + coef
+        else:
+            slope = (close[:-(x + peak_dist)] - y) / (x_close[: -(x + peak_dist)] - x)
+            a = f2(slope)
+            coef = y - a * x
+            b = a * x_close + coef
+        return x, b, (a, coef)
+
+    def _unique(self, xs):
+        bands = []
+        idx = []
+        for el in xs:
+            s, ms = el.get('score'), el.get('mse')
+            if (s, ms) not in idx:
+                bands.append(el)
+                idx.append((s, ms))
+        return bands
+
+    def wedge(self, close, x_dates):
+        assert close.size == x_dates.size, "x, y sizes differ"
+        # Scale to [0,1]
+        m, M = np.min(close), np.max(close)
+        close = (close - m) / (M - m)
+
+        # simple bands
+        start, up, params = self._simple_band(x_dates, close, 'up')
+        s, smse = self._score_up(close, up, start)
+        ups = [{'score': s, 'mse': smse, 'band': up, 'params': params}]
+
+        start, down, prams = self._simple_band(x_dates, close, 'down')
+        s, smse = self._score_down(close, down, start)
+        downs = [{'score': s, 'mse': smse, 'band': down, 'params': params}]
+
+        # Wedge magic
+        for t in np.arange(0.0, 0.2, 0.03):
+            for d in np.arange(5, 70, 10):
+                peaks = detect_peaks(close, mph=t, mpd=d)
+                x_max = [x_dates[i] for i in peaks]
+                y_max = [close[i] for i in peaks]
+                ups += self._make_bands(x_dates, close, x_max, y_max, peaks[0], "up")
+
+                peaks = detect_peaks(1 - close, mph=t, mpd=d)
+                x_min = [x_dates[i] for i in peaks]
+                y_min = [close[i] for i in peaks]
+                downs += self._make_bands(x_dates, close, x_min, y_min, peaks[0], "down")
+
+        ups = self._unique(ups)
+        downs = self._unique(downs)
+
+        # sort by score
+        ups.sort(key=lambda x: x['score'])
+        downs.sort(key=lambda x: x['score'])
+
+        ups = ups[-3:]
+        downs = downs[-3:]
+
+        # sort by mse
+        ups.sort(key=lambda x: x['mse'], reverse=True)
+        downs.sort(key=lambda x: x['mse'], reverse=True)
+
+        up = ups[-1]
+        down = downs[-1]
+
+        # Rescale back
+        d = M - m
+        band_up = d * up['band'] + m
+        band_down = d * down['band'] + m
+
+        # Params
+        upper_a, upper_b = up['params']
+        lower_a, lower_b = down['params']
+
+        upper_a = d * upper_a
+        upper_b = d * upper_b + m
+        lower_a = d * lower_a
+        lower_b = d * lower_b + m
+
+        params = {'upper_a': upper_a, 'lower_a': lower_a, 'upper_b': upper_b, 'lower_b': lower_b}
+        return band_up, band_down, params
 
     def _tokens(self, upper_band, lower_band, close):
             info = []
@@ -185,21 +264,19 @@ class Wedge():
 
             return info
 
+
 # Long channels
 def remakeWedge(influx, pair, timeframe, limit=200):
-    start = Config.MAGIC_LIMIT
     margin = Config.MARGIN
 
     # Get data
     data = get_candles(influx, pair, timeframe, limit)
-    close = data['close'][start:]
+    close = data['close']
     x_dates = generate_dates(data['date'], timeframe, margin)
 
     wg = Wedge(pair, timeframe, close, x_dates)
     wg.make()
-    params = wg._last_wedge()
-
-    return params
+    return wg._last_wedge()
 
 
 def makeLongWedge(influx, pair: str, timeframe: str, x_dates: list, limit: int=200):
@@ -209,7 +286,7 @@ def makeLongWedge(influx, pair: str, timeframe: str, x_dates: list, limit: int=2
     upper_band = np.array([])
     lower_band = np.array([])
 
-    if params['upper_a']:  # If wedge exists
+    if params.get('upper_a', None) and params.get('lower_a', None):  # If wedge exists
         upper_band = params['upper_a'] * x_dates + params['upper_b']
         lower_band = params['lower_a'] * x_dates + params['lower_b']
 
