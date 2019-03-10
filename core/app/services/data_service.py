@@ -5,7 +5,7 @@ import config
 
 from scipy.stats import linregress
 from app.services import get_candles, generate_dates, get_function_list
-from app.ta import indicators, levels, channels, wedge
+from app.ta import indicators, levels, channels, wedge, patterns
 
 
 # Data class
@@ -141,6 +141,23 @@ class PairData:
             indicators_values['wedge12'] = wedge.makeLongWedge(self.influx, self.pair, '12h', dates)
         except:
             logging.error(f'Indicator wedge12, error: /n {traceback.format_exc()}')
+            pass
+
+        # Patterns
+        try:
+            dt = patterns.make_double(x_dates=np.array(dates[: -self.margin]),
+                                      close=close[self.magic_limit:], type='top')
+            indicators_values['double_top'] = dt
+        except:
+            logging.error(f'Indicator double top, error: /n {traceback.format_exc()}')
+            pass
+
+        try:
+            db = patterns.make_double(x_dates=np.array(dates[: -self.margin]),
+                                      close=close[self.magic_limit:], type='bottom')
+            indicators_values['double_bottom'] = db
+        except:
+            logging.error(f'Indicator double bottom, error: /n {traceback.format_exc()}')
             pass
 
         # Levels
