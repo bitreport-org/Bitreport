@@ -3,11 +3,13 @@
 class ReferenceReportsFromTwitterImages < ActiveRecord::Migration[5.2]
   class MigrationTwitterImage < ActiveRecord::Base
     self.table_name = :twitter_images
+    belongs_to :pair
     belongs_to :report
   end
 
   class MigrationReport < ActiveRecord::Base
     self.table_name = :reports
+    belongs_to :pair
   end
 
   def up
