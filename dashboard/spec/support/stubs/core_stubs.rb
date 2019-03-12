@@ -2,20 +2,14 @@
 
 def stub_core_fill
   stub_request(:post, 'http://core/fill')
-    .with(query: hash_including(:exchange, :pair))
+    .with(query: hash_including(:pair))
     .to_return(status: 200, body: '{}', headers: { 'Content-Type' => 'application/json' })
 end
 
-def stub_core_exchange
-  stub_request(:get, 'http://core/exchange')
+def stub_core_fill_failure
+  stub_request(:post, 'http://core/fill')
     .with(query: hash_including(:pair))
-    .to_return(status: 200, body: '"bitfinex"', headers: { 'Content-Type' => 'application/json' })
-end
-
-def stub_core_exchange_failure
-  stub_request(:get, 'http://core/exchange')
-    .with(query: hash_including(:pair))
-    .to_return(status: 200, body: '"null"', headers: { 'Content-Type' => 'application/json' })
+    .to_return(status: 404, body: '{}', headers: { 'Content-Type' => 'application/json' })
 end
 
 def stub_core_get(symbol)

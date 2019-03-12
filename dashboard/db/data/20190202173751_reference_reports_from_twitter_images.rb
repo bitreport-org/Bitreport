@@ -1,16 +1,18 @@
 # frozen_string_literal: true
 
 class ReferenceReportsFromTwitterImages < ActiveRecord::Migration[5.2]
-  class TwitterImage < ActiveRecord::Base
+  class MigrationTwitterImage < ActiveRecord::Base
+    self.table_name = :twitter_images
     belongs_to :report
   end
 
-  class Report < ActiveRecord::Base
+  class MigrationReport < ActiveRecord::Base
+    self.table_name = :reports
   end
 
   def up
-    TwitterImage.find_each do |twitter_image|
-      report = Report.create!(pair: twitter_image.pair,
+    MigrationTwitterImage.find_each do |twitter_image|
+      report = MigrationReport.create!(pair: twitter_image.pair,
                               limit: twitter_image.limit,
                               timeframe: twitter_image.timeframe,
                               indicators: twitter_image.indicators,

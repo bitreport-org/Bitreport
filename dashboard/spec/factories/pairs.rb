@@ -8,7 +8,6 @@ FactoryBot.define do
     end
     symbol { "#{first_part}#{second_part}" }
     name { Faker::Currency.name }
-    exchange { 'binance' }
     tags { %W[##{first_part} $#{first_part}] }
 
     trait(:with_reports) do

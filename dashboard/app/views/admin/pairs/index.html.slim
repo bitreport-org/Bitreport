@@ -6,7 +6,6 @@ table.ui.celled.table
       th Symbol
       th Name
       th Tags
-      th Exchange
       th Last updated
       th Actions
   tbody
@@ -15,7 +14,6 @@ table.ui.celled.table
         td= pair.symbol
         td= pair.name
         td= pair.tags.join(' ')
-        td= pair.exchange
         td= pair.last_updated_at
         td.collapsing
           = link_to pair, data: { confirm: 'Are you sure?' }, method: :delete do

@@ -44,7 +44,6 @@ RSpec.describe Tweets::Responder do
 
       context 'when pair can be created' do
         before do
-          stub_core_exchange
           stub_core_fill
           reports_creator_stub = instance_double(Reports::Creator, call: create(:report))
           allow(Reports::Creator).to receive(:new).and_return(reports_creator_stub)
@@ -75,13 +74,14 @@ RSpec.describe Tweets::Responder do
 
       context 'when core has no result for the pair' do
         before do
-          stub_core_exchange_failure
+          stub_core_fill_failure
         end
 
         it 'does not create a TwitterPost' do
           expect { service.call }.not_to change(TwitterPost, :count)
         end
 
+        # TODO: This will loop, won't it?
         it 'creates a post on Twitter' do
           service.call
           expect(twitter_stub).to have_been_requested

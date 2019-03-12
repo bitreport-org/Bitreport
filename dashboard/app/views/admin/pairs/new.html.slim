@@ -21,9 +21,6 @@
         .field
           = f.label :tags
           = f.text_field :tags, { prompt: '$BTC #bitcoin #btc' }
-        .field
-          = f.label :exchange
-          = f.select :exchange, options_for_select(Pair::EXCHANGES, 'bitfinex'), { prompt: 'Select exchange' }, { class: 'ui fluid search dropdown' }
       h4.ui.dividing.header Actions
       = f.button :submit, class: 'ui green right labeled icon button' do
         i.right.arrow.icon
