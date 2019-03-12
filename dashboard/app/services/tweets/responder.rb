@@ -2,17 +2,17 @@
 
 module Tweets
   class Responder < Service
-    validates :tweet_id, :tweet_text, presence: true
+    validates :tweet_id, presence: true
 
-    def initialize(tweet_id:, tweet_text:, screen_name: nil)
+    def initialize(tweet_id:, symbols:, screen_name: nil)
       @tweet_id = tweet_id
-      @tweet_text = tweet_text
+      @symbols = symbols
       @screen_name = screen_name
     end
 
     private
 
-    attr_reader :tweet_id, :tweet_text, :screen_name
+    attr_reader :tweet_id, :symbols, :screen_name
 
     def run
       return if screen_name == 'Bitreport_org'
@@ -29,10 +29,6 @@ module Tweets
 
     def pair
       @pair ||= Pairs::Finder.new(symbol: symbols.first).call
-    end
-
-    def symbols
-      @symbols ||= tweet_text.scan(/\$(\w+)/).flatten # Twitter already return this as "entities" xD
     end
 
     def publish(report)

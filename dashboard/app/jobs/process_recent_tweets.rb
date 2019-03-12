@@ -1,11 +1,14 @@
 # frozen_string_literal: true
 
 class ProcessRecentTweets < ApplicationJob
+  QUERY = '+Bitreport_org +@Bitreport_org +to:Bitreport_org -from:Bitreport_org -filter:retweets'.freeze
+
   def perform
     Rails.logger.info('Processing new Tweets')
     recent_mentions.each do |tweet|
       RespondToTweet.perform_later(tweet_id: tweet.id,
                                    text: tweet.text,
+                                   symbols: tweet.symbols.map(&:text),
                                    user_screen_name: tweet.user.screen_name)
     end
   end
@@ -13,9 +16,10 @@ class ProcessRecentTweets < ApplicationJob
   private
 
   def recent_mentions
-    @recent_mentions ||= client.search('to:Bitreport_org',
+    @recent_mentions ||= client.search(QUERY,
                                        count: 100, # This is twitter API maximum
                                        result_type: :recent,
+                                       include_entities: true,
                                        since_id: TwitterPost.latest_replied_tweet_id)
   end
 

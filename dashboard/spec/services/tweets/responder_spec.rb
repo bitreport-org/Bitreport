@@ -5,15 +5,15 @@ require 'rails_helper'
 RSpec.describe Tweets::Responder do
   subject(:service) { described_class.new(params) }
 
-  let(:params) { { tweet_id: 1, tweet_text: tweet_text, screen_name: screen_name } }
-  let(:tweet_text) { "@Bitreport_org #{symbol}" }
+  let(:params) { { tweet_id: 1, symbols: symbols, screen_name: screen_name } }
+  let(:symbols) { [symbol] }
   let(:screen_name) { nil }
   let!(:twitter_stub) { stub_twitter_update }
 
-  context 'with valid tweet_text' do
+  context 'with valid symbols' do
     context 'when pair exists' do
       let(:pair) { create(:pair) }
-      let(:symbol) { "$#{pair.symbol[0..3]}" }
+      let(:symbol) { pair.symbol[0..3] }
 
       before do
         reports_creator_stub = instance_double(Reports::Creator, call: create(:report, pair: pair))
@@ -40,7 +40,7 @@ RSpec.describe Tweets::Responder do
     end
 
     context 'when pair does not exist' do
-      let(:symbol) { '$YOLO' }
+      let(:symbol) { 'YOLO' }
 
       context 'when pair can be created' do
         before do
@@ -90,9 +90,9 @@ RSpec.describe Tweets::Responder do
     end
   end
 
-  context 'with invalid tweet_text' do
+  context 'with invalid symbols' do
     context 'when tweet does not include any cashtags' do
-      let(:tweet_text) { '@Bitreport_org Hello I am a prince from Nigeria' }
+      let(:symbols) { [] }
 
       it 'does not generate a report' do
         expect(Reports::Creator).not_to receive(:new)
