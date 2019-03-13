@@ -84,10 +84,11 @@ def make_double(x_dates, close, type ='top', right_margin=5, threshold=3):
     Bx = x_dates[Bx]
     Cx = x_dates[Cx]
 
+    # Here we change points order from A, C, B to A, B, C
     dt = {
         'A' : (int(Ax), float(Ay)),
-        'B': (int(Bx), float(By)),
-        'C': (int(Cx), float(Cy))
+        'B': (int(Cx), float(Cy)),
+        'C': (int(Bx), float(By)),
     }
 
     return dt
