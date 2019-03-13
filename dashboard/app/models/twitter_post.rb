@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 class TwitterPost < ApplicationRecord
-  belongs_to :report
+  scope :published, -> { where.not(published_at: nil) }
 
-  def self.latest_replied_tweet_id
-    order(in_reply_to: :desc).pluck(:in_reply_to).first
-  end
+  belongs_to :report, optional: true
+
+  validates :in_reply_to, presence: true, uniqueness: true
 end

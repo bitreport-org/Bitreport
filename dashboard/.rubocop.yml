@@ -13,12 +13,10 @@ Metrics/BlockLength:
   Exclude:
     - spec/**/*
     - db/**/*
-
 Metrics/LineLength:
   Max: 100
   Exclude:
     - db/**/*
-
 Metrics/MethodLength:
   Exclude:
     - db/**/*
@@ -26,9 +24,11 @@ Metrics/MethodLength:
 Rails/ApplicationRecord:
   Exclude:
     - db/**/*
-
 Rails/BulkChangeTable:
   Enabled: false
+
+RSpec/NestedGroups:
+  Max: 4
 
 Style/Documentation:
   Enabled: false

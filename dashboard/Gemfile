@@ -7,7 +7,7 @@ git_source(:github) do |repo_name|
   "https://github.com/#{repo_name}.git"
 end
 
-ruby '~> 2.5.3'
+ruby '2.6.1'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails'
@@ -75,10 +75,8 @@ gem 'semantic-ui-sass', github: 'doabit/semantic-ui-sass'
 # Migrate and update data alongside your database structure.
 gem 'data_migrate'
 
-group :production do
-  # Raven is a Ruby client for Sentry
-  gem "sentry-raven"
-end
+# Raven is a Ruby client for Sentry
+gem "sentry-raven"
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console

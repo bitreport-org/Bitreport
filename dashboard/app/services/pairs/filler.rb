@@ -4,8 +4,6 @@ module Pairs
   class Filler < Service
     validates :pair, presence: true
 
-    before_execute :make_fill_request
-
     def initialize(pair:)
       @pair = pair
     end
@@ -15,11 +13,11 @@ module Pairs
     attr_reader :pair
 
     def run
-      pair.touch(:last_updated_at)
+      fill_request.success? && pair.touch(:last_updated_at)
     end
 
-    def make_fill_request
-      HTTParty.post('http://core/fill', query: { pair: pair.symbol, exchange: pair.exchange })
+    def fill_request
+      @fill_request ||= HTTParty.post('http://core/fill', query: { pair: pair.symbol })
     end
   end
 end

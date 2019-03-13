@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_02_05_230827) do
+ActiveRecord::Schema.define(version: 2019_03_12_213538) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -21,7 +21,6 @@ ActiveRecord::Schema.define(version: 2019_02_05_230827) do
   create_table "pairs", force: :cascade do |t|
     t.string "symbol", null: false
     t.string "name"
-    t.string "exchange"
     t.datetime "last_updated_at"
     t.string "tags", array: true
     t.datetime "created_at", null: false
@@ -54,10 +53,11 @@ ActiveRecord::Schema.define(version: 2019_02_05_230827) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "published_at"
-    t.string "media_id"
     t.string "in_reply_to"
-    t.bigint "report_id", null: false
+    t.bigint "report_id"
     t.string "tweet_id"
+    t.string "message"
+    t.index ["in_reply_to"], name: "index_twitter_posts_on_in_reply_to"
     t.index ["report_id"], name: "index_twitter_posts_on_report_id"
   end
 
