@@ -1,0 +1,19 @@
+trader:
+    name: Test1
+    pair: BTCUSD
+    start_amount: 1000
+    portfolio: Portfolio
+    strategy: TwoMAs
+
+trader:
+    name: Test2
+    pair: NEOUSD
+    start_amount: 1000
+    portfolio: SimpleBuySell
+    strategy: Test
+
+trader:
+    name: Test3
+    pair: ETHUSD
+    start_amount: 1000
+    portfolio: SimpleBuySell
