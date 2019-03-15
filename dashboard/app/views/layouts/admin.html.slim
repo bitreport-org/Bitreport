@@ -9,6 +9,8 @@ html
     = javascript_include_tag 'admin', 'data-turbolinks-track': 'reload'
   body class="#{controller_name} #{action_name}"
     .ui.container
+      p.notice = notice
+      p.alert = alert
       = yield
       .ui.segment
         = link_to pairs_path do

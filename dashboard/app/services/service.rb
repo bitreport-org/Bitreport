@@ -10,7 +10,7 @@ class Service
 
   def call
     run_callbacks(:validation) { validate! }
-    run_callbacks(:execute) { run }
+    run_callbacks(:execute) { ActiveRecord::Base.transaction { run } }
   rescue ActiveRecord::RecordInvalid => e
     raise ValidationError, e.message
   rescue ActiveModel::ValidationError => e

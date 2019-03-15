@@ -8,8 +8,8 @@ module Pairs
 
     def initialize(symbol:, name: nil, tags: [])
       @symbol = symbol
-      @name = name
-      @tags = tags
+      @name = name.presence
+      @tags = tags.presence
     end
 
     private
@@ -17,9 +17,10 @@ module Pairs
     attr_reader :symbol, :first_part, :second_part, :pair
 
     def run
-      @pair = Pair.create!(symbol: full_symbol, name: name, tags: tags)
-      return unless data_fill
-
+      @pair = Pair.create!(symbol: full_symbol,
+                           name: name,
+                           tags: Array.wrap(tags).uniq.join(' ').split)
+      data_fill
       pair
     end
 
@@ -42,9 +43,7 @@ module Pairs
     end
 
     def tags
-      return @tags if @tags.presence
-
-      @tags = %W[##{name} ##{first_part} $#{first_part}].uniq
+      @tags ||= %W[##{name} ##{first_part} $#{first_part}]
     end
   end
 end

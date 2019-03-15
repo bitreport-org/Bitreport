@@ -6,7 +6,7 @@ table.ui.celled.table
       th Symbol
       th Name
       th Tags
-      th Last updated
+      th Last fetch
       th Actions
   tbody
     - @pairs.each do |pair|
@@ -20,10 +20,11 @@ table.ui.celled.table
             .ui.bottom.attached.button
               i.delete.icon
               | Delete
-          = link_to pair_fill_path(pair), method: :put do
+
+          = link_to edit_pair_path(pair) do
             .ui.bottom.attached.button
-              i.refresh.icon
-              | Fetch
+              i.pencil.icon
+              | Edit
 
 = link_to new_pair_path do
   .ui.green.button
