@@ -6,6 +6,7 @@ Rails.application.routes.draw do
   scope module: :admin, path: '/admin' do
     root to: 'pairs#index'
     resources :pairs, only: %i[index new edit create update destroy]
+    resources :posts, only: %i[index]
     get 'preview', to: 'previews#show'
   end
 
