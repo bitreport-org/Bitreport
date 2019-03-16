@@ -89,6 +89,7 @@ def make_double(x_dates, close, type ='top', right_margin=5, threshold=3):
         'A' : (int(Ax), float(Ay)),
         'B': (int(Cx), float(Cy)),
         'C': (int(Bx), float(By)),
+        'info': []
     }
 
     return dt

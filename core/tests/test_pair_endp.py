@@ -1,21 +1,3 @@
-import requests
-import pytest
-from app.services.internal import get_function_list
-from app.ta import  indicators
-
-indicators_names = [x.__name__ for x in get_function_list(indicators)]
-charting_names = ['wedge', 'levels', 'channel']
-required_indicators = ['price', 'volume'] + charting_names + indicators_names
-
-
-@pytest.fixture(scope="session", autouse=True)
-def response():
-    pair, tf, limit = 'BTCUSD', '3h', 50
-    response = requests.get(f'http://0.0.0.0:5001/{pair}?timeframe={tf}&limit={limit}')
-    assert response.status_code == 200, 'Server faliure!'
-    return response.json()
-
-
 class TestTA(object):
     def test_response_json(self, response):
         assert  isinstance(response, dict)
@@ -29,7 +11,7 @@ class TestTA(object):
         dates = response.get('dates')
         assert dates[1] - dates[0] == 3 * 3600
 
-    def test_indicators_json(self, response):
+    def test_indicators_json(self, response, required_indicators):
         assert isinstance(response, dict)
         assert 'indicators' in response.keys()
 
@@ -52,9 +34,9 @@ class TestTA(object):
         indctrs = response['indicators']
         for k, i in indctrs.items():
             assert isinstance(i, dict), f'Indicator {k} is not a dictionary'
-            assert 'info' in i.keys()
+            assert 'info' in i.keys(), f'Indicator {k} has no info'
 
-    def test_channels(self, response):
+    def test_channels(self, response, charting_names):
         assert isinstance(response, dict)
         keys = response.keys()
         assert 'indicators' in keys
