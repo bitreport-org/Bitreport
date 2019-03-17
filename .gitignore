@@ -19,3 +19,7 @@ exchanges.npz
 report.html
 .vscode/settings.json
 .DS_STORE
+*.pkl
+*.csv
+*.ipynb
+*.h5

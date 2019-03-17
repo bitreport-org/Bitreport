@@ -2,29 +2,42 @@ import pytest
 from influxdb import InfluxDBClient
 import requests
 
-from app.api.internal import get_function_list
-from app.ta import  indicators
+from app.services.internal import get_function_list
+from app.ta import indicators
+from app.api import create_app
 
 import config
 
 
+@pytest.fixture(scope="module")
+def app(request):
+    """Session-wide test application."""
+    app = create_app(config.Test)
+    client = app.test_client()
+
+    return client
+
+
+@pytest.fixture(scope="session")
+def btc_app(request):
+    """Session-wide test application."""
+    app = create_app(config.Test)
+    client = app.test_client()
+
+    client.post('/fill?pair=BTCUSD')
+
+    return client
+
+
 @pytest.yield_fixture(scope='session')
 def drop_influx():
-    influx = InfluxDBClient('0.0.0.0',
-                            5002,
-                            config.Test.INFLUX_USER,
-                            config.Test.INFLUX_PASSWORD,
-                            config.Test.INFLUX_DBNAME)
+    influx = InfluxDBClient(**config.Test.INFLUX)
     influx.drop_database('test')
 
 
 @pytest.fixture
 def influx_test():
-    influx = InfluxDBClient('0.0.0.0',
-                            5002,
-                            config.Test.INFLUX_USER,
-                            config.Test.INFLUX_PASSWORD,
-                            config.Test.INFLUX_DBNAME)
+    influx = InfluxDBClient(**config.Test.INFLUX)
     influx.create_database('test')
 
     yield influx
@@ -34,11 +47,7 @@ def influx_test():
 
 @pytest.fixture
 def influx_prod():
-    influx = InfluxDBClient('0.0.0.0',
-                            5002,
-                            config.Production.INFLUX_USER,
-                            config.Production.INFLUX_PASSWORD,
-                            config.Production.INFLUX_DBNAME)
+    influx = InfluxDBClient(**config.Test.INFLUX_PROD)
     influx.create_database('test')
 
     yield influx

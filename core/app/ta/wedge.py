@@ -1,11 +1,13 @@
 import numpy as np
-import config
-from app.services import Chart, make_session, get_candles, generate_dates
-from app.ta.peaks import detect_peaks
 from sklearn.metrics import mean_squared_error as mse
 
+import config
+from app.services import get_candles, generate_dates
+from app.api.database import Chart
+from app.api import db
+from app.ta.peaks import detect_peaks
+
 Config = config.BaseConfig()
-session = make_session()
 
 
 class Wedge():
@@ -19,7 +21,7 @@ class Wedge():
         self.start = Config.MAGIC_LIMIT
 
     def _last_wedge(self):
-        last = session.query(Chart).filter_by(type=self.type,
+        last = db.session.query(Chart).filter_by(type=self.type,
                                               timeframe=self.timeframe,
                                               pair=self.pair).order_by(Chart.id.desc()).first()
         params = None
@@ -31,8 +33,8 @@ class Wedge():
     def _save_wedge(self, params):
         ch = Chart(pair=self.pair, timeframe=self.timeframe,
                     type=self.type, params=params)
-        session.add(ch)
-        session.commit()
+        db.session.add(ch)
+        db.session.commit()
 
     def _check_last_wedge(self):
         params = self._last_wedge()

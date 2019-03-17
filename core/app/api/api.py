@@ -1,23 +1,25 @@
 # -*- coding: utf-8 -*-
-from config import BaseConfig
 from logging.config import dictConfig
 from flask import Flask, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
 
-from app.services import sentry_up, prepare_postgres, connect_influx, data_service
-from app.exchanges import fill_pair
+db = SQLAlchemy()
 
-# Setup logger
-dictConfig(BaseConfig.LOGGER)
+def create_app(config):
+    from app.services import sentry_up, data_service
+    from .database import connect_influx
+    from app.exchanges import fill_pair
 
-def create_app():
+    # Configure app
+    dictConfig(config.LOGGER)
     app = Flask(__name__)
     app.logger.info('Welcome to BitReport core!')
-    ENV = app.config['ENV']
+    app.config.from_object(config)
+    sentry_up(config.SENTRY)
 
-    # DB connections and Sentry setup
-    influx = connect_influx()
-    prepare_postgres()
-    sentry_up(ENV)
+    #  Postgres and influx connections
+    db.init_app(app)
+    influx = connect_influx(config.INFLUX)
 
     # API
     @app.route('/<pair>', methods=['GET'])

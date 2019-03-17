@@ -1,11 +1,15 @@
 import numpy as np
 import statsmodels.api as sm
-import config
-from app.services import Level, make_session
 from scipy.signal import argrelmin, argrelmax
 
+import config
+from app.api.database import Level
+from app.api import db
+
+
+
 config = config.BaseConfig()
-session = make_session()
+# session = make_session()
 
 
 class Levels(object):
@@ -59,7 +63,8 @@ class Levels(object):
                 for item in items:
                     lvl = Level(pair=self.pair, timeframe=self.timeframe,
                                 type=key, value=item, tsmp=100)
-                    session.add(lvl)
+                    db.session.add(lvl)
+                    db.session.commit()
 
         session.commit()
 

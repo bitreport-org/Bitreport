@@ -2,10 +2,10 @@ import sentry_sdk, logging
 from sentry_sdk.integrations.flask import FlaskIntegration
 import config
 
-def sentry_up(env):
+def sentry_up(run):
     # Enable Sentry in production
-    if env == 'production':
-        logging.info('Sentry is up and running')
+    if run:
+        logging.info('Sentry is up and running.')
         sentry_sdk.init(
             dsn=config.BaseConfig.SENTRY_URL,
             integrations=[FlaskIntegration()]

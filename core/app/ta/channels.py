@@ -1,10 +1,12 @@
 import numpy as np
 import talib #pylint: skip-file
 import config
-from app.services import Chart, make_session, get_candles, generate_dates
+
+from app.services import get_candles, generate_dates
+from app.api.database import Chart
+from app.api import db
 
 Config = config.BaseConfig()
-session = make_session()
 
 class Channel():
     def __init__(self, pair, timeframe, close, x_dates):
@@ -17,7 +19,7 @@ class Channel():
         self.start = Config.MAGIC_LIMIT
 
     def _last_channel(self):
-        last = session.query(Chart).filter_by(type = self.type, timeframe = self.timeframe,
+        last = db.session.query(Chart).filter_by(type = self.type, timeframe = self.timeframe,
                                                 pair = self.pair).order_by(Chart.id.desc()).first()
         params = None
         if last is not None:
@@ -28,8 +30,8 @@ class Channel():
     def _save_channel(self, params):
         ch = Chart( pair = self.pair, timeframe = self.timeframe, 
                     type = self.type, params = params)
-        session.add(ch)
-        session.commit()
+        db.session.add(ch)
+        db.session.commit()
 
     def _compare(self, params):
 

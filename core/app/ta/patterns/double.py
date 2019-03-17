@@ -28,7 +28,7 @@ def make_double(x_dates, close, type ='top', right_margin=5, threshold=3):
     Ay = close[Ax]
 
     if Ax > close.size - right_margin:
-        return {}
+        return {'info':[]}
 
     # Scale series from Ax to a square [0,1]x[0,1]
     scaled_y = close[Ax:]
@@ -41,7 +41,7 @@ def make_double(x_dates, close, type ='top', right_margin=5, threshold=3):
     scaled_x = scaled_x[threshold:]
 
     if scaled_x.size < 1:
-        return {}
+        return {'info':[]}
 
     # Calculate slopes
     slopes = (scaled_y[1:] - sgn) / scaled_x[1:]
@@ -51,7 +51,7 @@ def make_double(x_dates, close, type ='top', right_margin=5, threshold=3):
     tmp = Ax + np.arange(scaled_y.size)
     slopes = [(x, s) for x, s in zip(tmp[threshold + 1:], slopes) if abs(s) < 20]
     if not slopes:
-        return {}
+        return {'info':[]}
 
     slopes.sort(key=lambda x: x[1])
 
@@ -59,7 +59,7 @@ def make_double(x_dates, close, type ='top', right_margin=5, threshold=3):
     By = close[Bx]
 
     if (Bx - Ax) > 0.3 * close.size:
-        return {}
+        return {'info':[]}
 
     # Find the midpoint
     Cx = Ax + g(close[Ax: Bx])

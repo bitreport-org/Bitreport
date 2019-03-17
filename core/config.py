@@ -1,9 +1,10 @@
 class BaseConfig(object):
     MAGIC_LIMIT = 79
     EVENT_LIMIT = 3
-    CHART_TABLE = 'charting'
-    LVL_TABLE = 'levels'
-    MARGIN=26
+    MARGIN = 26
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    CSRF_ENABLED = True
+    SENTRY_URL = "https://000bf6ba6f0f41a6a1cbb8b74f494d4a@sentry.io/1359679"
     LOGGER = {
                 'version': 1,
                 'formatters': {'default': {
@@ -29,19 +30,33 @@ class BaseConfig(object):
             }
 
 class Production(BaseConfig):
-    INFLUX_DBNAME = 'pairs'
-    INFLUX_HOST = 'influx'
-    INFLUX_PORT = 8086
-    SENTRY_URL = "https://000bf6ba6f0f41a6a1cbb8b74f494d4a@sentry.io/1359679"
-    POSTGRES_HOST = 'postgres'
-    POSTGRES_DATABSE = 'core'
-    POSTGRES_USER = 'postgres'
+    DEBUG = False
+    INFLUX = {'host': 'influx',
+              'database': 'pairs'
+              }
+    SQLALCHEMY_DATABASE_URI = "postgresql://postgres@postgres/core"
+    SENTRY = True
+
+
+class Development(BaseConfig):
+    DEVELOPMENT = True
+    DEBUG = True
+    INFLUX = {'host': 'influx',
+              'database': 'pairs'
+              }
+    SQLALCHEMY_DATABASE_URI = "postgresql://postgres@postgres/core"
+    SENTRY = False
 
 
 class Test(BaseConfig):
-    INFLUX_DBNAME = 'test'
-    INFLUX_HOST = '0.0.0.0'
-    INFLUX_PORT = 8086
-    POSTGRES_HOST = '0.0.0.0'
-    POSTGRES_DATABSE = 'core_test'
-    POSTGRES_USER = 'postgres'
+    TESTING = True
+    INFLUX = {'host': '0.0.0.0',
+              'port': 5002,
+              'database': 'test'
+              }
+    INFLUX_PROD = {'host': '0.0.0.0',
+              'port': 5002,
+              'database': 'pairs'
+              }
+    SQLALCHEMY_DATABASE_URI = "postgresql://postgres@postgres/core"
+    SENTRY = False

@@ -3,6 +3,7 @@ from app.services import get_candles
 
 
 class TestFillExchange:
+    # TODO: assert 99 == 100
     def fill_btc(self, exchange, influx):
         pair = 'BTCUSD'
         assert exchange(influx).fetch_candles(pair, '1h'), f'Failed to fill 1h from {exchange.name}'
@@ -51,7 +52,7 @@ class TestFillPair:
     def fill(self, pair, influx):
         status = fill_pair(influx, pair)
         assert status, f'Failed to fill {pair}'
-        self.check_influx(pair)
+        self.check_influx(pair, influx)
 
     def check_influx(self, pair, influx):
         msr = [x.get('name') for x in influx.get_list_measurements()]
