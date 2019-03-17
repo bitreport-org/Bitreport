@@ -6,24 +6,25 @@ table.ui.celled.table
       th Symbol
       th Name
       th Tags
-      th Last updated
+      th Last fetch
       th Actions
   tbody
     - @pairs.each do |pair|
       tr
         td= pair.symbol
         td= pair.name
-        td= pair.tags.join(' ')
+        td= Array.wrap(pair.tags).join(' ')
         td= pair.last_updated_at
         td.collapsing
-          = link_to pair, data: { confirm: 'Are you sure?' }, method: :delete do
-            .ui.bottom.attached.button
-              i.delete.icon
-              | Delete
-          = link_to pair_fill_path(pair), method: :put do
-            .ui.bottom.attached.button
-              i.refresh.icon
-              | Fetch
+          .ui.buttons.vertical
+            = link_to edit_pair_path(pair) do
+              .ui.button
+                i.pencil.icon
+                | Edit
+            = link_to pair, data: { confirm: 'Are you sure?' }, method: :delete do
+              .ui.button
+                i.red.delete.icon
+                | Delete
 
 = link_to new_pair_path do
   .ui.green.button

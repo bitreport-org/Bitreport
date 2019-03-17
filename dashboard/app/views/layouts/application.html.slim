@@ -9,7 +9,5 @@ html
     = javascript_include_tag 'application', 'data-turbolinks-track': 'reload'
     link rel="manifest" href="/manifest.json"
   body class="#{controller_name} #{action_name}"
-    /p.notice= notice
-    /p.alert= alert
     = yield
     = render 'shared/clickdesk'

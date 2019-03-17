@@ -1,0 +1,28 @@
+h1 Published Twitter Posts
+
+table.ui.celled.table
+  thead
+    tr
+      th Pair
+      th Preview
+      th Message
+      th Publish date
+      th Actions
+  tbody
+    - @posts.each do |post|
+      tr
+        / :<
+        td= post.report&.pair&.name
+        td= post.report&.image_url(:thumbnail)
+        td= post.message
+        td= post.published_at
+        td.collapsing
+          .ui.buttons.vertical
+            = link_to '#' do
+              .ui.button
+                i.eye.icon
+                | See Tweet
+            = link_to '#' do
+              .ui.disabled.button
+                i.delete.icon
+                | Delete

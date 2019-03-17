@@ -31,3 +31,10 @@
 
 en:
   hello: "Hello world"
+  activemodel:
+    errors:
+      models:
+        pairs/filler:
+          attributes:
+            fill:
+              unsuccessful: was unsuccessful
