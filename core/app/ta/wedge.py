@@ -1,4 +1,5 @@
 import numpy as np
+from influxdb import InfluxDBClient
 from sklearn.metrics import mean_squared_error as mse
 
 import config
@@ -10,17 +11,17 @@ from app.ta.peaks import detect_peaks
 Config = config.BaseConfig()
 
 
-class Wedge():
-    def __init__(self, pair, timeframe, close, x_dates):
+class Wedge:
+    def __init__(self, pair: str, timeframe: str, close: np.ndarray, x_dates: np.ndarray):
         self.pair = pair
         self.timeframe = timeframe
         self.close = close
-        self.x_dates = np.array(x_dates) / 10000 # to increase precision
+        self.x_dates = x_dates / 10000 # to increase precision
         self.type = 'wedge'
         self.margin = Config.MARGIN
         self.start = Config.MAGIC_LIMIT
 
-    def _last_wedge(self):
+    def _last_wedge(self) -> dict:
         last = db.session.query(Chart).filter_by(type=self.type,
                                               timeframe=self.timeframe,
                                               pair=self.pair).order_by(Chart.id.desc()).first()
@@ -30,13 +31,13 @@ class Wedge():
         
         return params
 
-    def _save_wedge(self, params):
+    def _save_wedge(self, params: dict):
         ch = Chart(pair=self.pair, timeframe=self.timeframe,
                     type=self.type, params=params)
         db.session.add(ch)
         db.session.commit()
 
-    def _check_last_wedge(self):
+    def _check_last_wedge(self) -> tuple:
         params = self._last_wedge()
 
         if not params:
@@ -57,18 +58,24 @@ class Wedge():
         else:
             return True, upper_band, lower_band
 
-    def _shorten(self, upper_band, lower_band):
+    @staticmethod
+    def _shorten(upper_band: np.ndarray, lower_band: np.ndarray) -> tuple:
         s = np.sum([u > l for u, l in zip(upper_band, lower_band)])
         return upper_band[:s], lower_band[:s]
 
-    def _make_sense(self, band_up, band_down):
+    @staticmethod
+    def _make_sense(band_up: np.ndarray, band_down: np.ndarray) -> bool:
         ws = band_up[0] - band_down[0]
         we = band_up[-1] - band_down[-1]
         if ws >= we :
             return True
         return False
 
-    def make(self):
+    def make(self) -> dict:
+        """
+        Checks if wedge pattern exists.
+        :return:
+        """
         close = self.close[self.start:]
 
         # Check if last wedge still make sense
@@ -99,21 +106,34 @@ class Wedge():
                      'lower_band': [],
                      'info': []}
 
-
-    def _score_up(self, close, band, start):
+    @staticmethod
+    def _score_up(close: np.ndarray, band: np.ndarray, start: int) -> tuple:
         assert close.size == band.size, 'Size differs'
         s = np.sum((close <= band))
 
         n = close.size
         return s / n, mse(close[start:], band[start:])
 
-    def _score_down(self, close, band, start):
+    @staticmethod
+    def _score_down(close: np.ndarray, band: np.ndarray, start: int) -> tuple:
         assert close.size == band.size, 'Size differs'
         s = np.sum((close >= band))
         n = close.size
         return s / n, mse(close[start:], band[start:])
 
-    def _make_bands(self, x_close, close, xs, ys, start, t):
+    def _make_bands(self, x_close: np.ndarray, close: np.ndarray,
+                    xs: list, ys: list, start: int, t: str) -> list:
+        """
+        Creates all possible lines from given points.
+
+        :param x_close: dates used as x axis
+        :param close: price close data
+        :param xs: list of x arguments of a peaks
+        :param ys: list of y arguments of a peaks
+        :param start: x of first peak
+        :param t: type of band, up or down
+        :return: list of possible bands
+        """
         if t == 'up':
             comp = self._score_up
         else:
@@ -131,7 +151,19 @@ class Wedge():
 
         return bands
 
-    def _simple_band(self, x_close, close, type_, skip_n_last=20, peak_dist=15):
+    @staticmethod
+    def _simple_band(x_close: np.ndarray, close: np.ndarray,
+                     type_: str, skip_n_last: int=20, peak_dist: int=15) -> tuple:
+        """
+        Creates simple band.
+
+        :param x_close: dates used as x axis
+        :param close: price close data
+        :param type_: type of band, up or down
+        :param skip_n_last: how many last points to skip in search for extrema
+        :param peak_dist: distance between two following peaks
+        :return: tuple (x, y, (slope, coef)) where (x,y) is start of the wedge
+        """
         if type_ == 'up':
             f1, f2 = np.argmax, np.max
         else:
@@ -142,17 +174,25 @@ class Wedge():
 
         if x < 0.75 * close.size:
             slope = (close[x + peak_dist:-skip_n_last] - y) / (x_close[x + peak_dist: close.size - skip_n_last] - x)
+            if slope.size < 1:
+                return None, None, ()
+
             a = f2(slope)
             coef = y - a * x
             b = a * x_close + coef
         else:
             slope = (close[:-(x + peak_dist)] - y) / (x_close[: -(x + peak_dist)] - x)
+            if slope.size < 1:
+                return None, None, ()
+
             a = f2(slope)
             coef = y - a * x
             b = a * x_close + coef
+
         return x, b, (a, coef)
 
-    def _unique(self, xs):
+    @staticmethod
+    def _unique(xs: list) -> list:
         bands = []
         idx = []
         for el in xs:
@@ -168,14 +208,19 @@ class Wedge():
         m, M = np.min(close), np.max(close)
         close = (close - m) / (M - m)
 
+        ups = []
+        downs = []
+
         # simple bands
         start, up, params = self._simple_band(x_dates, close, 'up')
-        s, smse = self._score_up(close, up, start)
-        ups = [{'score': s, 'mse': smse, 'band': up, 'params': params}]
+        if start:
+            s, smse = self._score_up(close, up, start)
+            ups = [{'score': s, 'mse': smse, 'band': up, 'params': params}]
 
         start, down, prams = self._simple_band(x_dates, close, 'down')
-        s, smse = self._score_down(close, down, start)
-        downs = [{'score': s, 'mse': smse, 'band': down, 'params': params}]
+        if start:
+            s, smse = self._score_down(close, down, start)
+            downs = [{'score': s, 'mse': smse, 'band': down, 'params': params}]
 
         # Wedge magic
         for t in np.arange(0.0, 0.2, 0.03):
@@ -224,7 +269,8 @@ class Wedge():
         params = {'upper_a': upper_a, 'lower_a': lower_a, 'upper_b': upper_b, 'lower_b': lower_b}
         return band_up, band_down, params
 
-    def _tokens(self, upper_band, lower_band, close):
+    @staticmethod
+    def _tokens(upper_band: np.ndarray, lower_band: np.ndarray, close: np.ndarray) -> list:
             info = []
             # Shape Tokens
             width = upper_band - lower_band
@@ -268,22 +314,33 @@ class Wedge():
 
 
 # Long channels
-def remakeWedge(influx, pair, timeframe, limit=200):
+def remake_wedge(influx: InfluxDBClient, pair: str, timeframe: str, limit: int=200) -> dict:
     margin = Config.MARGIN
 
     # Get data
     data = get_candles(influx, pair, timeframe, limit)
     close = data['close']
-    x_dates = generate_dates(data['date'], timeframe, margin)
+    x_dates = np.array(generate_dates(data['date'], timeframe, margin))
 
     wg = Wedge(pair, timeframe, close, x_dates)
     wg.make()
     return wg._last_wedge()
 
 
-def makeLongWedge(influx, pair: str, timeframe: str, x_dates: list, limit: int=200):
-    x_dates = np.array(x_dates) / 10000  # to increase precision
-    params = remakeWedge(influx, pair, timeframe, limit)
+def make_long_wedge(influx: InfluxDBClient, pair: str, timeframe: str,
+                    x_dates: np.ndarray, limit: int=200) -> dict:
+    """
+    Returns longer timeframe wedge if such exists.
+
+    :param influx: influx client
+    :param pair: pair name ex. 'BTCUSD'
+    :param timeframe: timeframe ex. '1h'
+    :param x_dates: dates used as x axis
+    :param limit: on how many last points wedge have to be constructed
+    :return: wedge
+    """
+    x_dates = x_dates / 10000  # to increase precision
+    params = remake_wedge(influx, pair, timeframe, limit)
 
     upper_band = np.array([])
     lower_band = np.array([])

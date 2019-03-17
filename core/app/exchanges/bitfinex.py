@@ -12,7 +12,7 @@ class Bitfinex:
         self.influx = influx_client
         self.name='Bitfinex'
 
-    def downsample_2h(self, pair):
+    def _downsample_2h(self, pair):
             time_now = dt.now().strftime("%Y-%m-%dT%H:%M:%SZ")
             try:
                 query = f"""
@@ -77,7 +77,7 @@ class Bitfinex:
         result = insert_candles(self.influx, points, measurement, self.name, time_precision="ms")
 
         if timeframe == '1h':
-            self.downsample_2h(pair)
+            self._downsample_2h(pair)
 
         return result
 

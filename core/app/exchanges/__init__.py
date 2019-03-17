@@ -6,14 +6,23 @@ from .poloniex import Poloniex
 
 from functools import reduce
 from multiprocessing.dummy import Pool as ThreadPool
+from influxdb import InfluxDBClient
 
-
-def fill_pair(influx, pair):
+def fill_pair(influx: InfluxDBClient, pair: str) -> tuple:
     """
-    Bitfinex 1h, 3h, 6h, 12h, 24h
-    Binance 1h, 2h, 6h, 12h, 24h
-    Bittrex 1h, 24h
-    Poloniex 30m, 2h, 24h
+    Retrieves data for a given pair from Binance, Bitfinex, Bittrex and Poloniex
+    and inserts it to influx database. If it's needed a downsampling is being
+    performed.
+
+    Timeframes for each exchange:
+    - Bitfinex 1h, 3h, 6h, 12h, 24h
+    - Binance 1h, 2h, 6h, 12h, 24h
+    - Bittrex 1h, 24h
+    - Poloniex 30m, 2h, 24h
+
+    :param influx: instance of InfluxDBCLient
+    :param pair: pair name ex. 'BTCUSD'
+    :return: tuple (message, code)
     """
 
     fillers = dict(

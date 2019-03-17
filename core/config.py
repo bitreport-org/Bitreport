@@ -52,7 +52,7 @@ class Test(BaseConfig):
     TESTING = True
     INFLUX = {'host': '0.0.0.0',
               'port': 5002,
-              'database': 'test'
+              'database': 'test',
               }
     INFLUX_PROD = {'host': '0.0.0.0',
               'port': 5002,

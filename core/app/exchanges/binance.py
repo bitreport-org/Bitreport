@@ -12,14 +12,15 @@ class Binance:
         self.influx = influx_client
         self.name = 'Binance'
 
-    def pair_format(self, pair):
+    @staticmethod
+    def _pair_format(pair):
         end_pair = pair[-3:]
         start_pair = pair[:-3]
         if end_pair == 'USD':
             end_pair = end_pair + 'T'
         return start_pair + end_pair
 
-    def downsample_3h(self, pair):
+    def _downsample_3h(self, pair):
         time_now = dt.now().strftime("%Y-%m-%dT%H:%M:%SZ")
         try:
             query = f"""
@@ -39,7 +40,7 @@ class Binance:
 
     def fetch_candles(self, pair, timeframe):
         measurement = pair + timeframe
-        pair_formated = self.pair_format(pair)
+        pair_formated = self._pair_format(pair)
 
         # Map timeframes for Binance
         timeframeR = timeframe
@@ -78,7 +79,7 @@ class Binance:
         result = insert_candles(self.influx, points, measurement, self.name, time_precision='ms')
 
         if timeframe == '1h':
-            self.downsample_3h(pair)
+            self._downsample_3h(pair)
 
         return result
 

@@ -7,35 +7,32 @@ from app.api.database import Level
 from app.api import db
 
 
-
-config = config.BaseConfig()
-# session = make_session()
-
-
 class Levels(object):
-    def __init__(self, pair, timeframe, close, x_dates):
+    def __init__(self, pair: str, timeframe: str, close: np.ndarray, x_dates: np.ndarray):
         self.pair = pair
         self.timeframe = timeframe
         self.close = close
         self.x_dates = x_dates
-        self.start = config.MAGIC_LIMIT
+        self.start = config.BaseConfig.MAGIC_LIMIT
 
-    def _sr_levels(self, close, r=5):
+    @staticmethod
+    def _sr_levels(close: np.ndarray, r: int=5) -> dict:
         hp_cycle, hp_trend = sm.tsa.filters.hpfilter(close)
         maxs = argrelmax(hp_trend)[0]
         mins = argrelmin(hp_trend)[0]
 
         resistance, support = [], []
-        if maxs != []:
+        if maxs:
             resistance = [np.max(close[p-r:p+r]) for p in maxs]
-        if mins != []:
+        if mins:
             support = [np.min(close[p-r:p+r]) for p in mins]
 
         levels = dict(resistance=resistance, support=support)
 
         return levels
 
-    def _fib_levels(self, close, top: float, bottom: float):
+    @staticmethod
+    def _fib_levels(close: np.ndarray, top: float, bottom: float) -> list:
         top_index, = np.where(close == top)
         bottom_index, = np.where(close == bottom)
         top_index = top_index[-1]
@@ -56,19 +53,16 @@ class Levels(object):
 
         return levels
 
-    def _save_levels(self, levels):
-
+    def _save_levels(self, levels: dict):
         for key, items in levels.items():
-            if items != []:
-                for item in items:
-                    lvl = Level(pair=self.pair, timeframe=self.timeframe,
-                                type=key, value=item, tsmp=100)
-                    db.session.add(lvl)
-                    db.session.commit()
+            for item in items:
+                lvl = Level(pair=self.pair, timeframe=self.timeframe,
+                            type=key, value=item)
+                db.session.add(lvl)
 
-        session.commit()
+        db.session.commit()
 
-    def make(self):
+    def make(self) -> dict:
         start = self.start
         close = self.close[start:]
 
@@ -76,11 +70,11 @@ class Levels(object):
         levels = self._sr_levels(close)
 
         # Check if any levels to make fibs
-        r, s = levels.values()
-        if r != [] and s != []:
+        resistances, supports = levels.values()
+        if resistances and supports:
             # Highest resistance and lowest support
-            top = np.max(r)
-            bottom = np.min(levels['support'])
+            top = np.max(resistances)
+            bottom = np.min(supports)
 
             # Calculate fib levels
             fib = self._fib_levels(close, top, bottom)

@@ -5,23 +5,40 @@ from influxdb import InfluxDBClient
 from .api import db
 
 
-def connect_influx(INFLUX):
+def connect_influx(kwargs: dict, retries: int = 10) -> InfluxDBClient:
+    """
+    Using input params establishes connection to influxDB and creates a database.
+
+    :param kwargs: influx.InfluxDBClient kwargs
+    :param retries: number of retries
+    :return: influx.InfluxDBClient
+    """
     # Wait for a connection to InfluxDB
-    status = True
-    while status:
+    client = InfluxDBClient(**kwargs)
+    success = False
+
+    i = 0
+    while i < retries:
         try:
-            #TODO: check retries option: number of retries your client will try before aborting
-            client = InfluxDBClient(**INFLUX)
-            client.create_database(INFLUX['database'])
-            status = False
+            client.create_database(kwargs['database'])
             logging.info('Successfully connected to InfluxDB.')
+            success = True
+            break
         except:
+            i += 1
             logging.info('Waiting for InfluxDB...')
             time.sleep(3)
+
+    if not success:
+        raise ValueError('Max retries exceeded, could not connect to InfluxDB!')
+
     return client
 
 
 class Chart(db.Model):
+    """
+    Model of a Chart instance.
+    """
     __tablename__ = 'charting'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     pair = db.Column(db.String)
@@ -30,7 +47,15 @@ class Chart(db.Model):
     type = db.Column(db.String)
     params = db.Column(db.JSON)
 
-    def __init__(self, pair, timeframe, type, params):
+    def __init__(self, pair: str, timeframe: str, type: str, params: dict):
+        """
+        Creates Chart.
+
+        :param pair: pair name ex. 'BTCUSD'
+        :param timeframe: timeframe ex. '1h'
+        :param type: name of charting setup
+        :param params: params of the setup
+        """
         self.pair = pair
         self.timeframe = timeframe
         self.last_tsmp = int(time.time())
@@ -39,6 +64,9 @@ class Chart(db.Model):
 
 
 class Level(db.Model):
+    """
+    Model of a Level instance.
+    """
     __tablename__ = 'levels'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     pair = db.Column(db.String)
@@ -47,10 +75,18 @@ class Level(db.Model):
     type = db.Column(db.String)
     value = db.Column(db.Integer, index=True, unique=True)
 
-    def __init__(self, pair, timeframe, last_tsmp, type, value):
+    def __init__(self, pair: str, timeframe: str, type: str, value: float):
+        """
+        Creates Level.
+
+        :param pair: pair name ex. 'BTCUSD'
+        :param timeframe: timeframe ex. '1h'
+        :param type: name of level type
+        :param value: value of the level
+        """
         self.pair = pair
         self.timeframe = timeframe
-        self.last_tsmp = last_tsmp
+        self.last_tsmp = int(time.time())
         self.type = type
         self.value = value
 

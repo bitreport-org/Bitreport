@@ -1,7 +1,15 @@
 import numpy as np
 
 
-def _angle(a, b, c):
+def _angle(a: tuple, b: tuple, c: tuple) -> float:
+    """
+    Calculates angle between sections AB, BC.
+
+    :param a: a tuple representing a point (x, y)
+    :param b: a tuple representing a point (x, y)
+    :param c: a tuple representing a point (x, y)
+    :return: angle
+    """
     ax, ay = a
     bx, by = b
     cx, cy = c
@@ -15,10 +23,22 @@ def _angle(a, b, c):
     return alfa
 
 
-def make_double(x_dates, close, type ='top', right_margin=5, threshold=3):
+def make_double(x_dates: np.ndarray, close: np.ndarray,
+                type_: str = 'top', right_margin: int=5, threshold: int=3) -> dict:
+    """
+    Check if a patter of double top or double bottom can be found in given data
+
+    :param x_dates: dates used as x axis
+    :param close: price close data
+    :param type_: the type of patter to look for, top or bottom
+    :param right_margin: number of last points excluded from search
+    :param threshold: minimal distance between peaks
+    :return: dictionary with params A, B, C which represents the following points in the pattern
+    """
+
     assert x_dates.size == close.size, f'Double pattern, x, y sizes differ: {x_dates.size}, {close.size}'
 
-    if type == 'top':
+    if type_ == 'top':
         f, g, sgn = np.argmax, np.argmin, 1
     else:
         f, g, sgn = np.argmin, np.argmax, 0
@@ -71,7 +91,7 @@ def make_double(x_dates, close, type ='top', right_margin=5, threshold=3):
 
     ys = np.array([Ay, By, Cy])
 
-    if type == 'top':
+    if type_ == 'top':
         ay, by, cy = (ys - By) / (Ay - By)
     else:
         ay, by, cy = (ys - Ay) / (By - Ay)

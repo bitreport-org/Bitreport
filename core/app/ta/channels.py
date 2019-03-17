@@ -1,6 +1,7 @@
 import numpy as np
 import talib #pylint: skip-file
 import config
+from influxdb import InfluxDBClient
 
 from app.services import get_candles, generate_dates
 from app.api.database import Chart
@@ -9,16 +10,16 @@ from app.api import db
 Config = config.BaseConfig()
 
 class Channel():
-    def __init__(self, pair, timeframe, close, x_dates):
+    def __init__(self, pair: str, timeframe: str, close: np.ndarray, x_dates: np.ndarray):
         self.pair = pair
         self.timeframe = timeframe
         self.close = close
-        self.x_dates = np.array(x_dates) / 10000 # to increase precision
+        self.x_dates = x_dates / 10000 # to increase precision
         self.type = 'channel'
         self.margin = Config.MARGIN
         self.start = Config.MAGIC_LIMIT
 
-    def _last_channel(self):
+    def _last_channel(self) -> dict:
         last = db.session.query(Chart).filter_by(type = self.type, timeframe = self.timeframe,
                                                 pair = self.pair).order_by(Chart.id.desc()).first()
         params = None
@@ -27,14 +28,13 @@ class Channel():
         
         return params
 
-    def _save_channel(self, params):
+    def _save_channel(self, params: dict):
         ch = Chart( pair = self.pair, timeframe = self.timeframe, 
                     type = self.type, params = params)
         db.session.add(ch)
         db.session.commit()
 
-    def _compare(self, params):
-
+    def _compare(self, params: dict) -> bool:
         candles2check = 20
         slope = params['slope']
         coef = params['coef']
@@ -53,7 +53,7 @@ class Channel():
         else:
             return False
 
-    def make(self):
+    def make(self) -> dict:
         new_params = self._channel(self.close, self.x_dates)
         params = self._last_channel()
 
@@ -81,7 +81,7 @@ class Channel():
         return {'upper_band': up_channel.tolist(), 'lower_band': bottom_channel.tolist(), 
                 'middle_band':[], 'info': info}
 
-    def _tokens(self, close, upper_band, lower_band, slope):
+    def _tokens(self, close: np.ndarray, upper_band: np.ndarray, lower_band: np.ndarray, slope: float) -> list:
         margin = self.margin
         info = []
         p = ( close[-1] - lower_band[-1-margin] ) / (upper_band[-1-margin]-lower_band[-1-margin]) 
@@ -99,9 +99,11 @@ class Channel():
             info.append('PRICE_BETWEEN')
 
         n_last_points = 10
-        if np.sum(close[-n_last_points:] > upper_band[-n_last_points-margin : -margin]) > 0 and close[-1] < upper_band[-1-margin]:
+        if np.sum(close[-n_last_points:] > upper_band[-n_last_points-margin : -margin]) > 0 and \
+                close[-1] < upper_band[-1-margin]:
             info.append('FALSE_BREAK_UP')
-        elif np.sum(close[-n_last_points:] < lower_band[-n_last_points-margin : -margin]) > 0 and close[-1] > lower_band[-1-margin]:
+        elif np.sum(close[-n_last_points:] < lower_band[-n_last_points-margin : -margin]) > 0 and \
+                close[-1] > lower_band[-1-margin]:
             info.append('FLASE_BREAK_DOWN')
 
         # Drirection Tokens
@@ -114,7 +116,7 @@ class Channel():
         
         return info
 
-    def _channel(self, close, x_dates, sma_type: int = 50):
+    def _channel(self, close: np.ndarray, x_dates: np.ndarray, sma_type: int = 50) -> dict:
         margin = self.margin
         start = self.start
         limit = close.size
@@ -148,21 +150,21 @@ class Channel():
         x = x_dates[:-margin][s: e]
         y = short_close[s: e]
 
-        lm = np.poly1d(np.polyfit(x,y, 1))
+        lm = np.poly1d(np.polyfit(x, y, 1))
         std = np.std(short_close[s:e])     
 
         return {'slope': lm[1], 'coef': lm[0], 'std': std, 'last_tsmp': x_dates[-margin]}
 
 
 # Long channels
-def remakeChannel(influx, pair, timeframe, limit=200):
+def remake_channel(influx: InfluxDBClient, pair: str, timeframe: str, limit: int=200) -> dict:
     start = Config.MAGIC_LIMIT
     margin = Config.MARGIN
 
     # Get data
     data = get_candles(influx, pair, timeframe, limit)
     close = data['close'][start:]
-    x_dates = generate_dates(data['date'], timeframe, margin)
+    x_dates = np.array(generate_dates(data['date'], timeframe, margin))
 
     ch = Channel(pair, timeframe, close, x_dates)
     ch.make()
@@ -171,9 +173,20 @@ def remakeChannel(influx, pair, timeframe, limit=200):
     return params
 
 
-def makeLongChannel(influx, pair: str, timeframe:str, x_dates:list, limit:int=200):
-    x_dates = np.array(x_dates) / 10000  # to increase precision
-    params = remakeChannel(influx, pair, timeframe, limit)
+def make_long_channel(influx: InfluxDBClient, pair: str, timeframe:str,
+                      x_dates: np.ndarray, limit:int=200) -> dict:
+    """
+    Returns longer timeframe channel if such exists.
+
+    :param influx: influx client
+    :param pair: pair name ex. 'BTCUSD'
+    :param timeframe: timeframe ex. '1h'
+    :param x_dates: dates used as x axis
+    :param limit: on how many last points wedge have to be constructed
+    :return: wedge
+    """
+    x_dates = x_dates / 10000  # to increase precision
+    params = remake_channel(influx, pair, timeframe, limit)
 
     slope = params['slope']
     coef = params['coef']

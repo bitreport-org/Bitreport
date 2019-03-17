@@ -12,14 +12,15 @@ class Bittrex:
         self.influx = influx_client
         self.name = 'Bittrex'
 
-    def pair_format(self, pair):
+    @staticmethod
+    def _pair_format(pair):
         end_pair = pair[-3:]
         start_pair = pair[:-3]
         if end_pair == 'USD':
             end_pair = end_pair + 'T'
         return end_pair + '-' + start_pair
 
-    def downsample(self, pair, from_tf, to_tf):
+    def _downsample(self, pair, from_tf, to_tf):
         time_now = dt.now().strftime("%Y-%m-%dT%H:%M:%SZ")
         try:
             query = f"""
@@ -40,7 +41,7 @@ class Bittrex:
     def fetch_candles(self, pair, timeframe):
         result = False
         measurement = pair + timeframe
-        pair_formated = self.pair_format(pair)
+        pair_formated = self._pair_format(pair)
 
         timeframes = {'1h': 'hour', '24h': 'day'}
         btf = timeframes.get(timeframe, '1h')
@@ -74,12 +75,12 @@ class Bittrex:
             result = insert_candles(self.influx, points, measurement, self.name, time_precision="s")
             if timeframe == '1h':
                 for tf in ['2h', '3h', '6h', '12h']:
-                    self.downsample(pair, '1h', tf)
+                    self._downsample(pair, '1h', tf)
 
         return result
 
     def check(self, pair):
-        pair_formated = self.pair_format(pair)
+        pair_formated = self._pair_format(pair)
         url = f'https://bittrex.com/Api/v2.0/pub/market/GetTicks?marketName={pair_formated}&tickInterval=day'
         request = requests.get(url)
         response = request.json()
