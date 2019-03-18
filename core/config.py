@@ -1,10 +1,12 @@
+import os
+
 class BaseConfig(object):
     MAGIC_LIMIT = 79
-    EVENT_LIMIT = 3
     MARGIN = 26
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     CSRF_ENABLED = True
     SENTRY_URL = "https://000bf6ba6f0f41a6a1cbb8b74f494d4a@sentry.io/1359679"
+    SENTRY = False
     LOGGER = {
                 'version': 1,
                 'formatters': {'default': {
@@ -31,32 +33,22 @@ class BaseConfig(object):
 
 class Production(BaseConfig):
     DEBUG = False
-    INFLUX = {'host': 'influx',
-              'database': 'pairs'
-              }
-    SQLALCHEMY_DATABASE_URI = "postgresql://postgres@postgres/core"
+    INFLUX = {'host': 'influx', 'database': 'pairs'}
+    SQLALCHEMY_DATABASE_URI = "postgresql://postgres@postgres"
     SENTRY = True
 
 
 class Development(BaseConfig):
     DEVELOPMENT = True
     DEBUG = True
-    INFLUX = {'host': 'influx',
-              'database': 'pairs'
-              }
-    SQLALCHEMY_DATABASE_URI = "postgresql://postgres@postgres/core"
-    SENTRY = False
+    INFLUX = {'host': 'influx', 'database': 'pairs'}
+    SQLALCHEMY_DATABASE_URI = "postgresql://postgres@postgres"
 
 
 class Test(BaseConfig):
     TESTING = True
-    INFLUX = {'host': '0.0.0.0',
-              'port': 5002,
-              'database': 'test',
-              }
-    INFLUX_PROD = {'host': '0.0.0.0',
-              'port': 5002,
-              'database': 'pairs'
-              }
-    SQLALCHEMY_DATABASE_URI = "postgresql://postgres@postgres/core"
-    SENTRY = False
+    INFLUX_HOST = os.environ.get('INFLUX_HOST', '0.0.0.0')
+    INFLUX = {'host': INFLUX_HOST, 'database': 'test',}
+
+    POSTGRES_HOST = os.environ.get('POSTGRES_HOST', '0.0.0.0')
+    SQLALCHEMY_DATABASE_URI = "postgresql://postgres@{host}".format(host=POSTGRES_HOST)

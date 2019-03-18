@@ -2,16 +2,23 @@
 import time
 import logging
 from influxdb import InfluxDBClient
-from .api import db
 
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
 
 def connect_influx(kwargs: dict, retries: int = 10) -> InfluxDBClient:
     """
     Using input params establishes connection to influxDB and creates a database.
 
-    :param kwargs: influx.InfluxDBClient kwargs
-    :param retries: number of retries
-    :return: influx.InfluxDBClient
+    Parameters
+    ----------
+    kwargs: influx.InfluxDBClient kwargs
+    retries: number of retries
+
+    Returns
+    -------
+    client: influx.InfluxDBClient
     """
     # Wait for a connection to InfluxDB
     client = InfluxDBClient(**kwargs)
@@ -48,13 +55,16 @@ class Chart(db.Model):
     params = db.Column(db.JSON)
 
     def __init__(self, pair: str, timeframe: str, type: str, params: dict):
+        """"""
         """
         Creates Chart.
 
-        :param pair: pair name ex. 'BTCUSD'
-        :param timeframe: timeframe ex. '1h'
-        :param type: name of charting setup
-        :param params: params of the setup
+        Parameters
+        ----------
+        pair: pair name ex. 'BTCUSD'
+        timeframe: timeframe ex. '1h'
+        type: name of charting setup
+        params: params of the setup
         """
         self.pair = pair
         self.timeframe = timeframe
@@ -79,10 +89,12 @@ class Level(db.Model):
         """
         Creates Level.
 
-        :param pair: pair name ex. 'BTCUSD'
-        :param timeframe: timeframe ex. '1h'
-        :param type: name of level type
-        :param value: value of the level
+        Parameters
+        ----------
+        pair: pair name ex. 'BTCUSD'
+        timeframe: timeframe ex. '1h'
+        type: name of level type
+        value: value of the level
         """
         self.pair = pair
         self.timeframe = timeframe

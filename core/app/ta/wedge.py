@@ -32,8 +32,7 @@ class Wedge:
         return params
 
     def _save_wedge(self, params: dict):
-        ch = Chart(pair=self.pair, timeframe=self.timeframe,
-                    type=self.type, params=params)
+        ch = Chart(pair=self.pair, timeframe=self.timeframe, type=self.type, params=params)
         db.session.add(ch)
         db.session.commit()
 
@@ -74,7 +73,10 @@ class Wedge:
     def make(self) -> dict:
         """
         Checks if wedge pattern exists.
-        :return:
+
+        Returns
+        -------
+        dict
         """
         close = self.close[self.start:]
 
@@ -126,13 +128,18 @@ class Wedge:
         """
         Creates all possible lines from given points.
 
-        :param x_close: dates used as x axis
-        :param close: price close data
-        :param xs: list of x arguments of a peaks
-        :param ys: list of y arguments of a peaks
-        :param start: x of first peak
-        :param t: type of band, up or down
-        :return: list of possible bands
+        Parameters
+        ----------
+        x_close: dates used as x axis
+        close: price close data
+        xs: list of x arguments of a peaks
+        ys: list of y arguments of a peaks
+        start: x of first peak
+        t: type of band, up or down
+
+        Returns
+        -------
+        list: list of possible bands
         """
         if t == 'up':
             comp = self._score_up
@@ -157,12 +164,17 @@ class Wedge:
         """
         Creates simple band.
 
-        :param x_close: dates used as x axis
-        :param close: price close data
-        :param type_: type of band, up or down
-        :param skip_n_last: how many last points to skip in search for extrema
-        :param peak_dist: distance between two following peaks
-        :return: tuple (x, y, (slope, coef)) where (x,y) is start of the wedge
+        Parameters
+        ----------
+        x_close: dates used as x axis
+        close: price close data
+        type_: type of band, up or down
+        skip_n_last: how many last points to skip in search for extrema
+        peak_dist: distance between two following peaks
+
+        Returns
+        -------
+        tuple: (x, y, (slope, coef)) where (x,y) is start of the wedge
         """
         if type_ == 'up':
             f1, f2 = np.argmax, np.max
@@ -332,12 +344,17 @@ def make_long_wedge(influx: InfluxDBClient, pair: str, timeframe: str,
     """
     Returns longer timeframe wedge if such exists.
 
-    :param influx: influx client
-    :param pair: pair name ex. 'BTCUSD'
-    :param timeframe: timeframe ex. '1h'
-    :param x_dates: dates used as x axis
-    :param limit: on how many last points wedge have to be constructed
-    :return: wedge
+    Parameters
+    ----------
+    influx: influx client
+    pair: pair name ex. 'BTCUSD'
+    timeframe: timeframe ex. '1h'
+    x_dates: dates used as x axis
+    limit: on how many last points wedge have to be constructed
+
+    Returns
+    -------
+    dict: wedge
     """
     x_dates = x_dates / 10000  # to increase precision
     params = remake_wedge(influx, pair, timeframe, limit)

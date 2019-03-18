@@ -2,6 +2,7 @@ import numpy as np
 import traceback
 import logging
 import config
+from typing import List, Tuple
 from influxdb import InfluxDBClient
 
 from scipy.stats import linregress
@@ -15,10 +16,12 @@ class PairData:
         To return data without NaN values indicators are calculated on period of
         length: limit + magic_limit, however data returned by prepare() has length = limit
 
-        :param influx: influx client
-        :param pair: pair name ex. 'BTCUSD'
-        :param timeframe: timeframe ex. '1h'
-        :param limit: number of candles to retrieve
+        Parameters
+        ----------
+        influx: influx client
+        pair: pair name ex. 'BTCUSD'
+        timeframe: timeframe ex. '1h'
+        limit: number of candles to retrieve
         """
         self.influx = influx
         self.magic_limit = config.BaseConfig.MAGIC_LIMIT
@@ -32,17 +35,20 @@ class PairData:
         self.data = dict()
         self.output = dict()
 
-    def prepare(self):
+    def prepare(self) -> Tuple[dict, int]:
         """
         Selects price data from influx database, adds technical indicators and some other magic
-        :return:
+
+        Returns
+        -------
+        (response, code)
         """
         # Data request
         self.data = get_candles(self.influx, self.pair, self.timeframe, self.limit + self.magic_limit)
 
         # Handle empty measurement
         if not self.data:
-            message = f'No data for {self.pair+self.timeframe}'
+            message = dict(msg=f'No data for {self.pair+self.timeframe}')
             logging.error(message)
             return message, 404
 
@@ -67,7 +73,7 @@ class PairData:
         return response, 200
 
     @staticmethod
-    def _make_price_info(close: list):
+    def _make_price_info(close: list) -> List[str]:
         info_price = []
         if isinstance(close, list):
             close = np.array(close)
@@ -93,7 +99,7 @@ class PairData:
 
         return info_price
 
-    def _make_volume_info(self, volume: np.array):
+    def _make_volume_info(self, volume: np.array) -> List[str]:
         info_volume = []
         check_period = int(0.35 * self.limit)
 
@@ -110,7 +116,7 @@ class PairData:
 
         return info_volume
 
-    def _make_indicators(self):
+    def _make_indicators(self) -> dict:
         indicators_values = dict()
 
         # Indicators

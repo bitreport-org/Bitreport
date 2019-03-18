@@ -6,9 +6,14 @@ def check_last_tmstmp(influx: InfluxDBClient, measurement: str) -> int:
     """
     Returns timestamp of last point in measurement.
 
-    :param influx:
-    :param measurement:
-    :return:
+    Parameters
+    ----------
+    influx: influx client
+    measurement: name of the measurement
+
+    Returns
+    -------
+    int: timestamp of last record
     """
     r = influx.query(f'SELECT * FROM {measurement} ORDER BY time DESC LIMIT 1;', epoch='s')
     df = pd.DataFrame(list(r.get_points(measurement=measurement)))
@@ -25,12 +30,17 @@ def insert_candles(influx: InfluxDBClient, candles: list,
     """
     Inserts point into a given measurement.
 
-    :param influx: instance of InfluxDBCLient
-    :param candles: list of points to be inserted
-    :param measurement: name of the points' measurement
-    :param exchange_name: name of exchange from which points come from
-    :param time_precision: time precision of the measurement
-    :return: True if operation succeeded, otherwise False
+    Parameters
+    ----------
+    influx: instance of InfluxDBCLient
+    candles: list of points to be inserted
+    measurement: name of the points' measurement
+    exchange_name: name of exchange from which points come from
+    time_precision: time precision of the measurement
+
+    Returns
+    -------
+    bool: True if operation succeeded, otherwise False
     """
     result = influx.write_points(candles, time_precision=time_precision)
     if result:

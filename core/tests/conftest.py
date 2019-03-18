@@ -1,15 +1,13 @@
 import pytest
 from influxdb import InfluxDBClient
-import requests
 
-from app.services.internal import get_function_list
+from app.services.helpers import get_function_list
 from app.ta import indicators
 from app.api import create_app
-
 import config
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def app(request):
     """Session-wide test application."""
     app = create_app(config.Test)
@@ -17,50 +15,32 @@ def app(request):
 
     return client
 
-
-@pytest.fixture(scope="session")
-def btc_app(request):
+@pytest.fixture(scope="module")
+def filled_app(request):
     """Session-wide test application."""
     app = create_app(config.Test)
     client = app.test_client()
 
+    # Fill the app with sample data
     client.post('/fill?pair=BTCUSD')
 
     return client
 
-
-@pytest.yield_fixture(scope='session')
+@pytest.fixture(scope='session')
 def drop_influx():
-    influx = InfluxDBClient(**config.Test.INFLUX)
-    influx.drop_database('test')
+    client = InfluxDBClient(**config.Test.INFLUX)
+    client.drop_database(config.Test.INFLUX.get('database', 'test'))
 
 
 @pytest.fixture
-def influx_test():
-    influx = InfluxDBClient(**config.Test.INFLUX)
-    influx.create_database('test')
+def influx():
+    client = InfluxDBClient(**config.Test.INFLUX)
+    dbname = config.Test.INFLUX.get('database', 'test')
+    client.create_database(dbname)
 
-    yield influx
+    yield client
 
-    influx.drop_database('test')
-
-
-@pytest.fixture
-def influx_prod():
-    influx = InfluxDBClient(**config.Test.INFLUX_PROD)
-    influx.create_database('test')
-
-    yield influx
-
-    influx.drop_database('test')
-
-
-@pytest.fixture
-def response():
-    pair, tf, limit = 'BTCUSD', '3h', 50
-    response = requests.get(f'http://0.0.0.0:5001/{pair}?timeframe={tf}&limit={limit}')
-    assert response.status_code == 200, 'Server faliure!'
-    return response.json()
+    client.drop_database(dbname)
 
 
 @pytest.fixture

@@ -10,8 +10,13 @@ def sentry_setup(active: bool) -> bool:
     """
     Activates Sentry logging.
 
-    :param active: if True logging to Sentry is activated
-    :return:
+    Parameters
+    ----------
+    active: if True logging to Sentry is activated
+
+    Returns
+    -------
+    bool
     """
     if active:
         sentry_sdk.init(
@@ -32,11 +37,16 @@ def get_candles(influx: InfluxDBClient, pair: str, timeframe: str, limit: int) -
     'low': numpy.ndarray,
     'volume': numpy.ndarray}`
 
-    :param influx: influx client
-    :param pair: pair name ex. 'BTCUSD'
-    :param timeframe: timeframe ex. '1h'
-    :param limit: number of candles to retrieve
-    :return: dict
+    Parameters
+    ----------
+    influx: influx client
+    pair: pair name ex. 'BTCUSD'
+    timeframe: timeframe ex. '1h'
+    limit: number of candles to retrieve
+
+    Returns
+    -------
+    candle_dict: dict
     """
     measurement = pair + timeframe
 
@@ -75,10 +85,16 @@ def get_candles(influx: InfluxDBClient, pair: str, timeframe: str, limit: int) -
 def generate_dates(date: list, timeframe: str, n: int) -> list:
     """
     Generates next n timestamps in interval of a given timeframe
-    :param date: list of timestamps
-    :param timeframe: name of the timeframe in hours, minutes, weeks ex. '1h', '30m', '1W'
-    :param n: number of future timestamps to generate
-    :return: input list with new points appended
+
+    Parameters
+    ----------
+    date: list of timestamps
+    timeframe: name of the timeframe in hours, minutes, weeks ex. '1h', '30m', '1W'
+    n: number of future timestamps to generate
+
+    Returns
+    -------
+    date: the input list with new points appended
     """
     _map = { 'm': 60, 'h': 3600,'W': 648000}
     dt = _map[timeframe[-1]]
@@ -89,7 +105,13 @@ def generate_dates(date: list, timeframe: str, n: int) -> list:
 def get_function_list(module) -> list:
     """
     Helper to obtain list of functions in the given module
-    :param module: module
-    :return:
+
+    Parameters
+    ----------
+    module: the module for which list have to be obtained
+
+    Returns
+    -------
+    list
     """
     return [getattr(module, a) for a in module.__all__]

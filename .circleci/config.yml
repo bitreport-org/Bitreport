@@ -1,0 +1,51 @@
+version: 2
+jobs:
+  core:
+    docker:
+      - image: circleci/python:3.6.7
+        environment:
+          INFLUX_HOST: localhost
+          POSTGRES_HOST: localhost
+      - image: circleci/postgres:10.4-alpine
+      - image: influxdb:1.5.2-alpine
+    steps:
+      - checkout  # checkout source code to working directory
+      - restore_cache:
+          key: deps1-{{ .Branch }}-{{ checksum "core/requirements.txt" }}
+      - restore_cache:
+          key: deps1-{{ .Branch }}-{{ checksum "talib" }}
+      - run: mkdir test-reports
+      - run:
+          name: Install TA-lib dependencies
+          command: |
+            curl -s -L http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz | tar -xz && \
+            cd ta-lib && \
+            ./configure --prefix=/usr && \
+            sudo make && \
+            sudo make install && \
+            cd .. && \
+            sudo rm -rf ta-lib
+      - save_cache:
+          key: deps1-{{ .Branch }}-{{ checksum "talib" }}
+          paths:
+            - "talib"
+      - run:
+          name: Create venv and install dependencies
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install -r core/requirements.txt
+      - save_cache:
+          key: deps1-{{ .Branch }}-{{ checksum "core/requirements.txt" }}
+          paths:
+            - "venv"
+      - run:
+          name: Run pytests
+          command: |
+            . venv/bin/activate
+            pytest --junitxml=test-reports/junit.xml
+      - store_test_results:
+          path: test-reports
+
+      - store_artifacts:
+          path: test-report

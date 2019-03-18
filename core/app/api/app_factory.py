@@ -1,20 +1,25 @@
 # -*- coding: utf-8 -*-
 from logging.config import dictConfig
 from flask import Flask, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
 
-db = SQLAlchemy()
+from .database import connect_influx, db
+
 
 def create_app(config):
     """
     Creates BitReport core flask app.
 
-    :param config: configuration object
-    :return: flask.Flask app
+    Parameters
+    ----------
+    config : configuration object
+
+    Returns
+    -------
+    app: flask.Flask app
     """
+
     from app.services import data_factory, sentry_setup
     from app.exchanges import fill_pair
-    from .database import connect_influx
 
     # Configure app
     dictConfig(config.LOGGER)
@@ -40,14 +45,22 @@ def create_app(config):
         Main API endpoint. For a given pair it returns response
         with last price, ta and other magic stuff
 
-        :param pair: pair name ex. 'BTCUSD'
-        :return: json
+        Parameters
+        ----------
+        pair : pair name ex. 'BTCUSD'
+
+        Returns
+        -------
+        response
         """
         timeframe = request.args.get('timeframe', default=None, type=str)
-        limit = request.args.get('limit', default=15, type=int)
+        limit = request.args.get('limit', default=20, type=int)
 
         if not timeframe:
             return jsonify(msg='Timeframe not provided'), 404
+
+        if timeframe not in ['1h', '2h', '3h', '6h', '12h', '24']:
+            return jsonify(msg='Wrong timeframe.'), 404
 
         data = data_factory.PairData(influx, pair, timeframe, limit)
         output, code = data.prepare()
@@ -66,7 +79,9 @@ def create_app(config):
 
         Otherwise an it returns error message and code of 404.
 
-        :return:
+        Returns
+        -------
+        response
         """
         pair = request.args.get('pair', default=None, type=str)
 
@@ -80,9 +95,11 @@ def create_app(config):
     @app.route("/")
     def hello():
         """
-        Test enpoint to check if app is on and working.
+        Test endpoint to check if app is on and working.
 
-        :return:
+        Returns
+        -------
+        response
         """
         return jsonify(msg="Wrong place, is it?")
 

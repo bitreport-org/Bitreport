@@ -20,9 +20,14 @@ def fill_pair(influx: InfluxDBClient, pair: str) -> tuple:
     - Bittrex 1h, 24h
     - Poloniex 30m, 2h, 24h
 
-    :param influx: instance of InfluxDBCLient
-    :param pair: pair name ex. 'BTCUSD'
-    :return: tuple (message, code)
+    Parameters
+    ----------
+    influx: instance of InfluxDBCLient
+    pair: pair name ex. 'BTCUSD'
+
+    Returns
+    -------
+    tuple (message, code)
     """
 
     fillers = dict(

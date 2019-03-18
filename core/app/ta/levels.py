@@ -22,9 +22,9 @@ class Levels(object):
         mins = argrelmin(hp_trend)[0]
 
         resistance, support = [], []
-        if maxs:
+        if np.any(maxs):
             resistance = [np.max(close[p-r:p+r]) for p in maxs]
-        if mins:
+        if np.any(mins):
             support = [np.min(close[p-r:p+r]) for p in mins]
 
         levels = dict(resistance=resistance, support=support)

@@ -5,10 +5,15 @@ def _angle(a: tuple, b: tuple, c: tuple) -> float:
     """
     Calculates angle between sections AB, BC.
 
-    :param a: a tuple representing a point (x, y)
-    :param b: a tuple representing a point (x, y)
-    :param c: a tuple representing a point (x, y)
-    :return: angle
+    Parameters
+    ----------
+    a: a tuple representing a point (x, y)
+    b: a tuple representing a point (x, y)
+    c: a tuple representing a point (x, y)
+
+    Returns
+    -------
+    alpha: the angle in degrees
     """
     ax, ay = a
     bx, by = b
@@ -19,8 +24,8 @@ def _angle(a: tuple, b: tuple, c: tuple) -> float:
     lA = np.sqrt(A[0] ** 2 + A[1] ** 2)
     lB = np.sqrt(B[0] ** 2 + B[1] ** 2)
 
-    alfa = np.degrees(np.arccos(np.dot(A, B) / (lA * lB)))
-    return alfa
+    alpha = np.degrees(np.arccos(np.dot(A, B) / (lA * lB)))
+    return alpha
 
 
 def make_double(x_dates: np.ndarray, close: np.ndarray,
@@ -28,14 +33,18 @@ def make_double(x_dates: np.ndarray, close: np.ndarray,
     """
     Check if a patter of double top or double bottom can be found in given data
 
-    :param x_dates: dates used as x axis
-    :param close: price close data
-    :param type_: the type of patter to look for, top or bottom
-    :param right_margin: number of last points excluded from search
-    :param threshold: minimal distance between peaks
-    :return: dictionary with params A, B, C which represents the following points in the pattern
-    """
+    Parameters
+    ----------
+    x_dates: dates used as x axis
+    close: price close data
+    type_: the type of patter to look for, top or bottom
+    right_margin: number of last points excluded from search
+    threshold: minimal distance between peaks
 
+    Returns
+    -------
+    dt: dictionary with params A, B, C which represents the following points in the pattern
+    """
     assert x_dates.size == close.size, f'Double pattern, x, y sizes differ: {x_dates.size}, {close.size}'
 
     if type_ == 'top':

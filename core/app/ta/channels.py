@@ -9,7 +9,7 @@ from app.api import db
 
 Config = config.BaseConfig()
 
-class Channel():
+class Channel:
     def __init__(self, pair: str, timeframe: str, close: np.ndarray, x_dates: np.ndarray):
         self.pair = pair
         self.timeframe = timeframe
@@ -29,8 +29,7 @@ class Channel():
         return params
 
     def _save_channel(self, params: dict):
-        ch = Chart( pair = self.pair, timeframe = self.timeframe, 
-                    type = self.type, params = params)
+        ch = Chart(pair=self.pair, timeframe=self.timeframe, type=self.type, params=params)
         db.session.add(ch)
         db.session.commit()
 
@@ -178,12 +177,17 @@ def make_long_channel(influx: InfluxDBClient, pair: str, timeframe:str,
     """
     Returns longer timeframe channel if such exists.
 
-    :param influx: influx client
-    :param pair: pair name ex. 'BTCUSD'
-    :param timeframe: timeframe ex. '1h'
-    :param x_dates: dates used as x axis
-    :param limit: on how many last points wedge have to be constructed
-    :return: wedge
+    Parameters
+    ----------
+    influx: influx client
+    pair: pair name ex. 'BTCUSD'
+    timeframe: timeframe ex. '1h'
+    x_dates: dates used as x axis
+    limit: on how many last points wedge have to be constructed
+
+    Returns
+    -------
+    dict: wedge
     """
     x_dates = x_dates / 10000  # to increase precision
     params = remake_channel(influx, pair, timeframe, limit)

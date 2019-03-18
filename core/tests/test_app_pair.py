@@ -1,0 +1,78 @@
+class TestPairEndpoint:
+    """
+    Tests /pair endpoint and the response with price and TA info.
+    """
+    pair = 'BTCUSD'
+    timeframe = '1h'
+    limit = 100
+    def test_response_json(self, filled_app):
+        response = filled_app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
+        assert response.status_code == 200, 'Server faliure!'
+        response = response.get_json()
+
+        assert  isinstance(response, dict)
+        keys = response.keys()
+        assert 'dates' in keys
+        assert 'indicators' in keys
+
+    def test_tstmps(self, filled_app):
+        response = filled_app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
+        assert response.status_code == 200, 'Server faliure!'
+        response = response.get_json()
+
+        assert isinstance(response, dict)
+        assert 'dates' in response.keys(), 'No dates in response.'
+        dates = response.get('dates')
+        assert dates[1] - dates[0] == int(self.timeframe[:-1]) * 3600
+
+    def test_indicators_json(self, required_indicators, filled_app):
+        response = filled_app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
+        assert response.status_code == 200, 'Server faliure!'
+        response = response.get_json()
+
+        assert isinstance(response, dict)
+        assert 'indicators' in response.keys()
+
+        keys = response['indicators'].keys()
+        for k in required_indicators:
+            assert k in keys, f'Indicator {k} is absent.'
+
+    def test_price_json(self, filled_app):
+        response = filled_app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
+        assert response.status_code == 200, 'Server faliure!'
+        response = response.get_json()
+
+        assert isinstance(response, dict)
+        assert 'indicators' in response.keys()
+        assert 'price' in response.get('indicators')
+        price = response['indicators']['price']
+        keys = price.keys()
+        for x in ['open', 'low', 'high', 'close']:
+            assert x in keys, f'Key {x} is not present in price'
+
+    def test_indicators_info(self, filled_app):
+        response = filled_app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
+        assert response.status_code == 200, 'Server faliure!'
+        response = response.get_json()
+
+        assert isinstance(response, dict)
+        assert 'indicators' in response.keys()
+        indctrs = response['indicators']
+        for k, i in indctrs.items():
+            assert isinstance(i, dict), f'Indicator {k} is not a dictionary'
+            assert 'info' in i.keys(), f'Indicator {k} has no info'
+
+    def test_channels(self, charting_names, filled_app):
+        response = filled_app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
+        assert response.status_code == 200, 'Server faliure!'
+        response = response.get_json()
+
+        assert isinstance(response, dict)
+        keys = response.keys()
+        assert 'indicators' in keys
+        for ch in charting_names:
+            if ch in keys:
+                assert isinstance(ch, dict), 'Indicator is not a dictionary'
+                assert 'upper_band' in ch.keys(), 'No upperband in channel!'
+                assert 'middle_band' in ch.keys(), 'No middleband in channel!'
+                assert 'lower_band' in ch.keys(), 'No lowerband in channel!'
