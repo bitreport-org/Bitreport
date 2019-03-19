@@ -48,7 +48,7 @@ jobs:
           path: htmlcov
   dashboard:
     docker:
-      - image: circleci/ruby:2.6.1
+      - image: circleci/ruby:2.6.1-node
         environment:
           BUNDLE_PATH: vendor/bundle
           RAILS_ENV: test
