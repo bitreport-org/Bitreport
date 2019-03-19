@@ -65,7 +65,8 @@ jobs:
       - save_cache:
           key: dashboard-bundle-{{ checksum "dashboard/Gemfile.lock" }}
           paths:
-            - dashboard/vendor/bundle
+            - ~/dashboard/vendor/bundle
+            - ~/vendor/bundle
       - restore_cache:
           keys:
             - dashboard-yarn-{{ checksum "dashboard/yarn.lock" }}
@@ -97,7 +98,7 @@ jobs:
           path: test_results
 workflows:
   version: 2
-  core:
+  tests:
     jobs:
       - core
       - dashboard
