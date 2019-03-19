@@ -69,14 +69,14 @@ jobs:
       - restore_cache:
           keys:
             - dashboard-yarn-{{ checksum "dashboard/yarn.lock" }}
-      - run:
-          name: Yarn Install
-          command: yarn install --cache-folder ~/dashboard/.cache/yarn
-          working_directory: dashboard
-      - save_cache:
-          key: dashboard-yarn-{{ checksum "dashboard/yarn.lock" }}
-          paths:
-            - ~/dashboard/.cache/yarn
+#      - run:
+#          name: Yarn Install
+#          command: yarn install --cache-folder ~/dashboard/.cache/yarn
+#          working_directory: dashboard
+#      - save_cache:
+#          key: dashboard-yarn-{{ checksum "dashboard/yarn.lock" }}
+#          paths:
+#            - ~/dashboard/.cache/yarn
       - run:
           name: Wait for DB
           command: dockerize -wait tcp://localhost:5432 -timeout 1m
