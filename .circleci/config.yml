@@ -19,8 +19,7 @@ jobs:
             cd ta-lib && \
             ./configure --prefix=/usr && \
             sudo make && \
-            sudo make install && \
-            cd ..
+            sudo make install
       - run:
           name: Create venv and install dependencies
           command: |
@@ -55,6 +54,14 @@ jobs:
       - image: circleci/postgres:10.4-alpine
     steps:
       - checkout
+      - run:
+          name: Install Vips
+          command: |
+            curl -s -L https://github.com/libvips/libvips/releases/download/v8.7.0/vips-8.7.0.tar.gz | tar -xz && \
+            cd vips-8.7.0 && \
+            ./configure && \
+            sudo make && \
+            sudo make install
       - restore_cache:
           keys:
             - dashboard-bundle-{{ checksum "dashboard/Gemfile.lock" }}
@@ -67,17 +74,6 @@ jobs:
           paths:
             - ~/dashboard/vendor/bundle
             - ~/vendor/bundle
-      - restore_cache:
-          keys:
-            - dashboard-yarn-{{ checksum "dashboard/yarn.lock" }}
-#      - run:
-#          name: Yarn Install
-#          command: yarn install --cache-folder ~/dashboard/.cache/yarn
-#          working_directory: dashboard
-#      - save_cache:
-#          key: dashboard-yarn-{{ checksum "dashboard/yarn.lock" }}
-#          paths:
-#            - ~/dashboard/.cache/yarn
       - run:
           name: Wait for DB
           command: dockerize -wait tcp://localhost:5432 -timeout 1m
