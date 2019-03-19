@@ -46,8 +46,58 @@ jobs:
           path: test-report
       - store_artifacts:
           path: htmlcov
+  dashboard:
+    docker:
+      - image: circleci/ruby:2.6.1
+        environment:
+          BUNDLE_JOBS: 3
+          BUNDLE_RETRY: 3
+          BUNDLE_PATH: vendor/bundle
+          RAILS_ENV: test
+      - image: circleci/postgres:10.4-alpine
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - dashboard-bundle-{{ checksum "Gemfile.lock" }}
+            - dashboard-bundle-
+      - run:
+          name: Bundle Install
+          command: bundle check || bundle install
+      - save_cache:
+          key: dashboard-bundle-{{ checksum "Gemfile.lock" }}
+          paths:
+            - vendor/bundle
+      - restore_cache:
+          keys:
+            - dashboard-yarn-{{ checksum "yarn.lock" }}
+            - dashboard-yarn-
+      - run:
+          name: Yarn Install
+          command: yarn install --cache-folder ~/.cache/yarn
+      - save_cache:
+          key: dashboard-yarn-{{ checksum "yarn.lock" }}
+          paths:
+            - ~/.cache/yarn
+      - run:
+          name: Wait for DB
+          command: dockerize -wait tcp://localhost:5432 -timeout 1m
+      - run:
+          name: Database setup
+          command: bin/rails db:create db:migrate:with_data --trace
+      - run:
+          name: Run rspec in parallel
+          command: |
+            bundle exec rspec --profile 10 \
+                              --format RspecJunitFormatter \
+                              --out test_results/rspec.xml \
+                              --format progress \
+                              $(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings)
+      - store_test_results:
+          path: test_results
 workflows:
   version: 2
   core:
     jobs:
       - core
+      - dashboard
