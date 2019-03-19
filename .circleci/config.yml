@@ -50,8 +50,6 @@ jobs:
     docker:
       - image: circleci/ruby:2.6.1
         environment:
-          BUNDLE_JOBS: 3
-          BUNDLE_RETRY: 3
           BUNDLE_PATH: vendor/bundle
           RAILS_ENV: test
       - image: circleci/postgres:10.4-alpine
@@ -59,32 +57,33 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - dashboard-bundle-{{ checksum "Gemfile.lock" }}
-            - dashboard-bundle-
+            - dashboard-bundle-{{ checksum "dashboard/Gemfile.lock" }}
       - run:
           name: Bundle Install
           command: bundle check || bundle install
+          working_directory: dashboard
       - save_cache:
-          key: dashboard-bundle-{{ checksum "Gemfile.lock" }}
+          key: dashboard-bundle-{{ checksum "dashboard/Gemfile.lock" }}
           paths:
-            - vendor/bundle
+            - dashboard/vendor/bundle
       - restore_cache:
           keys:
-            - dashboard-yarn-{{ checksum "yarn.lock" }}
-            - dashboard-yarn-
+            - dashboard-yarn-{{ checksum "dashboard/yarn.lock" }}
       - run:
           name: Yarn Install
-          command: yarn install --cache-folder ~/.cache/yarn
+          command: yarn install --cache-folder ~/dashboard/.cache/yarn
+          working_directory: dashboard
       - save_cache:
-          key: dashboard-yarn-{{ checksum "yarn.lock" }}
+          key: dashboard-yarn-{{ checksum "dashboard/yarn.lock" }}
           paths:
-            - ~/.cache/yarn
+            - ~/dashboard/.cache/yarn
       - run:
           name: Wait for DB
           command: dockerize -wait tcp://localhost:5432 -timeout 1m
       - run:
           name: Database setup
           command: bin/rails db:create db:migrate:with_data --trace
+          working_directory: dashboard
       - run:
           name: Run rspec in parallel
           command: |
@@ -93,6 +92,7 @@ jobs:
                               --out test_results/rspec.xml \
                               --format progress \
                               $(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings)
+          working_directory: dashboard
       - store_test_results:
           path: test_results
 workflows:
