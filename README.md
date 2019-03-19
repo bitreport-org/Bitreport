@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/nuclearpinguin/Bitreport/tree/master.svg?style=svg&circle-token=e676d0a74df9747c7251c49b88072ce4e8fe36ef)](https://circleci.com/gh/nuclearpinguin/Bitreport/tree/master)
+
 # Bitreport
 Daily bitfinex report
 

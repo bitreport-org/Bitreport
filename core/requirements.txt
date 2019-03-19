@@ -7,6 +7,7 @@ blinker>=1.4
 certifi>=2018.11.29
 chardet>=3.0.4
 Click>=7.0
+coverage==4.5.3
 Flask>=1.0.2
 Flask-SQLAlchemy>=2.3.2
 gast>=0.2.0
@@ -34,6 +35,7 @@ pylint>=2.2.2
 pytest>=4.0.2
 pytest-html>=1.19.0
 pytest-metadata>=1.7.0
+pytest-cov>=2.6.1
 python-dateutil>=2.7.5
 pytz>=2018.7
 PyYAML>=3.13

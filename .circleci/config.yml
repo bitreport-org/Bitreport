@@ -12,9 +12,6 @@ jobs:
       - checkout  # checkout source code to working directory
       - restore_cache:
           key: deps1-{{ .Branch }}-{{ checksum "core/requirements.txt" }}
-      - restore_cache:
-          key: deps1-{{ .Branch }}-{{ checksum "talib" }}
-      - run: mkdir test-reports
       - run:
           name: Install TA-lib dependencies
           command: |
@@ -23,12 +20,7 @@ jobs:
             ./configure --prefix=/usr && \
             sudo make && \
             sudo make install && \
-            cd .. && \
-            sudo rm -rf ta-lib
-      - save_cache:
-          key: deps1-{{ .Branch }}-{{ checksum "talib" }}
-          paths:
-            - "talib"
+            cd ..
       - run:
           name: Create venv and install dependencies
           command: |
@@ -39,13 +31,18 @@ jobs:
           key: deps1-{{ .Branch }}-{{ checksum "core/requirements.txt" }}
           paths:
             - "venv"
+            - 'ta-lib'
       - run:
           name: Run pytests
           command: |
             . venv/bin/activate
-            pytest --junitxml=test-reports/junit.xml
+            mkdir test-reports
+            pytest --junitxml=test-reports/junit.xml --cov=core/app
+            coverage report
+            coverage html
       - store_test_results:
           path: test-reports
-
       - store_artifacts:
           path: test-report
+      - store_artifacts:
+          path: htmlcov
