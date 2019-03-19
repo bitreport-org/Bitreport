@@ -50,7 +50,7 @@ jobs:
     docker:
       - image: circleci/ruby:2.6.1-node
         environment:
-          BUNDLE_PATH: vendor/bundle
+          PGHOST: localhost
           RAILS_ENV: test
       - image: circleci/postgres:10.4-alpine
     steps:
@@ -60,7 +60,7 @@ jobs:
             - dashboard-bundle-{{ checksum "dashboard/Gemfile.lock" }}
       - run:
           name: Bundle Install
-          command: bundle check || bundle install
+          command: bundle install --path vendor/bundle
           working_directory: dashboard
       - save_cache:
           key: dashboard-bundle-{{ checksum "dashboard/Gemfile.lock" }}
