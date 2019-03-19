@@ -100,6 +100,8 @@ group :test do
   gem 'webmock'
   # In-memory storage for Shrine
   gem 'shrine-memory'
+  # RSpec results that your CI can read
+  gem 'rspec_junit_formatter'
 end
 
 group :development do
