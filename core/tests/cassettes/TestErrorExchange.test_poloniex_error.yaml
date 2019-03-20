@@ -1,0 +1,90 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.21.0
+    method: GET
+    uri: https://poloniex.com/public?command=returnChartData&currencyPair=own_wefsdfwen&start=1518176345&period=1800
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAA6tWSi0qyi9SslLyzCtLzMlMUUguLSpKzUuuVChIzCzSU6oFAPQ7/hkiAAAA
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      CF-RAY:
+      - 4ba34836095bccb1-WAW
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 19 Mar 2019 23:38:48 GMT
+      Expect-CT:
+      - max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
+      Server:
+      - cloudflare
+      Set-Cookie:
+      - __cfduid=dee72240989b8f8ac77d7060d0141a9001553038728; expires=Wed, 18-Mar-20
+        23:38:48 GMT; path=/; domain=.poloniex.com; HttpOnly; Secure
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.21.0
+    method: GET
+    uri: https://poloniex.com/public?command=returnChartData&currencyPair=own_wefsdfwen&start=1518176345&period=1800
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAA6tWSi0qyi9SslLyzCtLzMlMUUguLSpKzUuuVChIzCzSU6oFAPQ7/hkiAAAA
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      CF-RAY:
+      - 4ba35ff9fa5db883-WAW
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 19 Mar 2019 23:55:02 GMT
+      Expect-CT:
+      - max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
+      Server:
+      - cloudflare
+      Set-Cookie:
+      - __cfduid=d17e306a6fe1ffb4d252e4699e776ebfa1553039702; expires=Wed, 18-Mar-20
+        23:55:02 GMT; path=/; domain=.poloniex.com; HttpOnly; Secure
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+version: 1

@@ -1,0 +1,120 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.21.0
+    method: GET
+    uri: https://api.binance.com/api/v1/klines?symbol=wefsdfwenown&interval=1h&limit=500
+  response:
+    body:
+      string: '{"code":-1100,"msg":"Illegal characters found in parameter ''symbol'';
+        legal range is ''^[A-Z0-9_]{1,20}$''."}'
+    headers:
+      Cache-Control:
+      - no-cache, no-store, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - default-src 'self'
+      Content-Type:
+      - application/json;charset=utf-8
+      Date:
+      - Tue, 19 Mar 2019 23:38:46 GMT
+      Expires:
+      - '0'
+      Pragma:
+      - no-cache
+      Server:
+      - nginx
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains
+      Transfer-Encoding:
+      - chunked
+      Via:
+      - 1.1 b073c20359d711b751afd124dda34076.cloudfront.net (CloudFront)
+      X-Amz-Cf-Id:
+      - mgamlWqS6Fr_PP87uVluYSqDC-JIPUU10eu4p6R49C2PiLhsK3fMlA==
+      X-Cache:
+      - Error from cloudfront
+      X-Content-Security-Policy:
+      - default-src 'self'
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-MBX-USED-WEIGHT:
+      - '3'
+      X-WebKit-CSP:
+      - default-src 'self'
+      X-Xss-Protection:
+      - 1; mode=block
+    status:
+      code: 400
+      message: Bad Request
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.21.0
+    method: GET
+    uri: https://api.binance.com/api/v1/klines?symbol=wefsdfwenown&interval=1h&limit=500
+  response:
+    body:
+      string: '{"code":-1100,"msg":"Illegal characters found in parameter ''symbol'';
+        legal range is ''^[A-Z0-9_]{1,20}$''."}'
+    headers:
+      Cache-Control:
+      - no-cache, no-store, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - default-src 'self'
+      Content-Type:
+      - application/json;charset=utf-8
+      Date:
+      - Tue, 19 Mar 2019 23:55:00 GMT
+      Expires:
+      - '0'
+      Pragma:
+      - no-cache
+      Server:
+      - nginx
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains
+      Transfer-Encoding:
+      - chunked
+      Via:
+      - 1.1 8b5bc0831e6dab612582614c3009efa7.cloudfront.net (CloudFront)
+      X-Amz-Cf-Id:
+      - Dn5JrKblhBkJMXWLS_Hm_l6azWJ6RZDdMISi4PTQyw5t92Qv76vVVg==
+      X-Cache:
+      - Error from cloudfront
+      X-Content-Security-Policy:
+      - default-src 'self'
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-MBX-USED-WEIGHT:
+      - '1'
+      X-WebKit-CSP:
+      - default-src 'self'
+      X-Xss-Protection:
+      - 1; mode=block
+    status:
+      code: 400
+      message: Bad Request
+version: 1

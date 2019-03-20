@@ -1,0 +1,4 @@
+[run]
+omit =
+    core/app/ta/peaks.py
+

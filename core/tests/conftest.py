@@ -1,9 +1,12 @@
 import pytest
 from influxdb import InfluxDBClient
+import os
+import json
 
 from app.services.helpers import get_function_list
 from app.ta import indicators
 from app.api import create_app
+from app.exchanges.helpers import insert_candles
 import config
 
 
@@ -15,16 +18,6 @@ def app(request):
 
     return client
 
-@pytest.fixture(scope="module")
-def filled_app(request):
-    """Session-wide test application."""
-    app = create_app(config.Test)
-    client = app.test_client()
-
-    # Fill the app with sample data
-    client.post('/fill?pair=BTCUSD')
-
-    return client
 
 @pytest.fixture(scope='session')
 def drop_influx():
@@ -37,6 +30,35 @@ def influx():
     client = InfluxDBClient(**config.Test.INFLUX)
     dbname = config.Test.INFLUX.get('database', 'test')
     client.create_database(dbname)
+
+    yield client
+
+    client.drop_database(dbname)
+
+
+def fill_database(influx):
+    rel_dir = os.path.dirname(__file__)
+    pair = 'BTCUSD'
+    tfs = ['1h', '12h'] #12h because of wedge12
+
+    for tf in tfs:
+        measurement = pair + tf
+        path = os.path.join(rel_dir, f'test_data/{measurement}.json')
+        with open(path) as data_file:
+            points = json.load(data_file)
+            print(len(points))
+            r = insert_candles(influx, points, measurement, 'Bitfinex', time_precision='ms')
+            print(r)
+
+
+@pytest.fixture(scope='module')
+def filled_influx():
+    client = InfluxDBClient(**config.Test.INFLUX)
+    dbname = config.Test.INFLUX.get('database', 'test')
+    client.create_database(dbname)
+
+    # Add some test points
+    fill_database(client)
 
     yield client
 

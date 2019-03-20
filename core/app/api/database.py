@@ -98,7 +98,7 @@ class Level(db.Model):
         """
         self.pair = pair
         self.timeframe = timeframe
-        self.last_tsmp = int(time.time())
+        self.tsmp = int(time.time())
         self.type = type
         self.value = value
 

@@ -5,8 +5,27 @@ class TestPairEndpoint:
     pair = 'BTCUSD'
     timeframe = '1h'
     limit = 100
-    def test_response_json(self, filled_app):
-        response = filled_app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
+    def test_no_timeframe(self, app):
+        response = app.get(f'/{self.pair}')
+        assert response.status_code == 404, 'Server faliure!'
+        assert isinstance(response.get_json(), dict)
+        assert 'msg' in response.get_json().keys()
+
+    def test_unknown_timeframe(self, app):
+        response = app.get(f'/{self.pair}?timeframe=42h&limit=100')
+        assert response.status_code == 404, 'Server faliure!'
+        assert isinstance(response.get_json(), dict)
+        assert 'msg' in response.get_json().keys()
+
+    def test_no_data(self, app):
+        response = app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
+        assert response.status_code == 404, 'Server faliure!'
+        assert isinstance(response.get_json(), dict)
+        assert 'msg' in response.get_json().keys()
+        assert 'No data' in response.get_json().get('msg')
+
+    def test_response_json(self, app, filled_influx):
+        response = app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
         assert response.status_code == 200, 'Server faliure!'
         response = response.get_json()
 
@@ -15,8 +34,8 @@ class TestPairEndpoint:
         assert 'dates' in keys
         assert 'indicators' in keys
 
-    def test_tstmps(self, filled_app):
-        response = filled_app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
+    def test_tstmps(self, app, filled_influx):
+        response = app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
         assert response.status_code == 200, 'Server faliure!'
         response = response.get_json()
 
@@ -25,8 +44,8 @@ class TestPairEndpoint:
         dates = response.get('dates')
         assert dates[1] - dates[0] == int(self.timeframe[:-1]) * 3600
 
-    def test_indicators_json(self, required_indicators, filled_app):
-        response = filled_app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
+    def test_indicators_json(self, required_indicators, app, filled_influx):
+        response = app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
         assert response.status_code == 200, 'Server faliure!'
         response = response.get_json()
 
@@ -37,8 +56,8 @@ class TestPairEndpoint:
         for k in required_indicators:
             assert k in keys, f'Indicator {k} is absent.'
 
-    def test_price_json(self, filled_app):
-        response = filled_app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
+    def test_price_json(self, app, filled_influx):
+        response = app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
         assert response.status_code == 200, 'Server faliure!'
         response = response.get_json()
 
@@ -50,8 +69,8 @@ class TestPairEndpoint:
         for x in ['open', 'low', 'high', 'close']:
             assert x in keys, f'Key {x} is not present in price'
 
-    def test_indicators_info(self, filled_app):
-        response = filled_app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
+    def test_indicators_info(self, app, filled_influx):
+        response = app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
         assert response.status_code == 200, 'Server faliure!'
         response = response.get_json()
 
@@ -62,8 +81,8 @@ class TestPairEndpoint:
             assert isinstance(i, dict), f'Indicator {k} is not a dictionary'
             assert 'info' in i.keys(), f'Indicator {k} has no info'
 
-    def test_channels(self, charting_names, filled_app):
-        response = filled_app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
+    def test_channels(self, charting_names, app, filled_influx):
+        response = app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
         assert response.status_code == 200, 'Server faliure!'
         response = response.get_json()
 

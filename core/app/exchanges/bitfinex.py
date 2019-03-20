@@ -10,7 +10,7 @@ from app.exchanges.helpers import check_last_tmstmp, insert_candles
 class Bitfinex:
     def __init__(self, influx_client):
         self.influx = influx_client
-        self.name='Bitfinex'
+        self.name = 'Bitfinex'
 
     def _downsample_2h(self, pair):
             time_now = dt.now().strftime("%Y-%m-%dT%H:%M:%SZ")

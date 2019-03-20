@@ -30,13 +30,13 @@ jobs:
           key: deps1-{{ .Branch }}-{{ checksum "core/requirements.txt" }}
           paths:
             - "venv"
-            - 'ta-lib'
+            - "ta-lib"
       - run:
           name: Run pytests
           command: |
             . venv/bin/activate
             mkdir test-reports
-            pytest --junitxml=test-reports/junit.xml --cov=core/app
+            pytest --junitxml=test-reports/junit.xml --cov=core/app --cov-config core/.coveragerc --vcr-record=none
             coverage report
             coverage html
       - store_test_results:
