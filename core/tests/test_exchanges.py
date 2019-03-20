@@ -1,41 +1,60 @@
 from app.exchanges import fill_pair, Bitfinex, Bittrex, Binance, Poloniex
 from app.services import get_candles
 import pytest
-
+import numpy as np
 
 class TestFillExchange:
     @staticmethod
-    def fill(exchange, pair, influx):
-        assert exchange(influx).fetch_candles(pair, '1h'), f'Failed to fill 1h from {exchange.name}'
-        assert exchange(influx).fetch_candles(pair, '24h'), f'Failed to fill 24h from {exchange.name}'
-
+    def check_candles_structure(influx, pair):
         tf = '1h'
-        candles = get_candles(influx, pair, tf, 100)
+        limit = 100
+        candles = get_candles(influx, pair, tf, limit)
 
-        # asser candles order
+        # assert structure and types
+        assert isinstance(candles, dict)
+        assert 'date' in candles.keys()
+        assert isinstance(candles['date'], list)
+        for x in ['volume', 'close', 'open', 'high', 'low']:
+            assert x in candles.keys()
+            assert isinstance(candles[x], np.ndarray)
+
+        # assert candles order
         assert candles['date'][-1] - candles['date'][-2] == int(tf[:-1]) * 3600
 
-        assert candles['volume'].size == 100
-        assert candles['close'].size == 100
-        assert candles['open'].size == 100
-        assert candles['high'].size == 100
-        assert candles['low'].size == 100
+        # assert result size
+        assert len(candles['date']) == limit
+        assert candles['volume'].size == limit
+        assert candles['close'].size == limit
+        assert candles['open'].size == limit
+        assert candles['high'].size == limit
+        assert candles['low'].size == limit
+
 
     @pytest.mark.vcr(match_on=['host', 'path'], ignore_localhost=True)
     def test_bitfinex_fill(self, influx):
-        self.fill(Bitfinex, 'BTCUSD', influx)
+        pair = 'BTCUSD'
+        Bitfinex(influx).fill(pair), f'Failed to fill from Bitfinex'
+        self.check_candles_structure(influx, pair)
+
 
     @pytest.mark.vcr(match_on=['uri'], ignore_localhost=True)
     def test_binance_fill(self, influx):
-        self.fill(Binance, 'GASBTC', influx)
+        pair = 'GASBTC'
+        Binance(influx).fill(pair), f'Failed to fill from Binance'
+        self.check_candles_structure(influx, pair)
 
     @pytest.mark.vcr(match_on=['uri'], ignore_localhost=True)
     def test_bittrex_fill(self, influx):
-        self.fill(Bittrex, 'POLYBTC', influx)
+        pair = 'POLYBTC'
+        Bittrex(influx).fill(pair), f'Failed to fill from Bittrex'
+        self.check_candles_structure(influx, pair)
 
-    @pytest.mark.vcr(match_on=['host', 'path'], ignore_localhost=True)
+    @pytest.mark.vcr(match_on=['uri'], ignore_localhost=True)
     def test_poloniex_fill(self, influx):
-        self.fill(Poloniex, 'SCBTC', influx)
+        pair = 'SCBTC'
+        Poloniex(influx).fill(pair), f'Failed to fill from Poloniex'
+        self.check_candles_structure(influx, pair)
+
 
 
 class TestErrorExchange:
@@ -59,6 +78,4 @@ class TestErrorExchange:
     @pytest.mark.vcr(match_on=['host', 'path'], ignore_localhost=True)
     def test_poloniex_error(self, influx):
         self.raise_error(Poloniex, influx)
-
-
 

@@ -107,7 +107,7 @@ def make_double(x_dates: np.ndarray, close: np.ndarray,
 
     alpha = _angle((ax, ay), (bx, by), (cx, cy))
     if alpha > 95:
-        return {}
+        return {'info': []}
 
     Ax = x_dates[Ax]
     Bx = x_dates[Bx]

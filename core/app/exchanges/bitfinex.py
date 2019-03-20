@@ -36,8 +36,6 @@ class Bitfinex:
         timeframeR = timeframe
         if timeframe == '24h':
             timeframeR = '1D'
-        elif timeframe == '168h':
-            timeframeR = '7D'
 
         start = (check_last_tmstmp(self.influx, measurement)) * 1000 # ms
         end = (int(time.time()) + 100) * 1000 # ms

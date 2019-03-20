@@ -22,6 +22,7 @@ class Levels(object):
         mins = argrelmin(hp_trend)[0]
 
         resistance, support = [], []
+
         if np.any(maxs):
             resistance = [np.max(close[p-r:p+r]) for p in maxs]
         if np.any(mins):
@@ -54,10 +55,10 @@ class Levels(object):
         return levels
 
     def _save_levels(self, levels: dict):
-        for key, items in levels.items():
-            for item in items:
+        for key, values in levels.items():
+            for value in values:
                 lvl = Level(pair=self.pair, timeframe=self.timeframe,
-                            type=key, value=item)
+                            type=key, value=value)
                 db.session.add(lvl)
 
         db.session.commit()
@@ -71,16 +72,14 @@ class Levels(object):
 
         # Check if any levels to make fibs
         resistances, supports = levels.values()
+
         if resistances and supports:
             # Highest resistance and lowest support
             top = np.max(resistances)
             bottom = np.min(supports)
 
             # Calculate fib levels
-            fib = self._fib_levels(close, top, bottom)
-
-            # Add fibs
-            levels.update(fib=fib)
+            levels.update(fib=self._fib_levels(close, top, bottom))
 
         levels.update(info=[])
         return levels

@@ -79,23 +79,6 @@ class Bittrex:
 
         return result
 
-    def check(self, pair):
-        pair_formated = self._pair_format(pair)
-        url = f'https://bittrex.com/Api/v2.0/pub/market/GetTicks?marketName={pair_formated}&tickInterval=day'
-        request = requests.get(url)
-        response = request.json()
-
-        # Check if response was successful
-        if ('success' not in response.keys()):
-            logging.error(f"FAILED Bitrex response: {response.get('message','no message')}")
-            return self.name.lower(), 0
-
-        rows = response.get('result', [])
-        if not isinstance(rows, list):
-            return self.name.lower(), 0
-
-        return self.name.lower(), len(rows)
-
     def fill(self, pair):
         for tf in ['1h', '24h']:
             status = self.fetch_candles(pair, tf)
