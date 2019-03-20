@@ -33,6 +33,7 @@ class BaseConfig(object):
 
 class Production(BaseConfig):
     DEBUG = False
+    DEVELOPMENT = False
     INFLUX = {'host': 'influx', 'database': 'pairs'}
     SQLALCHEMY_DATABASE_URI = "postgresql://postgres@postgres"
     SENTRY = True

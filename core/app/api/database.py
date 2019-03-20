@@ -2,7 +2,6 @@
 import time
 import logging
 from influxdb import InfluxDBClient
-
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
@@ -44,61 +43,40 @@ def connect_influx(kwargs: dict, retries: int = 10) -> InfluxDBClient:
 
 class Chart(db.Model):
     """
-    Model of a Chart instance.
+    Creates Chart.
+
+    Parameters
+    ----------
+    pair: pair name ex. 'BTCUSD'
+    timeframe: timeframe ex. '1h'
+    type: name of charting setup
+    params: params of the setup
     """
     __tablename__ = 'charting'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     pair = db.Column(db.String)
     timeframe = db.Column(db.String)
-    last_tsmp = db.Column(db.Integer)
+    time = db.Column(db.DateTime, default=db.func.current_timestamp())
     type = db.Column(db.String)
     params = db.Column(db.JSON)
-
-    def __init__(self, pair: str, timeframe: str, type: str, params: dict):
-        """"""
-        """
-        Creates Chart.
-
-        Parameters
-        ----------
-        pair: pair name ex. 'BTCUSD'
-        timeframe: timeframe ex. '1h'
-        type: name of charting setup
-        params: params of the setup
-        """
-        self.pair = pair
-        self.timeframe = timeframe
-        self.last_tsmp = int(time.time())
-        self.type = type
-        self.params = params
 
 
 class Level(db.Model):
     """
-    Model of a Level instance.
+    Creates Level.
+
+    Parameters
+    ----------
+    pair: pair name ex. 'BTCUSD'
+    timeframe: timeframe ex. '1h'
+    type: name of level type
+    value: value of the level
     """
     __tablename__ = 'levels'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     pair = db.Column(db.String)
     timeframe = db.Column(db.String)
-    tsmp = db.Column(db.Integer)
+    time = db.Column(db.DateTime, default=db.func.current_timestamp())
     type = db.Column(db.String)
     value = db.Column(db.Integer, index=True, unique=True)
-
-    def __init__(self, pair: str, timeframe: str, type: str, value: float):
-        """
-        Creates Level.
-
-        Parameters
-        ----------
-        pair: pair name ex. 'BTCUSD'
-        timeframe: timeframe ex. '1h'
-        type: name of level type
-        value: value of the level
-        """
-        self.pair = pair
-        self.timeframe = timeframe
-        self.tsmp = int(time.time())
-        self.type = type
-        self.value = value
 

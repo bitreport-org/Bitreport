@@ -50,38 +50,19 @@ def get_candles(influx: InfluxDBClient, pair: str, timeframe: str, limit: int) -
     """
     measurement = pair + timeframe
 
-    # q = f"""
-    # SELECT
-    # mean(close) AS close,
-    # mean(high) AS high,
-    # mean(low) AS low,
-    # mean(open) AS open,
-    # mean(volume) AS volume
-    # FROM {measurement}
-    # WHERE time >= now() - {limit * int(timeframe[:-1])}h
-    # AND ("exchange" = 'binance'
-    # OR "exchange" = 'bitfinex'
-    # OR "exchange" = 'poloniex'
-    # OR "exchange" = 'bittrex')
-    # GROUP BY  time({timeframe}) FILL(none)
-    # """
-
     q = f"""
-    SELECT *  
-    FROM(
-        SELECT
-        mean(close) AS close, 
-        mean(high) AS high, 
-        mean(low) AS low, 
-        mean(open) AS open, 
-        mean(volume) AS volume
-        FROM {measurement}
-        WHERE ("exchange" = 'binance'
-        OR "exchange" = 'bitfinex'
-        OR "exchange" = 'poloniex'
-        OR "exchange" = 'bittrex') 
-        GROUP BY  time({timeframe}) FILL(none)
-    )
+    SELECT
+    mean(close) AS close, 
+    mean(high) AS high, 
+    mean(low) AS low, 
+    mean(open) AS open, 
+    mean(volume) AS volume
+    FROM {measurement}
+    WHERE ("exchange" = 'binance'
+    OR "exchange" = 'bitfinex'
+    OR "exchange" = 'poloniex'
+    OR "exchange" = 'bittrex') 
+    GROUP BY  time({timeframe}) FILL(none)
     LIMIT {limit}
     """
 

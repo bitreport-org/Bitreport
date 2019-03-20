@@ -28,7 +28,8 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - FLASK_ENV=production
-    command: gunicorn -b 0.0.0.0:80 -w 1 run:app
+      - FLASK_APP=core.py
+    command: bash -c "flask db migrate && flask db upgrade && gunicorn -b 0.0.0.0:80 -w 1 core:app"
     depends_on:
       - influx
       - postgres

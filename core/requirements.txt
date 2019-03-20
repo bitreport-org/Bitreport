@@ -1,4 +1,5 @@
 absl-py>=0.6.1
+alembic>=1.0.8
 astor>=0.7.1
 astroid>=2.1.0
 atomicwrites>=1.2.1
@@ -9,6 +10,7 @@ chardet>=3.0.4
 Click>=7.0
 coverage==4.5.3
 Flask>=1.0.2
+Flask-Migrate>=2.4.0
 Flask-SQLAlchemy>=2.3.2
 gast>=0.2.0
 grpcio>=1.17.1
@@ -39,6 +41,7 @@ pytest-metadata>=1.7.0
 pytest-cov>=2.6.1
 pytest-vcr==1.0.1
 python-dateutil>=2.7.5
+python-editor>=1.0.4
 pytz>=2018.7
 PyYAML>=3.13
 requests>=2.21.0

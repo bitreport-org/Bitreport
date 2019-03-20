@@ -12,7 +12,8 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - FLASK_ENV=development
-    command: python run.py
+      - FLASK_APP=core.py
+    command: bash -c "flask db migrate && flask db upgrade && flask run"
     depends_on:
       - influx
       - postgres
