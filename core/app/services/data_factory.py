@@ -52,20 +52,26 @@ class PairData:
             logging.error(message)
             return message, 404
 
+
         # Price data and information
-        price = {k: self.data[k].tolist()[self.magic_limit:] for k in ['open', 'high', 'close', 'low']}
+        price = {k: self.data[k].tolist()[-self.limit:] for k in ['open', 'high', 'close', 'low']}
         price.update(info=self._make_price_info(price['close']))
 
         # Volume data and information
-        volume = dict(volume=self.data['volume'].tolist()[self.magic_limit:],
+        volume = dict(volume=self.data['volume'].tolist()[-self.limit:],
                       info=self._make_volume_info(self.data['volume']))
 
         # Prepare dates
         dates = generate_dates(self.data['date'], self.timeframe, self.margin)
         self.dates = dates[self.magic_limit:]
 
-        # Prepare indicators
-        indicators_dict = self._make_indicators()
+        # Handle not enough data
+        if self.data['close'].size < self.limit + self.magic_limit:
+            indicators_dict = dict()
+        else:
+            # Prepare indicators
+            indicators_dict = self._make_indicators()
+
         indicators_dict.update(price=price)
         indicators_dict.update(volume=volume)
 

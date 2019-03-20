@@ -30,6 +30,8 @@ services:
       - FLASK_ENV=production
       - FLASK_APP=core.py
     command: bash -c "flask db migrate && flask db upgrade && gunicorn -b 0.0.0.0:80 -w 1 core:app"
+    expose:
+      - 80
     depends_on:
       - influx
       - postgres
@@ -53,8 +55,8 @@ services:
       - redis
       - core
       - sidekiq
-    ports:
-      - 3000:3000
+    expose:
+      - 3000
     volumes:
       - dashboard-public:/usr/src/app/public
       - dashboard-settings:/usr/src/app/config/settings

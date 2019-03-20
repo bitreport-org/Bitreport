@@ -24,6 +24,20 @@ class TestPairEndpoint:
         assert 'msg' in response.get_json().keys()
         assert 'No data' in response.get_json().get('msg')
 
+    def test_not_enough_data(self, app, filled_influx):
+        response = app.get(f'/TEST?timeframe={self.timeframe}&limit={self.limit}')
+        assert response.status_code == 200, 'Server faliure!'
+        response = response.get_json()
+
+        assert  isinstance(response, dict)
+        keys = response.keys()
+        assert 'dates' in keys
+        assert 'indicators' in keys
+        assert list(response['indicators']) == ['price', 'volume']
+        assert list(response['indicators']['price']) == ['close', 'high', 'info', 'low', 'open']
+
+        assert len(response['indicators']['price']['close']) == self.limit
+
     def test_response_json(self, app, filled_influx):
         response = app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
         assert response.status_code == 200, 'Server faliure!'
