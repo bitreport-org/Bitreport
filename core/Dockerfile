@@ -12,6 +12,7 @@ RUN curl -s -L http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz
 # Install requirements
 RUN pip install --upgrade pip
 RUN pip install -U pyopenssl
+RUN pip install numpy
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
