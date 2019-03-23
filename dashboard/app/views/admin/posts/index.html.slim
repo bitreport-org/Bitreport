@@ -5,20 +5,24 @@ table.ui.celled.table
     tr
       th Pair
       th Preview
-      th Message
+      th Original Message
+      th Response
       th Publish date
       th Actions
   tbody
     - @posts.each do |post|
       tr
         / :<
-        td= post.report&.pair&.name
-        td= post.report&.image_url(:thumbnail)
+        td= post.report&.pair&.symbol
+        td
+          = link_to post.report&.image_url(:original) do
+            = image_tag(post.report&.image_url(:thumbnail))
+        td= post.original_message
         td= post.message
         td= post.published_at
         td.collapsing
           .ui.buttons.vertical
-            = link_to '#' do
+            = link_to "https://twitter.com/statuses/#{post.tweet_id}" do
               .ui.button
                 i.eye.icon
                 | See Tweet
@@ -26,3 +30,5 @@ table.ui.celled.table
               .ui.disabled.button
                 i.delete.icon
                 | Delete
+
+== pagy_semantic_nav(@pagy)

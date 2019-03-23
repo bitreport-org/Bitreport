@@ -5,9 +5,10 @@ require 'rails_helper'
 RSpec.describe Tweets::Responder do
   subject(:service) { described_class.new(params) }
 
-  let(:params) { { tweet_id: 1, symbols: symbols, screen_name: screen_name } }
+  let(:params) { { tweet_id: 1, symbols: symbols, screen_name: screen_name, original_message: original_message } }
   let(:symbols) { [symbol] }
-  let(:screen_name) { nil }
+  let(:screen_name) { 'BTCtrader' }
+  let(:original_message) { "Hey @Bitreport_org I want you to report on $#{symbols.first}" }
   let!(:twitter_stub) { stub_twitter_update }
 
   context 'with valid symbols' do
@@ -74,16 +75,14 @@ RSpec.describe Tweets::Responder do
           end
 
           it 'does not post anything on Twitter' do
-            service.call rescue Service::ValidationError
+            expect { service.call }.to raise_error(Service::ValidationError)
             expect(twitter_stub).not_to have_been_requested
           end
         end
       end
 
       context 'when core has no result for the pair' do
-        before do
-          stub_core_fill_failure
-        end
+        before { stub_core_fill_failure }
 
         it 'creates a TwitterPost' do
           expect { service.call }.to change(TwitterPost, :count).by(1)
@@ -102,13 +101,17 @@ RSpec.describe Tweets::Responder do
     context 'when tweet does not include any cashtags' do
       let(:symbols) { [] }
 
+      it 'raises validation error' do
+        expect { service.call }.to raise_error(Service::ValidationError)
+      end
+
       it 'does not generate a report' do
         expect(Reports::Creator).not_to receive(:new)
-        service.call
+        expect { service.call }.to raise_error(Service::ValidationError)
       end
 
       it 'does not post anything on Twitter' do
-        service.call
+        expect { service.call }.to raise_error(Service::ValidationError)
         expect(twitter_stub).not_to have_been_requested
       end
     end

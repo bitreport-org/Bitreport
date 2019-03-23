@@ -15,11 +15,11 @@ class ReferenceReportsFromTwitterImages < ActiveRecord::Migration[5.2]
   def up
     MigrationTwitterImage.find_each do |twitter_image|
       report = MigrationReport.create!(pair: twitter_image.pair,
-                              limit: twitter_image.limit,
-                              timeframe: twitter_image.timeframe,
-                              indicators: twitter_image.indicators,
-                              comment: twitter_image.comment,
-                              image_data: twitter_image.image_data)
+                                       limit: twitter_image.limit,
+                                       timeframe: twitter_image.timeframe,
+                                       indicators: twitter_image.indicators,
+                                       comment: twitter_image.comment,
+                                       image_data: twitter_image.image_data)
       twitter_image.update!(report: report)
     end
   end

@@ -2,8 +2,11 @@
 
 module Admin
   class PostsController < AdminController
+    include Pagy::Backend
+
     def index
-      @posts = TwitterPost.includes(report: [:pair]).all # paginate with pagy
+      @pagy, @posts = pagy(TwitterPost.includes(report: [:pair]).order(published_at: :desc),
+                           items: 10)
     end
   end
 end

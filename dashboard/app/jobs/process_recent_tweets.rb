@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class ProcessRecentTweets < ApplicationJob
-  QUERY = '+Bitreport_org +@Bitreport_org +to:Bitreport_org -from:Bitreport_org -filter:retweets'.freeze
+  QUERY = '+Bitreport_org +@Bitreport_org +to:Bitreport_org -from:Bitreport_org -filter:retweets'
 
   def perform
     Rails.logger.info('Processing new Tweets')
