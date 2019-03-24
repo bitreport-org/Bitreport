@@ -29,9 +29,9 @@ services:
       - PYTHONUNBUFFERED=1
       - FLASK_ENV=production
       - FLASK_APP=core.py
-    command: bash -c "flask db migrate && flask db upgrade && gunicorn -b 0.0.0.0:80 -w 1 core:app"
+    command: bash -c "flask db migrate && flask db upgrade && gunicorn -b 0.0.0.0:5001 -w 1 core:app"
     expose:
-      - 80
+      - 5001
     depends_on:
       - influx
       - postgres

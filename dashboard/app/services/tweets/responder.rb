@@ -21,7 +21,6 @@ module Tweets
     def run
       return if symbols.blank?
 
-      # TODO: Pass report to some twitter poster service
       report = Reports::Creator.new(pair: pair, timeframe: 6, indicators: %w[RSI wedge]).call
       Tweets::Publisher.new(twitter_post: twitter_post,
                             message: "Hi. Here is your report for #{pair.symbol}",

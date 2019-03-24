@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 def stub_core_fill
-  stub_request(:post, 'http://core/fill')
+  stub_request(:post, 'http://core:5001/fill')
     .with(query: hash_including(:pair))
     .to_return(status: 200, body: '{}', headers: { 'Content-Type' => 'application/json' })
 end
 
 def stub_core_fill_failure
-  stub_request(:post, 'http://core/fill')
+  stub_request(:post, 'http://core:5001/fill')
     .with(query: hash_including(:pair))
     .to_return(status: 404, body: '{}', headers: { 'Content-Type' => 'application/json' })
 end
@@ -35,7 +35,7 @@ def stub_core_get(symbol)
       }
     }
   JSON
-  stub_request(:get, "http://core/#{symbol}")
+  stub_request(:get, "http://core:5001/#{symbol}")
     .with(query: hash_including(:limit, :timeframe))
     .to_return(status: 200, body: response, headers: { 'Content-Type' => 'application/json' })
 end

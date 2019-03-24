@@ -17,6 +17,8 @@ services:
     depends_on:
       - influx
       - postgres
+    expose:
+      - 5001
     ports:
       - 5001:5001
     volumes:
@@ -51,7 +53,6 @@ services:
       - postgres
       - redis
       - core
-      - sidekiq
     ports:
       - 3000:3000
     volumes:

@@ -26,7 +26,7 @@ module Reports
     end
 
     def data_url
-      "http://core/#{pair.symbol}?timeframe=#{timeframe}h&limit=200"
+      "http://core:5001/#{pair.symbol}?timeframe=#{timeframe}h&limit=200"
     end
 
     def fetch_data

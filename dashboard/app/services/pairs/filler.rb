@@ -17,7 +17,7 @@ module Pairs
     attr_reader :pair, :fill
 
     def request_core_data
-      @fill = HTTParty.post('http://core/fill', query: { pair: pair.symbol }).success?
+      @fill = HTTParty.post('http://core:5001/fill', query: { pair: pair.symbol }).success?
     rescue SocketError
       nil
     end
