@@ -22,7 +22,7 @@ class Channel:
     def _last_channel(self) -> dict:
         last = db.session.query(Chart).filter_by(type = self.type, timeframe = self.timeframe,
                                                 pair = self.pair).order_by(Chart.id.desc()).first()
-        params = None
+        params = dict()
         if last is not None:
             params = last.params
         

@@ -24,9 +24,9 @@ class Levels(object):
         resistance, support = [], []
 
         if np.any(maxs):
-            resistance = [np.max(close[p-r:p+r]) for p in maxs]
+            resistance = [np.max(close[max(p-r, 0):p+r]) for p in maxs]
         if np.any(mins):
-            support = [np.min(close[p-r:p+r]) for p in mins]
+            support = [np.min(close[max(p-r, 0):p+r]) for p in mins]
 
         levels = dict(resistance=resistance, support=support)
 
