@@ -11,7 +11,7 @@ if Rails.env.test?
 
   Shrine.storages = {
     cache: Shrine::Storage::Memory.new,
-    store: Shrine::Storage::Memory.new,
+    store: Shrine::Storage::Memory.new
   }
 else
   Shrine.storages = {

@@ -3,23 +3,33 @@
 module Pairs
   class Filler < Service
     validates :pair, presence: true
+    validate :fill_successful
 
-    before_execute :make_fill_request
+    before_validation :request_core_data
 
     def initialize(pair:)
       @pair = pair
+      @fill = false
     end
 
     private
 
-    attr_reader :pair
+    attr_reader :pair, :fill
+
+    def request_core_data
+      @fill = HTTParty.post('http://core:5001/fill', query: { pair: pair.symbol }).success?
+    rescue SocketError
+      nil
+    end
 
     def run
       pair.touch(:last_updated_at)
     end
 
-    def make_fill_request
-      HTTParty.post('http://core/fill', query: { pair: pair.symbol, exchange: pair.exchange })
+    def fill_successful
+      return if fill
+
+      errors.add(:fill, :unsuccessful)
     end
   end
 end

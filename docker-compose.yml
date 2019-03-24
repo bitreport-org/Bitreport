@@ -12,36 +12,49 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - FLASK_ENV=development
-    command: python run.py
+      - FLASK_APP=core.py
+    command: bash -c "flask db migrate && flask db upgrade && flask run --host=0.0.0.0 --port=5001"
     depends_on:
       - influx
       - postgres
+    expose:
+      - 5001
     ports:
-      - 5001:80
+      - 5001:5001
     volumes:
       - ./core:/app
 
   influx:
+    image: influxdb:1.5.2-alpine
     environment:
       - INFLUXDB_LOGGING_LEVEL=warn
       - INFLUXDB_DATA_QUERY_LOG_ENABLED=false
       - INFLUXDB_HTTP_LOG_ENABLED=false
-    image: influxdb:1.5.2-alpine
     ports:
-      - 5002:8086
+      - 8086:8086
     volumes:
       - influx-data:/var/lib/influxdb
+
+  chronograf:
+    image: chronograf:1.5-alpine
+    environment:
+      - LOG_LEVEL=error
+    ports:
+      - 8080:8888
+    depends_on:
+      - influx
 
   dashboard:
     build:
       context: ./dashboard
       dockerfile: .docker/Dockerfile
     command: rails s -p 3000 -b 0.0.0.0
+    stdin_open: true
+    tty: true
     depends_on:
       - postgres
       - redis
       - core
-      - sidekiq
     ports:
       - 3000:3000
     volumes:
@@ -60,15 +73,3 @@ services:
     image: redis:4.0.11-alpine
     volumes:
       - redis-data:/data
-
-  sidekiq:
-    build:
-      context: ./dashboard
-      dockerfile: .docker/Dockerfile
-    command: sidekiq -C config/sidekiq.yml
-    depends_on:
-      - postgres
-      - redis
-    volumes:
-      - ./dashboard:/usr/src/app
-      - app-gems:/usr/local/bundle

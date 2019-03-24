@@ -10,9 +10,9 @@ from app.exchanges.helpers import check_last_tmstmp, insert_candles
 class Bitfinex:
     def __init__(self, influx_client):
         self.influx = influx_client
-        self.name='Bitfinex'
+        self.name = 'Bitfinex'
 
-    def downsample_2h(self, pair):
+    def _downsample_2h(self, pair):
             time_now = dt.now().strftime("%Y-%m-%dT%H:%M:%SZ")
             try:
                 query = f"""
@@ -22,7 +22,7 @@ class Bitfinex:
                         min(low) AS low, 
                         last(close) AS close, 
                         sum(volume) AS volume 
-                        INTO {pair}2h FROM {pair}1h WHERE time <= '{time_now}' GROUP BY time(2h)
+                        INTO {pair}2h FROM {pair}1h WHERE time <= '{time_now}' GROUP BY time(2h), *
                 
                 """
                 self.influx.query(query)
@@ -36,8 +36,6 @@ class Bitfinex:
         timeframeR = timeframe
         if timeframe == '24h':
             timeframeR = '1D'
-        elif timeframe == '168h':
-            timeframeR = '7D'
 
         start = (check_last_tmstmp(self.influx, measurement)) * 1000 # ms
         end = (int(time.time()) + 100) * 1000 # ms
@@ -62,6 +60,7 @@ class Bitfinex:
         for row in response:
             json_body = {
                 "measurement": measurement,
+                "tags": {'exchange' : self.name.lower()},
                 "time": int(row[0]),
                 "fields": {
                     "open": float(row[1]),
@@ -73,34 +72,16 @@ class Bitfinex:
             }
             points.append(json_body)
 
-        result = insert_candles(self.influx, points, measurement, time_precision="ms")
+        result = insert_candles(self.influx, points, measurement, self.name, time_precision="ms")
 
         if timeframe == '1h':
-            self.downsample_2h(pair)
+            self._downsample_2h(pair)
 
         return result
-
-    def check(self, pair):
-        url = f'https://api.bitfinex.com/v2/candles/trade:1D:t{pair}/hist?limit=5000'
-        request = requests.get(url)
-        response = request.json()
-
-        # Check if response was successful
-        if not isinstance(response, list):
-            logging.error('Bitfinex response is not a list.')
-            return self.name.lower(), 0
-        if len(response)>0 and response[0]=='error' or request.status_code != 200:
-            logging.error(f'Bitfinex response failed: {response}')
-            return self.name.lower(), 0
-        if len(response)==0:
-            logging.error(f'Bitfinex empty response.')
-            return self.name.lower(), 0
-
-        return self.name.lower(), len(response)
 
     def fill(self, pair):
         for tf in ['1h', '3h', '6h', '12h', '24h']:
             status = self.fetch_candles(pair, tf)
             if not status:
-                logging.error(f'Failed to fill {pair}:{tf}')
+                return False
         return status

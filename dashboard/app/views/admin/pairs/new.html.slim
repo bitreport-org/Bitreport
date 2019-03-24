@@ -1,33 +1,7 @@
 .ui.padded.basic.segment
   h1 New pair
 
-  = form_for @pair, html: {class: 'ui form'} do |f|
-    - if @pair.errors.any?
-      #error_explanation
-        h2 = "#{pluralize(@pair.errors.count, 'error')} prohibited this pair from being saved:"
-        ul
-          - @pair.errors.full_messages.each do |message|
-            li = message
-
-    .ui.segment
-      h4.ui.dividing.header Pair Settings
-      .four.fields
-        .field
-          = f.label :symbol
-          = f.text_field :symbol, { prompt: 'Select currency pair' }
-        .field
-          = f.label :name
-          = f.text_field :name
-        .field
-          = f.label :tags
-          = f.text_field :tags, { prompt: '$BTC #bitcoin #btc' }
-        .field
-          = f.label :exchange
-          = f.select :exchange, options_for_select(Pair::EXCHANGES, 'bitfinex'), { prompt: 'Select exchange' }, { class: 'ui fluid search dropdown' }
-      h4.ui.dividing.header Actions
-      = f.button :submit, class: 'ui green right labeled icon button' do
-        i.right.arrow.icon
-        | Save
+  = render 'form'
 
   .ui.basic.segment
     = link_to pairs_path do

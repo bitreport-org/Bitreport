@@ -5,15 +5,16 @@ require 'rails_helper'
 RSpec.describe Tweets::Responder do
   subject(:service) { described_class.new(params) }
 
-  let(:params) { { tweet_id: 1, tweet_text: tweet_text, screen_name: screen_name } }
-  let(:tweet_text) { "@Bitreport_org #{symbol}" }
-  let(:screen_name) { nil }
+  let(:params) { { tweet_id: 1, symbols: symbols, screen_name: screen_name, original_message: original_message } }
+  let(:symbols) { [symbol] }
+  let(:screen_name) { 'BTCtrader' }
+  let(:original_message) { "Hey @Bitreport_org I want you to report on $#{symbols.first}" }
   let!(:twitter_stub) { stub_twitter_update }
 
-  context 'with valid tweet_text' do
+  context 'with valid symbols' do
     context 'when pair exists' do
       let(:pair) { create(:pair) }
-      let(:symbol) { "$#{pair.symbol[0..3]}" }
+      let(:symbol) { pair.symbol[0..3] }
 
       before do
         reports_creator_stub = instance_double(Reports::Creator, call: create(:report, pair: pair))
@@ -44,11 +45,10 @@ RSpec.describe Tweets::Responder do
     end
 
     context 'when pair does not exist' do
-      let(:symbol) { '$YOLO' }
+      let(:symbol) { 'YOLO' }
 
       context 'when pair can be created' do
         before do
-          stub_core_exchange
           stub_core_fill
           reports_creator_stub = instance_double(Reports::Creator, call: create(:report))
           allow(Reports::Creator).to receive(:new).and_return(reports_creator_stub)
@@ -75,21 +75,20 @@ RSpec.describe Tweets::Responder do
           end
 
           it 'does not post anything on Twitter' do
-            service.call rescue Service::ValidationError
+            expect { service.call }.to raise_error(Service::ValidationError)
             expect(twitter_stub).not_to have_been_requested
           end
         end
       end
 
       context 'when core has no result for the pair' do
-        before do
-          stub_core_exchange_failure
-        end
+        before { stub_core_fill_failure }
 
         it 'creates a TwitterPost' do
           expect { service.call }.to change(TwitterPost, :count).by(1)
         end
 
+        # TODO: This will loop, won't it?
         it 'creates a post on Twitter' do
           service.call
           expect(twitter_stub).to have_been_requested
@@ -98,17 +97,21 @@ RSpec.describe Tweets::Responder do
     end
   end
 
-  context 'with invalid tweet_text' do
+  context 'with invalid symbols' do
     context 'when tweet does not include any cashtags' do
-      let(:tweet_text) { '@Bitreport_org Hello I am a prince from Nigeria' }
+      let(:symbols) { [] }
+
+      it 'raises validation error' do
+        expect { service.call }.to raise_error(Service::ValidationError)
+      end
 
       it 'does not generate a report' do
         expect(Reports::Creator).not_to receive(:new)
-        service.call
+        expect { service.call }.to raise_error(Service::ValidationError)
       end
 
       it 'does not post anything on Twitter' do
-        service.call
+        expect { service.call }.to raise_error(Service::ValidationError)
         expect(twitter_stub).not_to have_been_requested
       end
     end

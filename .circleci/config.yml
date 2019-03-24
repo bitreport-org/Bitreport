@@ -1,0 +1,100 @@
+version: 2
+jobs:
+  core:
+    docker:
+      - image: circleci/python:3.6.7
+        environment:
+          INFLUX_HOST: localhost
+          POSTGRES_HOST: localhost
+      - image: circleci/postgres:10.4-alpine
+      - image: influxdb:1.5.2-alpine
+    steps:
+      - checkout  # checkout source code to working directory
+      - restore_cache:
+          key: deps1-{{ .Branch }}-{{ checksum "core/requirements.txt" }}
+      - run:
+          name: Install TA-lib dependencies
+          command: |
+            curl -s -L http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz | tar -xz && \
+            cd ta-lib && \
+            ./configure --prefix=/usr && \
+            sudo make && \
+            sudo make install
+      - run:
+          name: Create venv and install dependencies
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install -r core/requirements.txt
+      - save_cache:
+          key: deps1-{{ .Branch }}-{{ checksum "core/requirements.txt" }}
+          paths:
+            - "venv"
+            - "ta-lib"
+      - run:
+          name: Run pytests
+          command: |
+            . venv/bin/activate
+            mkdir test-reports
+            pytest --junitxml=test-reports/junit.xml --cov=core/app --cov-config core/.coveragerc --vcr-record=none
+            coverage report
+            coverage html
+      - store_test_results:
+          path: test-reports
+      - store_artifacts:
+          path: test-report
+      - store_artifacts:
+          path: htmlcov
+  dashboard:
+    docker:
+      - image: circleci/ruby:2.6.1-node
+        environment:
+          PGHOST: localhost
+          RAILS_ENV: test
+      - image: circleci/postgres:10.4-alpine
+    steps:
+      - checkout
+      - run:
+          name: Install Vips
+          command: |
+            curl -s -L https://github.com/libvips/libvips/releases/download/v8.7.0/vips-8.7.0.tar.gz | tar -xz && \
+            cd vips-8.7.0 && \
+            ./configure && \
+            sudo make && \
+            sudo make install
+      - restore_cache:
+          keys:
+            - dashboard-bundle-{{ checksum "dashboard/Gemfile.lock" }}
+      - run:
+          name: Bundle Install
+          command: bundle install --path vendor/bundle
+          working_directory: dashboard
+      - save_cache:
+          key: dashboard-bundle-{{ checksum "dashboard/Gemfile.lock" }}
+          paths:
+            - ~/dashboard/vendor/bundle
+            - ~/vendor/bundle
+      - run:
+          name: Wait for DB
+          command: dockerize -wait tcp://localhost:5432 -timeout 1m
+      - run:
+          name: Database setup
+          command: bin/rake db:create db:migrate:with_data --trace
+          working_directory: dashboard
+      - run:
+          name: Run rspec in parallel
+          command: |
+            bundle exec rspec --profile 10 \
+                              --format RspecJunitFormatter \
+                              --out test_results/rspec.xml \
+                              --format progress \
+                              $(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings)
+          working_directory: dashboard
+      - store_test_results:
+          path: test_results
+workflows:
+  version: 2
+  tests:
+    jobs:
+      - core
+      - dashboard

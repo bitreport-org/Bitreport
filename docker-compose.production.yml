@@ -28,17 +28,20 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - FLASK_ENV=production
-    command: gunicorn -b 0.0.0.0:80 -w 1 app.core:app
+      - FLASK_APP=core.py
+    command: bash -c "flask db migrate && flask db upgrade && gunicorn -b 0.0.0.0:5001 -w 1 core:app"
+    expose:
+      - 5001
     depends_on:
       - influx
       - postgres
 
   influx:
+    image: influxdb:1.5.2-alpine
     environment:
       - INFLUXDB_LOGGING_LEVEL=warn
       - INFLUXDB_DATA_QUERY_LOG_ENABLED=false
       - INFLUXDB_HTTP_LOG_ENABLED=false
-    image: influxdb:1.5.2-alpine
     volumes:
       - influx-data:/var/lib/influxdb
 
@@ -52,8 +55,8 @@ services:
       - redis
       - core
       - sidekiq
-    ports:
-      - 3000:3000
+    expose:
+      - 3000
     volumes:
       - dashboard-public:/usr/src/app/public
       - dashboard-settings:/usr/src/app/config/settings

@@ -72,27 +72,17 @@ def RSI(data, timeperiod=14):
 
     # TOKENS
     info = []
-    points2check = -10
-
     if real[-1] >= 70:
         info.append('OSCILLATOR_OVERBOUGHT')
     elif real[-1] <= 30:
         info.append('OSCILLATOR_OVERSOLD')
 
-    slice2check = real[points2check:]
-    direction = stats.linregress(np.arange(slice2check.size), slice2check).slope
-    threshold = 0.1
-    if direction < -1*threshold:
-        info.append('DIRECTION_FALLING')
-    elif direction > threshold:
-        info.append('DIRECTION_RISING')
-
-    n = int(0.25 * (close.size - start))
+    n = int(0.20 * (close.size - start))
     dir_rsi = stats.linregress(np.arange(n), real[-n:]).slope
     dir_price = stats.linregress(np.arange(n), close[-n:]).slope
-    if dir_rsi * dir_price >= 0.0:
+    if dir_rsi * dir_price >= 0.01:
         info.append('DIV_POSITIVE')
-    elif dir_rsi * dir_price < 0.0:
+    elif dir_rsi * dir_price < -0.01: 
         info.append('DIV_NEGATIVE')
 
     return {'rsi':real.tolist()[start:], 'info': info }

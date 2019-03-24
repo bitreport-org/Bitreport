@@ -7,7 +7,7 @@ git_source(:github) do |repo_name|
   "https://github.com/#{repo_name}.git"
 end
 
-ruby '~> 2.5.3'
+ruby '2.6.1'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails'
@@ -78,6 +78,9 @@ gem 'data_migrate'
 # Raven is a Ruby client for Sentry
 gem "sentry-raven"
 
+# The ultimate pagination ruby gem
+gem 'pagy'
+
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug', platform: :mri
@@ -98,6 +101,8 @@ group :test do
   gem 'webmock'
   # In-memory storage for Shrine
   gem 'shrine-memory'
+  # RSpec results that your CI can read
+  gem 'rspec_junit_formatter'
 end
 
 group :development do

@@ -1,16 +1,12 @@
+import os
+
 class BaseConfig(object):
-    DBNAME = 'pairs'
-    HOST = 'influx'
-    PORT = 8086
     MAGIC_LIMIT = 79
-    EVENT_LIMIT = 3
-    MARGIN=26
+    MARGIN = 26
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    CSRF_ENABLED = True
     SENTRY_URL = "https://000bf6ba6f0f41a6a1cbb8b74f494d4a@sentry.io/1359679"
-    POSTGRES_HOST = 'postgres'
-    POSTGRES_DATABSE = 'core'
-    POSTGRES_USER = 'postgres'
-    CHART_TABLE = 'charting'
-    LVL_TABLE = 'levels'
+    SENTRY = False
     LOGGER = {
                 'version': 1,
                 'formatters': {'default': {
@@ -35,12 +31,25 @@ class BaseConfig(object):
                 }
             }
 
-class Prodcution(BaseConfig):
-    DBNAME = 'pairs'
-    HOST = 'influx'
-    PORT = 8086
+class Production(BaseConfig):
+    DEBUG = False
+    DEVELOPMENT = False
+    INFLUX = {'host': 'influx', 'database': 'pairs'}
+    SQLALCHEMY_DATABASE_URI = "postgresql://postgres@postgres"
+    SENTRY = True
+
+
+class Development(BaseConfig):
+    DEVELOPMENT = True
+    DEBUG = True
+    INFLUX = {'host': 'influx', 'database': 'pairs'}
+    SQLALCHEMY_DATABASE_URI = "postgresql://postgres@postgres"
+
 
 class Test(BaseConfig):
-    DBNAME = 'pairs'
-    HOST = 'influx'
-    PORT = 8086
+    TESTING = True
+    INFLUX_HOST = os.environ.get('INFLUX_HOST', '0.0.0.0')
+    INFLUX = {'host': INFLUX_HOST, 'database': 'test',}
+
+    POSTGRES_HOST = os.environ.get('POSTGRES_HOST', '0.0.0.0')
+    SQLALCHEMY_DATABASE_URI = "postgresql://postgres@{host}".format(host=POSTGRES_HOST)

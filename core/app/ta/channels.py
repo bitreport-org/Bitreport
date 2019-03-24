@@ -1,38 +1,39 @@
 import numpy as np
 import talib #pylint: skip-file
 import config
-from app.services import Chart, make_session, get_candles, generate_dates
+from influxdb import InfluxDBClient
+
+from app.services import get_candles, generate_dates
+from app.api.database import Chart
+from app.api import db
 
 Config = config.BaseConfig()
-session = make_session()
 
-class Channel():
-    def __init__(self, pair, timeframe, close, x_dates):
+class Channel:
+    def __init__(self, pair: str, timeframe: str, close: np.ndarray, x_dates: np.ndarray):
         self.pair = pair
         self.timeframe = timeframe
         self.close = close
-        self.x_dates = np.array(x_dates) / 10000 # to increase precision
+        self.x_dates = x_dates / 10000 # to increase precision
         self.type = 'channel'
         self.margin = Config.MARGIN
         self.start = Config.MAGIC_LIMIT
 
-    def _last_channel(self):
-        last = session.query(Chart).filter_by(type = self.type, timeframe = self.timeframe,
+    def _last_channel(self) -> dict:
+        last = db.session.query(Chart).filter_by(type = self.type, timeframe = self.timeframe,
                                                 pair = self.pair).order_by(Chart.id.desc()).first()
-        params = None
+        params = dict()
         if last is not None:
             params = last.params
         
         return params
 
-    def _save_channel(self, params):
-        ch = Chart( pair = self.pair, timeframe = self.timeframe, 
-                    type = self.type, params = params)
-        session.add(ch)
-        session.commit()
+    def _save_channel(self, params: dict):
+        ch = Chart(pair=self.pair, timeframe=self.timeframe, type=self.type, params=params)
+        db.session.add(ch)
+        db.session.commit()
 
-    def _compare(self, params):
-
+    def _compare(self, params: dict) -> bool:
         candles2check = 20
         slope = params['slope']
         coef = params['coef']
@@ -51,7 +52,7 @@ class Channel():
         else:
             return False
 
-    def make(self):
+    def make(self) -> dict:
         new_params = self._channel(self.close, self.x_dates)
         params = self._last_channel()
 
@@ -79,7 +80,7 @@ class Channel():
         return {'upper_band': up_channel.tolist(), 'lower_band': bottom_channel.tolist(), 
                 'middle_band':[], 'info': info}
 
-    def _tokens(self, close, upper_band, lower_band, slope):
+    def _tokens(self, close: np.ndarray, upper_band: np.ndarray, lower_band: np.ndarray, slope: float) -> list:
         margin = self.margin
         info = []
         p = ( close[-1] - lower_band[-1-margin] ) / (upper_band[-1-margin]-lower_band[-1-margin]) 
@@ -97,9 +98,11 @@ class Channel():
             info.append('PRICE_BETWEEN')
 
         n_last_points = 10
-        if np.sum(close[-n_last_points:] > upper_band[-n_last_points-margin : -margin]) > 0 and close[-1] < upper_band[-1-margin]:
+        if np.sum(close[-n_last_points:] > upper_band[-n_last_points-margin : -margin]) > 0 and \
+                close[-1] < upper_band[-1-margin]:
             info.append('FALSE_BREAK_UP')
-        elif np.sum(close[-n_last_points:] < lower_band[-n_last_points-margin : -margin]) > 0 and close[-1] > lower_band[-1-margin]:
+        elif np.sum(close[-n_last_points:] < lower_band[-n_last_points-margin : -margin]) > 0 and \
+                close[-1] > lower_band[-1-margin]:
             info.append('FLASE_BREAK_DOWN')
 
         # Drirection Tokens
@@ -112,7 +115,7 @@ class Channel():
         
         return info
 
-    def _channel(self, close, x_dates, sma_type: int = 50):
+    def _channel(self, close: np.ndarray, x_dates: np.ndarray, sma_type: int = 50) -> dict:
         margin = self.margin
         start = self.start
         limit = close.size
@@ -146,40 +149,61 @@ class Channel():
         x = x_dates[:-margin][s: e]
         y = short_close[s: e]
 
-        lm = np.poly1d(np.polyfit(x,y, 1))
+        lm = np.poly1d(np.polyfit(x, y, 1))
         std = np.std(short_close[s:e])     
 
         return {'slope': lm[1], 'coef': lm[0], 'std': std, 'last_tsmp': x_dates[-margin]}
 
 
 # Long channels
-def remakeChannel(influx, pair, timeframe, limit=200):
+def remake_channel(influx: InfluxDBClient, pair: str, timeframe: str, limit: int=200) -> dict:
     start = Config.MAGIC_LIMIT
     margin = Config.MARGIN
 
     # Get data
-    data = get_candles(influx, pair, timeframe, limit)
-    close = data['close'][start:]
-    x_dates = generate_dates(data['date'], timeframe, margin)
+    data = get_candles(influx, pair, timeframe, limit + start)
+    if data['close'].size > 0:
+        close = data['close']
+        x_dates = np.array(generate_dates(data['date'], timeframe, margin))[start:]
 
-    ch = Channel(pair, timeframe, close, x_dates)
-    ch.make()
-    params = ch._last_channel()
+        ch = Channel(pair, timeframe, close, x_dates)
+        ch.make()
+        return ch._last_channel()
 
-    return params
+    return dict()
 
 
-def makeLongChannel(influx, pair: str, timeframe:str, x_dates:list, limit:int=200):
-    x_dates = np.array(x_dates) / 10000  # to increase precision
-    params = remakeChannel(influx, pair, timeframe, limit)
+def make_long_channel(influx: InfluxDBClient, pair: str, timeframe:str,
+                      x_dates: np.ndarray, limit:int=200) -> dict:
+    """
+    Returns longer timeframe channel if such exists.
 
-    slope = params['slope']
-    coef = params['coef']
-    std = params['std']
+    Parameters
+    ----------
+    influx: influx client
+    pair: pair name ex. 'BTCUSD'
+    timeframe: timeframe ex. '1h'
+    x_dates: dates used as x axis
+    limit: on how many last points wedge have to be constructed
 
-    band = slope * x_dates + coef
-    upper_band = band + std
-    lower_band = band - std
+    Returns
+    -------
+    dict: wedge
+    """
+    x_dates = x_dates / 10000  # to increase precision
+    params = remake_channel(influx, pair, timeframe, limit)
+
+    upper_band = np.array([])
+    lower_band = np.array([])
+
+    if params.get('slope'):
+        slope = params['slope']
+        coef = params['coef']
+        std = params['std']
+
+        band = slope * x_dates + coef
+        upper_band = band + std
+        lower_band = band - std
 
     return {'upper_band': upper_band.tolist(), 'lower_band': lower_band.tolist(),
             'middle_band': [], 'info': []}

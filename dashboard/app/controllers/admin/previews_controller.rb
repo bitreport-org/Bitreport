@@ -3,9 +3,11 @@
 module Admin
   class PreviewsController < AdminController
     def show
+      timeframe = params[:timeframe] || 6
+      indicators = (params[:indicators] || 'RSI,wedge').split(',')
       report = Reports::Creator.new(pair: pair,
-                                    timeframe: params[:timeframe] || 6,
-                                    indicators: (params[:indicators] || 'RSI,wedge').split(',')).call
+                                    timeframe: timeframe,
+                                    indicators: indicators).call
       send_data(report.image[:original].read, disposition: 'inline', type: 'image/png')
     end
 

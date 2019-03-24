@@ -4,13 +4,30 @@ from .bitfinex import Bitfinex
 from .bittrex import Bittrex
 from .poloniex import Poloniex
 
-import logging
+from functools import reduce
+from multiprocessing.dummy import Pool as ThreadPool
+from influxdb import InfluxDBClient
 
-def fill_pair(influx, pair, exchange):
+def fill_pair(influx: InfluxDBClient, pair: str) -> tuple:
     """
-    Bitfinex 1h, 3h, 6h, 12h, 24h
-    Binance 1h, 2h, 6h, 12h, 24h
-    Bittrex 1h, 24h
+    Retrieves data for a given pair from Binance, Bitfinex, Bittrex and Poloniex
+    and inserts it to influx database. If it's needed a downsampling is being
+    performed.
+
+    Timeframes for each exchange:
+    - Bitfinex 1h, 3h, 6h, 12h, 24h
+    - Binance 1h, 2h, 6h, 12h, 24h
+    - Bittrex 1h, 24h
+    - Poloniex 30m, 2h, 24h
+
+    Parameters
+    ----------
+    influx: instance of InfluxDBCLient
+    pair: pair name ex. 'BTCUSD'
+
+    Returns
+    -------
+    tuple (message, code)
     """
 
     fillers = dict(
@@ -20,27 +37,15 @@ def fill_pair(influx, pair, exchange):
         poloniex=Poloniex
     )
 
-    if exchange not in fillers.keys():
-        msg = f'{exchange} exchange does not exist'
-        logging.error(f'{exchange} exchange does not exist')
-        return msg, 404
+    pool = ThreadPool(4)
+    results = pool.map(lambda filler: filler(influx).fill(pair), fillers.values())
+    pool.close()
+    pool.join()
 
-    filler = fillers[exchange]
-    status = filler(influx).fill(pair)
+    status = reduce(lambda x,y : x or y, results)
+    exchanges_filled = [name for name, r in zip(fillers.keys(), results) if r]
 
     if status:
-        return f"{pair} filled from {exchange}", 200
+        return f"{pair} filled from {', '.join(exchanges_filled)}", 200
     else:
-        return f"{pair} failed to fill from {exchange}", 404
-
-
-def check_exchange(influx, pair: str):
-    pair = pair.upper()
-    history = [ex(influx).check(pair) for ex in [Bittrex, Bitfinex, Poloniex, Binance]]
-    history.sort(key=lambda x: x[1])
-    history = [(name, value) for name, value in history if value>0]
-
-    if len(history) > 0:
-        return history[-1][0], 200
-    else:
-        return 'Exchange not found...', 404
+        return f"{pair} failed to fill!", 404

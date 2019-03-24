@@ -6,7 +6,7 @@ module Reports
   class OverlayGenerator
     class TextLayerGenerator
       def initialize(x_offset:, y_offset:)
-        @base = Vips::Image.black(2048, 1042)
+        @base = Vips::Image.black(2048, 1024)
         @x_offset = x_offset
         @y_offset = y_offset
       end

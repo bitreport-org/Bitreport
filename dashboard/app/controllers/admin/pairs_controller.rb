@@ -10,20 +10,28 @@ module Admin
       @pair = Pair.new
     end
 
-    def create
-      @pair = Pair.new(pair_params)
-
-      if @pair.save
-        redirect_to pairs_path, notice: "#{@pair.symbol} created"
-      else
-        render :new
-      end
+    def edit
+      @pair = pair
     end
 
-    # This one is temporary
-    def fill
-      pair.request_data_fill
-      redirect_to pairs_path, notice: 'Pair filled'
+    def create
+      @pair = Pairs::Creator.new(symbol: pair_params[:symbol],
+                                 name: pair_params[:name],
+                                 tags: pair_params[:tags]).call
+
+      redirect_to pairs_path, notice: "#{@pair.symbol} created"
+    rescue Service::ValidationError => e
+      @pair = Pair.new(pair_params)
+      @pair.errors.add(:base, e.message)
+      render :new
+    end
+
+    def update
+      if pair.update(pair_params)
+        redirect_to pairs_path, notice: "#{@pair.symbol} updated"
+      else
+        render :edit
+      end
     end
 
     def destroy
@@ -38,7 +46,7 @@ module Admin
     end
 
     def pair_params
-      params.require(:pair).permit(:symbol, :name, :tags, :exchange)
+      params.require(:pair).permit(:symbol, :name, :tags)
     end
   end
 end

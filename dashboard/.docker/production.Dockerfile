@@ -1,4 +1,4 @@
-FROM ruby:2.5.3
+FROM ruby:2.6.1
 
 ENV RAILS_ENV production
 ENV RAILS_ROOT /usr/src/app
