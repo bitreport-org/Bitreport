@@ -14,7 +14,7 @@ module Reports
     attr_reader :data, :indicators
 
     def run
-      indicators_data.flat_map { |indicator, data| text_for(indicator, data) }.join("\n")
+      indicators_data.flat_map { |indicator, data| text_for(indicator, data) }.compact.join("\n")
     end
 
     def indicators_data
