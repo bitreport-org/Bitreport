@@ -25,7 +25,6 @@ def create_app(config):
     dictConfig(config.LOGGER)
     app = Flask(__name__)
     app.config.from_object(config)
-    app.logger.info('Welcome to BitReport core!')
 
     # Sentry setup
     if sentry_setup(config.SENTRY):

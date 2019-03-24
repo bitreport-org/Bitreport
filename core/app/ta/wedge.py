@@ -19,7 +19,6 @@ class Wedge:
         self.x_dates = x_dates / 10000 # to increase precision
         self.type = 'wedge'
         self.margin = Config.MARGIN
-        self.start = Config.MAGIC_LIMIT
 
     def _last_wedge(self) -> dict:
         last = db.session.query(Chart).filter_by(type=self.type,
@@ -78,7 +77,7 @@ class Wedge:
         -------
         dict
         """
-        close = self.close[self.start:]
+        close = self.close
 
         # Check if last wedge still make sense
         actual, band_up, band_down = self._check_last_wedge()

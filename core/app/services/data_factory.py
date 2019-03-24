@@ -61,9 +61,14 @@ class PairData:
         volume = dict(volume=self.data['volume'].tolist()[-self.limit:],
                       info=self._make_volume_info(self.data['volume']))
 
+
         # Prepare dates
         dates = generate_dates(self.data['date'], self.timeframe, self.margin)
-        self.dates = dates[self.magic_limit:]
+        self.dates = dates[-(self.limit + self.margin):]
+
+        print(len(volume['volume']))
+        print(self.data['close'].size, len(price['close']))
+        print(len(self.dates))
 
         # Handle not enough data
         if self.data['close'].size < self.limit + self.magic_limit:
@@ -152,7 +157,7 @@ class PairData:
         
         # Wedges
         try:
-            wg = wedge.Wedge(self.pair, self.timeframe, close, dates)
+            wg = wedge.Wedge(self.pair, self.timeframe, close[self.magic_limit:], dates)
             indicators_values['wedge'] = wg.make()
         except:
             logging.error(f'Indicator wedge, error: /n {traceback.format_exc()}')

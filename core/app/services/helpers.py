@@ -101,8 +101,9 @@ def generate_dates(date: list, timeframe: str, n: int) -> list:
     date: the input list with new points appended
     """
     _map = { 'm': 60, 'h': 3600,'W': 648000}
-    dt = _map[timeframe[-1]]
-    date = date + [int(date[-1]) + i*dt for i, x in enumerate(range(n))]
+    dt = _map[timeframe[-1]] * int(timeframe[:-1])
+    date = date + [date[-1] + (i+1)*dt for i, x in enumerate(range(n))]
+
     return date
 
 

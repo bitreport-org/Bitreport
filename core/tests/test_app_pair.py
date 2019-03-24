@@ -1,3 +1,5 @@
+from config import BaseConfig
+
 class TestPairEndpoint:
     """
     Tests /pair endpoint and the response with price and TA info.
@@ -56,7 +58,9 @@ class TestPairEndpoint:
         assert isinstance(response, dict)
         assert 'dates' in response.keys(), 'No dates in response.'
         dates = response.get('dates')
-        assert dates[1] - dates[0] == int(self.timeframe[:-1]) * 3600
+        assert len(dates) == self.limit + BaseConfig.MARGIN
+        for x, y in zip(dates[:-1], dates[1:]):
+            assert y - x == int(self.timeframe[:-1]) * 3600
 
     def test_indicators_json(self, required_indicators, app, filled_influx):
         response = app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
@@ -78,10 +82,20 @@ class TestPairEndpoint:
         assert isinstance(response, dict)
         assert 'indicators' in response.keys()
         assert 'price' in response.get('indicators')
+        assert 'volume' in response.get('indicators')
+
+        # Test price
         price = response['indicators']['price']
         keys = price.keys()
         for x in ['open', 'low', 'high', 'close']:
             assert x in keys, f'Key {x} is not present in price'
+            assert len(price[x]) == self.limit
+
+        # Test volume
+        vol = response['indicators']['volume']
+        assert 'volume' in vol.keys()
+        assert len(vol['volume']) == self.limit
+
 
     def test_indicators_info(self, app, filled_influx):
         response = app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
