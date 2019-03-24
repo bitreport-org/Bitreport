@@ -29,32 +29,17 @@ class TestPairExceptions:
 
     def test_not_enough_data1h(self, app, filled_influx):
         response = app.get(f'/TEST?timeframe=1h&limit={self.limit}')
-        assert response.status_code == 200, 'Server faliure!'
-        response = response.get_json()
-
-        assert isinstance(response, dict)
-        keys = response.keys()
-        assert 'dates' in keys
-        assert 'indicators' in keys
-        assert list(response['indicators']) == ['price', 'volume']
-        assert list(response['indicators']['price']) == ['close', 'high', 'info', 'low', 'open']
-
-        assert len(response['indicators']['price']['close']) == self.limit
+        assert response.status_code == 404, 'Server faliure!'
+        assert isinstance(response.get_json(), dict)
+        assert 'msg' in response.get_json().keys()
+        assert 'No data' in response.get_json().get('msg')
 
     def test_not_enough_data12h(self, app, filled_influx):
         response = app.get(f'/TEST?timeframe=12h&limit={self.limit}')
-        assert response.status_code == 200, 'Server faliure!'
-        response = response.get_json()
-
-        assert isinstance(response, dict)
-        keys = response.keys()
-        assert 'dates' in keys
-        assert 'indicators' in keys
-        assert list(response['indicators']) == ['price', 'volume']
-        assert list(response['indicators']['price']) == ['close', 'high', 'info', 'low', 'open']
-
-        assert len(response['indicators']['price']['close']) == self.limit
-
+        assert response.status_code == 404, 'Server faliure!'
+        assert isinstance(response.get_json(), dict)
+        assert 'msg' in response.get_json().keys()
+        assert 'No data' in response.get_json().get('msg')
 
 class TestPairEndpoint:
     """

@@ -73,7 +73,7 @@ def get_candles(influx: InfluxDBClient, pair: str, timeframe: str, limit: int) -
     r = influx.query(q, epoch='s')
     df = pd.DataFrame(list(r.get_points(measurement=measurement)))
 
-    if df.shape==(0,0):
+    if df.shape[0] != limit:
         return dict(date=[], open=np.array([]), close=np.array([]),
                     hight=np.array([]), low=np.array([]), volume=np.array([]))
 

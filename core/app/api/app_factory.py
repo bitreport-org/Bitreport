@@ -102,4 +102,18 @@ def create_app(config):
         """
         return jsonify(msg="Wrong place, is it?")
 
+    @app.route('/test/bad/error')
+    def error():
+        x = 1/0
+        return 'Error 1/0', 200
+
+    @app.errorhandler(404)
+    def not_found_error(error):
+        return jsonify(msg='Wrong place!'), 404
+
+    @app.errorhandler(500)
+    def internal_error(error):
+        db.session.rollback()
+        return jsonify(msg='Server is dead :( '), 500
+
     return app
