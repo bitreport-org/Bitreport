@@ -71,15 +71,3 @@ services:
     image: redis:4.0.11-alpine
     volumes:
       - redis-data:/data
-
-  sidekiq:
-    build:
-      context: ./dashboard
-      dockerfile: .docker/Dockerfile
-    command: sidekiq -C config/sidekiq.yml
-    depends_on:
-      - postgres
-      - redis
-    volumes:
-      - ./dashboard:/usr/src/app
-      - app-gems:/usr/local/bundle
