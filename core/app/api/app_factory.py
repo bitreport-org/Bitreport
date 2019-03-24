@@ -59,7 +59,7 @@ def create_app(config):
         if not timeframe:
             return jsonify(msg='Timeframe not provided'), 404
 
-        if timeframe not in ['1h', '2h', '3h', '6h', '12h', '24']:
+        if timeframe not in ['1h', '2h', '3h', '6h', '12h', '24h']:
             return jsonify(msg='Wrong timeframe.'), 404
 
         data = data_factory.PairData(influx, pair, timeframe, limit)

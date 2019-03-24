@@ -51,18 +51,21 @@ def get_candles(influx: InfluxDBClient, pair: str, timeframe: str, limit: int) -
     measurement = pair + timeframe
 
     q = f"""
-    SELECT
-    mean(close) AS close, 
-    mean(high) AS high, 
-    mean(low) AS low, 
-    mean(open) AS open, 
-    mean(volume) AS volume
-    FROM {measurement}
-    WHERE ("exchange" = 'binance'
-    OR "exchange" = 'bitfinex'
-    OR "exchange" = 'poloniex'
-    OR "exchange" = 'bittrex') 
-    GROUP BY  time({timeframe}) FILL(none)
+    SELECT * FROM (
+        SELECT
+        mean(close) AS close, 
+        mean(high) AS high, 
+        mean(low) AS low, 
+        mean(open) AS open, 
+        mean(volume) AS volume
+        FROM {measurement}
+        WHERE ("exchange" = 'binance'
+        OR "exchange" = 'bitfinex'
+        OR "exchange" = 'poloniex'
+        OR "exchange" = 'bittrex') 
+        GROUP BY  time({timeframe}) FILL(none)
+        )
+    ORDER BY time DESC
     LIMIT {limit}
     """
 
@@ -72,12 +75,12 @@ def get_candles(influx: InfluxDBClient, pair: str, timeframe: str, limit: int) -
     if df.shape==(0,0):
         return dict()
 
-    candles_dict = {'date': list(df.time),
-                    'open': df.open.values,
-                    'close': df.close.values,
-                    'high': df.high.values,
-                    'low': df.low.values,
-                    'volume': df.volume.values
+    candles_dict = {'date': df.time.values.tolist()[::-1],
+                    'open': df.open.values[::-1],
+                    'close': df.close.values[::-1],
+                    'high': df.high.values[::-1],
+                    'low': df.low.values[::-1],
+                    'volume': df.volume.values[::-1]
                     }
 
     return candles_dict
