@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import pandas as pd
+import numpy as np
 from influxdb import InfluxDBClient
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
@@ -73,7 +74,8 @@ def get_candles(influx: InfluxDBClient, pair: str, timeframe: str, limit: int) -
     df = pd.DataFrame(list(r.get_points(measurement=measurement)))
 
     if df.shape==(0,0):
-        return dict()
+        return dict(date=[], open=np.array([]), close=np.array([]),
+                    hight=np.array([]), low=np.array([]), volume=np.array([]))
 
     candles_dict = {'date': df.time.values.tolist()[::-1],
                     'open': df.open.values[::-1],

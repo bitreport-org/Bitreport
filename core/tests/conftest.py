@@ -39,21 +39,21 @@ def influx():
 def fill_database(influx):
     rel_dir = os.path.dirname(__file__)
     pair = 'BTCUSD'
-    tf = '1h'
 
-    measurement = pair + tf
-    path = os.path.join(rel_dir, f'test_data/{measurement}.json')
-    with open(path) as data_file:
-        points = json.load(data_file)
+    for tf in ['1h', '12h']:
+        measurement = pair + tf
+        path = os.path.join(rel_dir, f'test_data/{measurement}.json')
+        with open(path) as data_file:
+            points = json.load(data_file)
+            insert_candles(influx, points, measurement, 'Bitfinex', time_precision='ms')
+
+        # Add fake pair
+        points = points[:120]
+        measurement = f'TEST{tf}'
+        for x in points:
+            x['measurement'] = measurement
+
         insert_candles(influx, points, measurement, 'Bitfinex', time_precision='ms')
-
-    # Add fake pair
-    points = points[:120]
-    measurement = 'TEST1h'
-    for x in points:
-        x['measurement'] = measurement
-
-    insert_candles(influx, points, measurement, 'Bitfinex', time_precision='ms')
 
 
 @pytest.fixture(scope='module')

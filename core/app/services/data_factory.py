@@ -47,11 +47,10 @@ class PairData:
         self.data = get_candles(self.influx, self.pair, self.timeframe, self.limit + self.magic_limit)
 
         # Handle empty measurement
-        if not self.data:
+        if not self.data.get('date'):
             message = dict(msg=f'No data for {self.pair+self.timeframe}')
             logging.error(message)
             return message, 404
-
 
         # Price data and information
         price = {k: self.data[k].tolist()[-self.limit:] for k in ['open', 'high', 'close', 'low']}
@@ -61,14 +60,9 @@ class PairData:
         volume = dict(volume=self.data['volume'].tolist()[-self.limit:],
                       info=self._make_volume_info(self.data['volume']))
 
-
         # Prepare dates
         dates = generate_dates(self.data['date'], self.timeframe, self.margin)
         self.dates = dates[-(self.limit + self.margin):]
-
-        print(len(volume['volume']))
-        print(self.data['close'].size, len(price['close']))
-        print(len(self.dates))
 
         # Handle not enough data
         if self.data['close'].size < self.limit + self.magic_limit:
@@ -89,7 +83,6 @@ class PairData:
         if isinstance(close, list):
             close = np.array(close)
 
-        # TODO: remove this useless token
         # Last moves tokens
         n = int(0.70*close.size) 
         s70 = linregress(np.arange(n), close[-n:]).slope
@@ -135,9 +128,9 @@ class PairData:
         for indicator in indicators_list:
             try:
                 indicators_values[indicator.__name__] = indicator(self.data)
-            except:
+            except ValueError:
                 logging.error(f'Indicator {indicator}, error: /n {traceback.format_exc()}')
-                pass
+
 
         close = self.data.get('close')
         dates = np.array(self.dates)
@@ -146,53 +139,46 @@ class PairData:
         try:
             ch = channels.Channel(self.pair, self.timeframe, close, dates)
             indicators_values['channel'] = ch.make()
-        except:
+        except ValueError:
             logging.error(f'Indicator channel, error: /n {traceback.format_exc()}')
-            pass
         try:
             indicators_values['channel12'] = channels.make_long_channel(self.influx, self.pair, '12h', dates)
-        except:
+        except ValueError:
             logging.error(f'Indicator channel12, error: /n {traceback.format_exc()}')
-            pass
         
         # Wedges
         try:
             wg = wedge.Wedge(self.pair, self.timeframe, close[self.magic_limit:], dates)
             indicators_values['wedge'] = wg.make()
-        except:
+        except ValueError:
             logging.error(f'Indicator wedge, error: /n {traceback.format_exc()}')
-            pass
 
         try:
             indicators_values['wedge12'] = wedge.make_long_wedge(self.influx, self.pair, '12h', dates)
-        except:
+        except ValueError:
             logging.error(f'Indicator wedge12, error: /n {traceback.format_exc()}')
-            pass
 
         # Patterns
         try:
             dt = patterns.make_double(x_dates=dates[: -self.margin],
                                       close=close[self.magic_limit:], type_='top')
             indicators_values['double_top'] = dt
-        except:
+        except ValueError:
             logging.error(f'Indicator double top, error: /n {traceback.format_exc()}')
-            pass
 
         try:
             db = patterns.make_double(x_dates=dates[: -self.margin],
                                       close=close[self.magic_limit:], type_='bottom')
             indicators_values['double_bottom'] = db
-        except:
+        except ValueError:
             logging.error(f'Indicator double bottom, error: /n {traceback.format_exc()}')
-            pass
 
         # Levels
         try:
             lvl = levels.Levels(self.pair, self.timeframe, close, dates)
             indicators_values['levels'] = lvl.make()
-        except:
+        except ValueError:
             logging.error(traceback.format_exc())
             indicators_values.update(levels={'support': [], 'resistance': [], 'auto': [], 'info': []})
-            pass
 
         return indicators_values

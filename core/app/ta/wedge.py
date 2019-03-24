@@ -53,8 +53,17 @@ class Wedge:
         threshold = 0.8
         if np.sum(above)/candles2check > threshold or np.sum(below)/candles2check > threshold:
             return False, [], []
-        else:
-            return True, upper_band, lower_band
+
+        upper_band, lower_band = self._extend(upper_band, lower_band, params)
+        upper_band, lower_band = self._shorten(upper_band, lower_band)
+        return True, upper_band, lower_band
+
+
+    def _extend(self, band_up: np.ndarray, band_down: np.ndarray, params: dict) -> tuple:
+        upper_ext = params['upper_a'] * self.x_dates[-self.margin:] + params['upper_b']
+        lower_ext = params['lower_a'] * self.x_dates[-self.margin:] + params['lower_b']
+
+        return np.concatenate([band_up, upper_ext]), np.concatenate([band_down, lower_ext])
 
     @staticmethod
     def _shorten(upper_band: np.ndarray, lower_band: np.ndarray) -> tuple:
@@ -91,7 +100,9 @@ class Wedge:
         # Make no sense? Create new wedge:
         assert  close.size == self.x_dates[:-self.margin].size, 'x, y differs'
 
+        # Create wedge, make extension, shorten to avoid crossing lines
         band_up, band_down, params = self.wedge(close, self.x_dates[:-self.margin])
+        band_up, band_down = self._extend(band_up, band_down, params)
         band_up, band_down = self._shorten(band_up, band_down)
 
         if self._make_sense(band_up, band_down):
@@ -101,11 +112,11 @@ class Wedge:
                      'middle_band': [],
                      'lower_band': band_down.tolist(),
                      'info': info}
-        else:
-            return {'upper_band': [],
-                     'middle_band': [],
-                     'lower_band': [],
-                     'info': []}
+
+        return {'upper_band': [],
+                 'middle_band': [],
+                 'lower_band': [],
+                 'info': []}
 
     @staticmethod
     def _score_up(close: np.ndarray, band: np.ndarray, start: int) -> tuple:
@@ -331,11 +342,15 @@ def remake_wedge(influx: InfluxDBClient, pair: str, timeframe: str, limit: int=2
     # Get data
     data = get_candles(influx, pair, timeframe, limit)
     close = data['close']
-    x_dates = np.array(generate_dates(data['date'], timeframe, margin))
 
-    wg = Wedge(pair, timeframe, close, x_dates)
-    wg.make()
-    return wg._last_wedge()
+    if close.size > 0:
+        x_dates = np.array(generate_dates(data['date'], timeframe, margin))
+
+        wg = Wedge(pair, timeframe, close, x_dates)
+        wg.make()
+        return wg._last_wedge()
+
+    return dict()
 
 
 def make_long_wedge(influx: InfluxDBClient, pair: str, timeframe: str,

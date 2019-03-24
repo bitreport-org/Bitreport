@@ -162,14 +162,15 @@ def remake_channel(influx: InfluxDBClient, pair: str, timeframe: str, limit: int
 
     # Get data
     data = get_candles(influx, pair, timeframe, limit + start)
-    close = data['close'][start:]
-    x_dates = np.array(generate_dates(data['date'], timeframe, margin))[start:]
+    if data['close'].size > 0:
+        close = data['close'][start:]
+        x_dates = np.array(generate_dates(data['date'], timeframe, margin))[start:]
 
-    ch = Channel(pair, timeframe, close, x_dates)
-    ch.make()
-    params = ch._last_channel()
+        ch = Channel(pair, timeframe, close, x_dates)
+        ch.make()
+        return ch._last_channel()
 
-    return params
+    return dict()
 
 
 def make_long_channel(influx: InfluxDBClient, pair: str, timeframe:str,
@@ -192,13 +193,17 @@ def make_long_channel(influx: InfluxDBClient, pair: str, timeframe:str,
     x_dates = x_dates / 10000  # to increase precision
     params = remake_channel(influx, pair, timeframe, limit)
 
-    slope = params['slope']
-    coef = params['coef']
-    std = params['std']
+    upper_band = np.array([])
+    lower_band = np.array([])
 
-    band = slope * x_dates + coef
-    upper_band = band + std
-    lower_band = band - std
+    if params.get('slope'):
+        slope = params['slope']
+        coef = params['coef']
+        std = params['std']
+
+        band = slope * x_dates + coef
+        upper_band = band + std
+        lower_band = band - std
 
     return {'upper_band': upper_band.tolist(), 'lower_band': lower_band.tolist(),
             'middle_band': [], 'info': []}
