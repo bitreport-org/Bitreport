@@ -9,4 +9,8 @@ class Pair < ApplicationRecord
   def self.find_matching(val)
     where('symbol LIKE ?', "#{val.upcase}%").first!
   end
+
+  def tags=(val)
+    val.is_a?(Array) ? super : super(val&.split)
+  end
 end
