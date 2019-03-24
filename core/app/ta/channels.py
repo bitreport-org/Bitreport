@@ -163,7 +163,7 @@ def remake_channel(influx: InfluxDBClient, pair: str, timeframe: str, limit: int
     # Get data
     data = get_candles(influx, pair, timeframe, limit + start)
     if data['close'].size > 0:
-        close = data['close'][start:]
+        close = data['close']
         x_dates = np.array(generate_dates(data['date'], timeframe, margin))[start:]
 
         ch = Channel(pair, timeframe, close, x_dates)
