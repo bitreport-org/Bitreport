@@ -85,4 +85,3 @@ def required_indicators():
     return [x.__name__ for x in get_function_list(indicators)] + ['price', 'volume', 'wedge',
                                                                   'levels', 'channel', 'double_top',
                                                                   'double_bottom']
-
