@@ -29,7 +29,8 @@ module Tweets
     end
 
     def post_with_media
-      client.update_with_media(message, report.image[:original].download, tweet_params)
+      image = report.image_attacher.cached? ? report.image : report.image[:original]
+      client.update_with_media(message, image.download, tweet_params)
     end
 
     def post_text
