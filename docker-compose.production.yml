@@ -3,6 +3,7 @@ version: '3'
 volumes:
   certs:
   certs-data:
+  core-migrations:
   dashboard-public:
   dashboard-settings:
   dashboard-logs:
@@ -35,6 +36,8 @@ services:
     depends_on:
       - influx
       - postgres
+    volumes:
+      - core-migrations:/app/migrations/versions
 
   influx:
     image: influxdb:1.5.2-alpine
