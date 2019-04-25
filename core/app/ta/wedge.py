@@ -39,9 +39,9 @@ class Wedge:
         params = self._last_wedge()
 
         if not params:
-            return False, [], []
+            return False, np.array([]), np.array([])
 
-        candles2check = 20
+        candles2check = 30
         upper_band = params['upper_a'] * self.x_dates[:-self.margin] + params['upper_b']
         lower_band = params['lower_a'] * self.x_dates[:-self.margin] + params['lower_b']
 
@@ -50,14 +50,13 @@ class Wedge:
         above = price > upper_band[-candles2check:]
         below = price < lower_band[-candles2check:]
 
-        threshold = 0.8
+        threshold = 0.85
         if np.sum(above)/candles2check > threshold or np.sum(below)/candles2check > threshold:
-            return False, [], []
+            return False, np.array([]), np.array([])
 
         upper_band, lower_band = self._extend(upper_band, lower_band, params)
         upper_band, lower_band = self._shorten(upper_band, lower_band)
         return True, upper_band, lower_band
-
 
     def _extend(self, band_up: np.ndarray, band_down: np.ndarray, params: dict) -> tuple:
         upper_ext = params['upper_a'] * self.x_dates[-self.margin:] + params['upper_b']
@@ -93,12 +92,12 @@ class Wedge:
         if actual:
             info = self._tokens(band_up, band_down, close)
             return {'upper_band': band_up.tolist(),
-                     'middle_band': [],
-                     'lower_band': band_down.tolist(),
-                     'info': info}
+                    'middle_band': [],
+                    'lower_band': band_down.tolist(),
+                    'info': info}
 
         # Make no sense? Create new wedge:
-        assert  close.size == self.x_dates[:-self.margin].size, 'x, y differs'
+        assert close.size == self.x_dates[:-self.margin].size, 'x, y differs'
 
         # Create wedge, make extension, shorten to avoid crossing lines
         band_up, band_down, params = self.wedge(close, self.x_dates[:-self.margin])
@@ -109,14 +108,14 @@ class Wedge:
             self._save_wedge(params)
             info = self._tokens(band_up, band_down, close)
             return {'upper_band': band_up.tolist(),
-                     'middle_band': [],
-                     'lower_band': band_down.tolist(),
-                     'info': info}
+                    'middle_band': [],
+                    'lower_band': band_down.tolist(),
+                    'info': info}
 
         return {'upper_band': [],
-                 'middle_band': [],
-                 'lower_band': [],
-                 'info': []}
+                'middle_band': [],
+                'lower_band': [],
+                'info': []}
 
     @staticmethod
     def _score_up(close: np.ndarray, band: np.ndarray, start: int) -> tuple:
