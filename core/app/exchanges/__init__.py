@@ -7,6 +7,8 @@ from .poloniex import Poloniex
 from functools import reduce
 from multiprocessing.dummy import Pool as ThreadPool
 from influxdb import InfluxDBClient
+import logging
+
 
 def fill_pair(influx: InfluxDBClient, pair: str) -> tuple:
     """
@@ -46,6 +48,8 @@ def fill_pair(influx: InfluxDBClient, pair: str) -> tuple:
     exchanges_filled = [name for name, r in zip(fillers.keys(), results) if r]
 
     if status:
+        logging.info(f"{pair} filled from {', '.join(exchanges_filled)}")
         return f"{pair} filled from {', '.join(exchanges_filled)}", 200
     else:
+        logging.error(f"{pair} failed to fill!")
         return f"{pair} failed to fill!", 404

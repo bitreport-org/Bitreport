@@ -60,7 +60,7 @@ class Poloniex:
 
         # Check if response was successful
         if request.status_code != 200 or not isinstance(response, list):
-            logging.error(f"FAILED {measurement} Poloniex response: {response}")
+            logging.info(f"FAILED {measurement} Poloniex response: {response}")
             return False
 
         points = []

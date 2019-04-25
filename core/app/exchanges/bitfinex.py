@@ -7,6 +7,7 @@ from datetime import datetime as dt
 
 from app.exchanges.helpers import check_last_tmstmp, insert_candles
 
+
 class Bitfinex:
     def __init__(self, influx_client):
         self.influx = influx_client
@@ -46,13 +47,11 @@ class Bitfinex:
 
         # Check if response was successful
         if not isinstance(response, list):
-            logging.error('Bitfinex response is not a list.')
+            logging.info('Bitfinex response is not a list.')
             return False
-        if len(response)>0 and response[0]=='error':
-            logging.error(f'Bitfinex response failed: {response}')
-            return False
-        if len(response)==0:
-            logging.error(f'Bitfinex empty response.')
+
+        if (len(response) > 0 and response[0] == 'error') or (len(response) == 0):
+            logging.info(f'Bitfinex response failed: {response}')
             return False
 
         # Make candles

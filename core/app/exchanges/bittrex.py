@@ -52,7 +52,7 @@ class Bittrex:
 
         # Check if response was successful
         if 'success' not in response.keys() or request.status_code != 200:
-            logging.error(f"FAILED {measurement} Bitrex response: {response.get('message','no message')}")
+            logging.info(f"FAILED {measurement} Bitrex response: {response.get('message','no message')}")
             return False
 
         rows = response.get('result', False)

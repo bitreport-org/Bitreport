@@ -54,9 +54,8 @@ class Binance:
         request = requests.get(url)
         response = request.json()
 
-
         if not isinstance(response, list) or request.status_code != 200:
-            logging.error(f"FAILED {measurement} Binance response: {response.get('msg', 'no error')}")
+            logging.info(f"FAILED {measurement} Binance response: {response.get('msg', 'no error')}")
             return False
 
         # Make candles
