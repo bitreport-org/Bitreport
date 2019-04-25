@@ -1,12 +1,25 @@
 import os
 
+
 class BaseConfig(object):
+    # Core
     MAGIC_LIMIT = 79
     MARGIN = 26
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-    CSRF_ENABLED = True
+
+    # Admin
+    ADMIN_ENABLED = True
+    SESSION_TYPE = 'filesystem'
+    BASIC_AUTH_USERNAME = 'admin'
+    BASIC_AUTH_PASSWORD = 'magicPassword'
+
+    # Sentry
     SENTRY_URL = "https://000bf6ba6f0f41a6a1cbb8b74f494d4a@sentry.io/1359679"
     SENTRY = False
+
+    # Flask
+    SECRET_KEY = '#OKQ2DvC\xddpg\xcd\xc2E\x84'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    CSRF_ENABLED = True
     LOGGER = {
                 'version': 1,
                 'formatters': {'default': {
@@ -31,9 +44,11 @@ class BaseConfig(object):
                 }
             }
 
+
 class Production(BaseConfig):
     DEBUG = False
     DEVELOPMENT = False
+    ADMIN_ENABLED = False
     INFLUX = {'host': 'influx', 'database': 'pairs'}
     SQLALCHEMY_DATABASE_URI = "postgresql://postgres@postgres"
     SENTRY = True

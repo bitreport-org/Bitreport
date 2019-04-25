@@ -6,6 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
+
 def connect_influx(kwargs: dict, retries: int = 10) -> InfluxDBClient:
     """
     Using input params establishes connection to influxDB and creates a database.

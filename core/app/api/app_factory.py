@@ -3,6 +3,7 @@ from logging.config import dictConfig
 from flask import Flask, request, jsonify
 
 from .database import connect_influx, db
+from .admin import configure_admin
 
 
 def create_app(config):
@@ -25,6 +26,9 @@ def create_app(config):
     dictConfig(config.LOGGER)
     app = Flask(__name__)
     app.config.from_object(config)
+
+    # Configure flask admin
+    configure_admin(app, active=config.ADMIN_ENABLED)
 
     # Sentry setup
     if sentry_setup(config.SENTRY):
@@ -66,7 +70,6 @@ def create_app(config):
 
         return jsonify(output), code
 
-
     @app.route('/fill', methods=['POST'])
     def fill_service():
         """
@@ -89,7 +92,6 @@ def create_app(config):
 
         msg, code = fill_pair(influx, pair)
         return jsonify(msg=msg), code
-
 
     @app.route("/")
     def hello():
