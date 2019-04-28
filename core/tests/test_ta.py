@@ -2,6 +2,7 @@ from app.ta.patterns.double import make_double
 from app.ta.levels import Levels
 import numpy as np
 
+
 class TestTA:
     def test_make_double_top(self):
         a = np.arange(0, 40)
@@ -20,7 +21,6 @@ class TestTA:
         x, y = d['A']
         assert x == 39
         assert y == 39
-
 
     def test_make_double_bottom(self):
         a = np.arange(0, 40)

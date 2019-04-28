@@ -24,14 +24,13 @@ class Poloniex:
         time_now = dt.now().strftime("%Y-%m-%dT%H:%M:%SZ")
         try:
             query = f"""
-                        SELECT 
-                        first(open) AS open, 
-                        max(high) AS high, 
-                        min(low) AS low, 
-                        last(close) AS close, 
-                        sum(volume) AS volume 
-                        INTO {pair+to_tf} FROM {pair+from_tf} WHERE time <= '{time_now}' GROUP BY time({to_tf}), *
-
+                    SELECT 
+                    first(open) AS open, 
+                    max(high) AS high, 
+                    min(low) AS low, 
+                    last(close) AS close, 
+                    sum(volume) AS volume 
+                    INTO {pair+to_tf} FROM {pair+from_tf} WHERE time <= '{time_now}' GROUP BY time({to_tf}), *
                 """
             self.influx.query(query)
         except:
@@ -54,7 +53,9 @@ class Poloniex:
                 timeframe = '2h'
         measurement = pair + timeframe
 
-        url = f'https://poloniex.com/public?command=returnChartData&currencyPair={pair_formatted}&start={start-30}&period={tf_map[timeframe]}'
+        url = f'https://poloniex.com/public?command=returnChartData& \
+                currencyPair={pair_formatted}&start={start-30}&period={tf_map[timeframe]}'
+
         request = requests.get(url)
         response = request.json()
 

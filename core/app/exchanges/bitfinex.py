@@ -38,8 +38,8 @@ class Bitfinex:
         if timeframe == '24h':
             timeframeR = '1D'
 
-        start = (check_last_tmstmp(self.influx, measurement)) * 1000 # ms
-        end = (int(time.time()) + 100) * 1000 # ms
+        start = (check_last_tmstmp(self.influx, measurement)) * 1000   # ms
+        end = (int(time.time()) + 100) * 1000  # ms
 
         url = f'https://api.bitfinex.com/v2/candles/trade:{timeframeR}:t{pair}/hist?start={start}&end={end}&limit=5000'
         request = requests.get(url)

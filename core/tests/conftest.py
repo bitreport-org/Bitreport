@@ -5,7 +5,7 @@ import json
 
 from app.services.helpers import get_function_list
 from app.ta import indicators
-from app.api import create_app
+from app.api import create_app, database
 from app.exchanges.helpers import insert_candles
 import config
 
@@ -13,7 +13,8 @@ import config
 @pytest.fixture(scope="session")
 def app(request):
     """Session-wide test application."""
-    app = create_app(config.Test)
+    influx_conn = database.connect_influx(config.Test.INFLUX)
+    app = create_app(config.Test, influx_conn)
     client = app.test_client()
 
     return client

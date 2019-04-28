@@ -1,5 +1,5 @@
 import numpy as np
-import talib #pylint: skip-file
+import talib  # pylint: skip-file
 import config
 from influxdb import InfluxDBClient
 
@@ -9,21 +9,26 @@ from app.api import db
 
 Config = config.BaseConfig()
 
+
 class Channel:
     def __init__(self, pair: str, timeframe: str, close: np.ndarray, x_dates: np.ndarray):
         self.pair = pair
         self.timeframe = timeframe
         self.close = close
-        self.x_dates = x_dates / 10000 # to increase precision
+        self.x_dates = x_dates / 10000  # to increase precision
         self.type = 'channel'
         self.margin = Config.MARGIN
         self.start = Config.MAGIC_LIMIT
 
     def _last_channel(self) -> dict:
-        last = db.session.query(Chart).filter_by(type = self.type, timeframe = self.timeframe,
-                                                pair = self.pair).order_by(Chart.id.desc()).first()
+        last = db.session.query(Chart).\
+            filter_by(type=self.type,
+                      timeframe=self.timeframe,
+                      pair=self.pair).\
+            order_by(Chart.id.desc()).first()
+
         params = dict()
-        if last is not None:
+        if hasattr(last, 'params'):
             params = last.params
         
         return params
@@ -83,7 +88,7 @@ class Channel:
     def _tokens(self, close: np.ndarray, upper_band: np.ndarray, lower_band: np.ndarray, slope: float) -> list:
         margin = self.margin
         info = []
-        p = ( close[-1] - lower_band[-1-margin] ) / (upper_band[-1-margin]-lower_band[-1-margin]) 
+        p = (close[-1] - lower_band[-1-margin]) / (upper_band[-1-margin]-lower_band[-1-margin])
 
         # Price Tokens
         if p > 1:
@@ -98,10 +103,10 @@ class Channel:
             info.append('PRICE_BETWEEN')
 
         n_last_points = 10
-        if np.sum(close[-n_last_points:] > upper_band[-n_last_points-margin : -margin]) > 0 and \
+        if np.sum(close[-n_last_points:] > upper_band[-n_last_points-margin: -margin]) > 0 and \
                 close[-1] < upper_band[-1-margin]:
             info.append('FALSE_BREAK_UP')
-        elif np.sum(close[-n_last_points:] < lower_band[-n_last_points-margin : -margin]) > 0 and \
+        elif np.sum(close[-n_last_points:] < lower_band[-n_last_points-margin: -margin]) > 0 and \
                 close[-1] > lower_band[-1-margin]:
             info.append('FLASE_BREAK_DOWN')
 
@@ -130,7 +135,6 @@ class Channel:
         points, = np.where(f2>0)
         ch_points = np.array([0] + (points+filter_value).tolist())
 
-        
         # If price was below / above the SMA then ch_points could contain only 1 point
         if len(ch_points) < 2:
             if ch_points == []:
@@ -152,7 +156,7 @@ class Channel:
         lm = np.poly1d(np.polyfit(x, y, 1))
         std = np.std(short_close[s:e])     
 
-        return {'slope': lm[1], 'coef': lm[0], 'std': std, 'last_tsmp': x_dates[-margin]}
+        return {'slope': lm[1], 'coef': lm[0], 'std': std}
 
 
 # Long channels
@@ -174,7 +178,7 @@ def remake_channel(influx: InfluxDBClient, pair: str, timeframe: str, limit: int
 
 
 def make_long_channel(influx: InfluxDBClient, pair: str, timeframe:str,
-                      x_dates: np.ndarray, limit:int=200) -> dict:
+                      x_dates: np.ndarray, limit: int=200) -> dict:
     """
     Returns longer timeframe channel if such exists.
 

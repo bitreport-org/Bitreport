@@ -22,25 +22,25 @@ class BaseConfig(object):
     CSRF_ENABLED = True
     LOGGER = {
                 'version': 1,
-                'formatters': {'default': {
-                    'format': '[%(asctime)s] - core - %(levelname)s : %(message)s',
-                }},
-                'handlers':
-                    {'wsgi': {
-                    'class': 'logging.StreamHandler',
-                    'stream': 'ext://flask.logging.wsgi_errors_stream',
-                    'formatter': 'default'
-                    },
-                    'file': {
-                        'class': 'logging.FileHandler',
-                        'filename': 'app.log',
-                        'mode': 'w',
-                        'formatter': 'default',
+                'formatters': {
+                    'default': {
+                        'format': '[%(asctime)s] -\u001b[35m\u001b[1m CORE \u001b[0m- %(levelname)s : %(message)s',
                     }
                 },
-                'root': {
-                    'level': 'INFO',
-                    'handlers': ['wsgi']
+                'handlers': {
+                    'default': {
+                        'level': 'INFO',
+                        'formatter': 'default',
+                        'class': 'logging.StreamHandler',
+                        'stream': 'ext://sys.stdout',  # Default is stderr
+                    },
+                },
+                'loggers': {
+                    '': {  # root logger
+                        'handlers': ['default'],
+                        'level': 'INFO',
+                        'propagate': True
+                    }
                 }
             }
 
@@ -63,8 +63,8 @@ class Development(BaseConfig):
 
 class Test(BaseConfig):
     TESTING = True
-    INFLUX_HOST = os.environ.get('INFLUX_HOST', '0.0.0.0')
-    INFLUX = {'host': INFLUX_HOST, 'database': 'test',}
+    _INFLUX_HOST = os.environ.get('INFLUX_HOST', '0.0.0.0')
+    INFLUX = {'host': _INFLUX_HOST, 'database': 'test',}
 
-    POSTGRES_HOST = os.environ.get('POSTGRES_HOST', '0.0.0.0')
-    SQLALCHEMY_DATABASE_URI = "postgresql://postgres@{host}".format(host=POSTGRES_HOST)
+    _POSTGRES_HOST = os.environ.get('POSTGRES_HOST', '0.0.0.0')
+    SQLALCHEMY_DATABASE_URI = "postgresql://postgres@{host}".format(host=_POSTGRES_HOST)

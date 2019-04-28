@@ -1,18 +1,23 @@
 # -*- coding: utf-8 -*-
 from logging.config import dictConfig
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, g
+import time
 
-from .database import connect_influx, db
+from .database import db
 from .admin import configure_admin
+from .logger import create_msg
+from flask.logging import default_handler
+from influxdb import InfluxDBClient
 
 
-def create_app(config):
+def create_app(config, influx: InfluxDBClient):
     """
     Creates BitReport core flask app.
 
     Parameters
     ----------
     config : configuration object
+    influx: connection to influx
 
     Returns
     -------
@@ -26,10 +31,12 @@ def create_app(config):
     dictConfig(config.LOGGER)
     app = Flask(__name__)
     app.config.from_object(config)
+    app.logger.removeHandler(default_handler)
 
     # Configure flask admin
     configure_admin(app, active=config.ADMIN_ENABLED)
 
+    app.logger.info('Sentry is up and running.')
     # Sentry setup
     if sentry_setup(config.SENTRY):
         app.logger.info('Sentry is up and running.')
@@ -39,9 +46,18 @@ def create_app(config):
         db.init_app(app)
         db.create_all()
 
-    influx = connect_influx(config.INFLUX)
+    # influx = connect_influx(config.INFLUX)
 
     # API
+    @app.before_request
+    def request_timer():
+        g.start = time.time()
+
+    @app.after_request
+    def request_log(response):
+        app.logger.info(create_msg(response))
+        return response
+
     @app.route('/<pair>', methods=['GET'])
     def pair_service(pair: str):
         """

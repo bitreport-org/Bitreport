@@ -131,7 +131,6 @@ class PairData:
             except ValueError:
                 logging.error(f'Indicator {indicator}, error: /n {traceback.format_exc()}')
 
-
         close = self.data.get('close')
         dates = np.array(self.dates)
 
@@ -161,14 +160,16 @@ class PairData:
         # Patterns
         try:
             dt = patterns.make_double(x_dates=dates[: -self.margin],
-                                      close=close[self.magic_limit:], type_='top')
+                                      close=close[self.magic_limit:],
+                                      type_='top')
             indicators_values['double_top'] = dt
         except ValueError:
             logging.error(f'Indicator double top, error: /n {traceback.format_exc()}')
 
         try:
             db = patterns.make_double(x_dates=dates[: -self.margin],
-                                      close=close[self.magic_limit:], type_='bottom')
+                                      close=close[self.magic_limit:],
+                                      type_='bottom')
             indicators_values['double_bottom'] = db
         except ValueError:
             logging.error(f'Indicator double bottom, error: /n {traceback.format_exc()}')
@@ -179,6 +180,5 @@ class PairData:
             indicators_values['levels'] = lvl.make()
         except ValueError:
             logging.error(traceback.format_exc())
-            indicators_values.update(levels={'support': [], 'resistance': [], 'auto': [], 'info': []})
 
         return indicators_values

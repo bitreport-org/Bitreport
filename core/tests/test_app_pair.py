@@ -1,5 +1,6 @@
 from config import BaseConfig
 
+
 class TestPairExceptions:
     """
     Tests /pair endpoint and the response with price and TA info.
@@ -40,6 +41,7 @@ class TestPairExceptions:
         assert isinstance(response.get_json(), dict)
         assert 'msg' in response.get_json().keys()
         assert 'No data' in response.get_json().get('msg')
+
 
 class TestPairEndpoint:
     """
@@ -105,7 +107,6 @@ class TestPairEndpoint:
         assert 'volume' in vol.keys()
         assert len(vol['volume']) == self.limit
 
-
     def test_indicators_info(self, app, filled_influx):
         response = app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
         assert response.status_code == 200, 'Server faliure!'
@@ -132,7 +133,6 @@ class TestPairEndpoint:
                 assert 'upper_band' in ch.keys(), 'No upperband in channel!'
                 assert 'middle_band' in ch.keys(), 'No middleband in channel!'
                 assert 'lower_band' in ch.keys(), 'No lowerband in channel!'
-
 
 
 class TestPair12:
@@ -198,7 +198,6 @@ class TestPair12:
         vol = response['indicators']['volume']
         assert 'volume' in vol.keys()
         assert len(vol['volume']) == self.limit
-
 
     def test_indicators_info(self, app, filled_influx):
         response = app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')

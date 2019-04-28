@@ -16,16 +16,19 @@ class Wedge:
         self.pair = pair
         self.timeframe = timeframe
         self.close = close
-        self.x_dates = x_dates / 10000 # to increase precision
+        self.x_dates = x_dates / 10000  # to increase precision
         self.type = 'wedge'
         self.margin = Config.MARGIN
 
     def _last_wedge(self) -> dict:
-        last = db.session.query(Chart).filter_by(type=self.type,
-                                              timeframe=self.timeframe,
-                                              pair=self.pair).order_by(Chart.id.desc()).first()
+        last = db.session.query(Chart).\
+            filter_by(type=self.type,
+                      timeframe=self.timeframe,
+                      pair=self.pair).\
+            order_by(Chart.id.desc()).first()
+
         params = dict()
-        if last is not None:
+        if hasattr(last, 'params'):
             params = last.params
         
         return params
@@ -73,7 +76,7 @@ class Wedge:
     def _make_sense(band_up: np.ndarray, band_down: np.ndarray) -> bool:
         ws = band_up[0] - band_down[0]
         we = band_up[-1] - band_down[-1]
-        if ws >= we :
+        if ws >= we:
             return True
         return False
 
@@ -293,6 +296,11 @@ class Wedge:
     @staticmethod
     def _tokens(upper_band: np.ndarray, lower_band: np.ndarray, close: np.ndarray) -> list:
             info = []
+
+            # If any band has 0 length then return empty info
+            if upper_band.size * lower_band.size < 1:
+                return info
+
             # Shape Tokens
             width = upper_band - lower_band
             if width[-1]/width[0] > 0.90:
