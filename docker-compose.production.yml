@@ -43,8 +43,6 @@ services:
     image: influxdb:1.5.2-alpine
     environment:
       - INFLUXDB_LOGGING_LEVEL=warn
-      - INFLUXDB_DATA_QUERY_LOG_ENABLED=false
-      - INFLUXDB_HTTP_LOG_ENABLED=false
     volumes:
       - influx-data:/var/lib/influxdb
 
