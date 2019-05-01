@@ -1,6 +1,7 @@
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
-from werkzeug.exceptions import HTTPException, Response
+from werkzeug.exceptions import HTTPException
+from werkzeug.wrappers import Response
 from flask import Flask, redirect
 from flask_basicauth import BasicAuth
 
@@ -23,8 +24,8 @@ class AuthAdmin(ModelView):
     def is_accessible(self):
         if not self.basic_auth.authenticate():
             raise AuthException('Login required')
-        else:
-            return True
+
+        return True
 
     def inaccessible_callback(self, name, **kwargs):
         return redirect(self.basic_auth.challenge())
@@ -34,6 +35,7 @@ class InactiveAdmin(AuthAdmin):
     an_create = False
     can_edit = False
     can_delete = False
+    can_create = False
 
 
 def configure_admin(app: Flask, active: bool = False) -> Admin:

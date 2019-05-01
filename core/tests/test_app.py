@@ -21,12 +21,11 @@ class TestApp:
         assert r['msg'] == 'Wrong place!'
 
     def test_500(self, app):
-        with pytest.raises(ZeroDivisionError):
-            response = app.get('/test/bad/error')
+        response = app.get('/test/bad/error')
 
-            assert response.status_code == 500
-            assert isinstance(response.get_json(), dict)
+        assert response.status_code == 500
+        assert isinstance(response.get_json(), dict)
 
-            r = response.get_json()
-            assert 'msg' in r.keys()
-            assert r['msg'] == 'Server is dead :( '
+        r = response.get_json()
+        assert 'msg' in r.keys()
+        assert r['msg'] == 'Unhandled exception'

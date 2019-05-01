@@ -15,9 +15,25 @@ def app(request):
     """Session-wide test application."""
     influx_conn = database.connect_influx(config.Test.INFLUX)
     app = create_app(config.Test, influx_conn)
+
+    # Add 500 error endpoint
+    @app.route('/test/bad/error')
+    def error():
+        x = 1/0
+        return 'Error 1/0', 200
+
     client = app.test_client()
 
     return client
+
+
+@pytest.fixture(scope="session")
+def flask_app(request):
+    """Session-wide test application."""
+    influx_conn = database.connect_influx(config.Test.INFLUX)
+    app = create_app(config.Test, influx_conn)
+
+    return app
 
 
 @pytest.fixture(scope='session')

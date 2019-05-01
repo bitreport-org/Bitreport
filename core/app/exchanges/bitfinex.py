@@ -50,7 +50,7 @@ class Bitfinex:
             logging.info('Bitfinex response is not a list.')
             return False
 
-        if (len(response) > 0 and response[0] == 'error') or (len(response) == 0):
+        if (response and response[0] == 'error') or (not response):
             logging.info(f'Bitfinex response failed: {response}')
             return False
 

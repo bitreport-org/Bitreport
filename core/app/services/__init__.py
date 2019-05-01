@@ -1,2 +1,2 @@
 from .helpers import (get_function_list, generate_dates,
-                      get_candles, sentry_setup)
+                      get_candles)

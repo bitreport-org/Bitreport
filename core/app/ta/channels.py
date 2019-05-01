@@ -21,7 +21,7 @@ class Channel:
         self.start = Config.MAGIC_LIMIT
 
     def _last_channel(self) -> dict:
-        last = db.session.query(Chart).\
+        last = Chart.query. \
             filter_by(type=self.type,
                       timeframe=self.timeframe,
                       pair=self.pair).\
@@ -33,7 +33,7 @@ class Channel:
         
         return params
 
-    def _save_channel(self, params: dict):
+    def _save_channel(self, params: dict) -> None:
         ch = Chart(pair=self.pair, timeframe=self.timeframe, type=self.type, params=params)
         db.session.add(ch)
         db.session.commit()

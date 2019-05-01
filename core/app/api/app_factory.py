@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
-from logging.config import dictConfig
-from flask import Flask, request, jsonify, g
 import time
-
-from .database import db
-from .admin import configure_admin
-from .logger import create_msg
+import traceback
+from typing import Type
+from flask import Flask, request, jsonify, g
 from flask.logging import default_handler
+from logging.config import dictConfig
 from influxdb import InfluxDBClient
 
+from config import BaseConfig
+from .database import db
+from .admin import configure_admin
+from .logger import create_msg, sentry_init
 
-def create_app(config, influx: InfluxDBClient):
+
+def create_app(config: Type[BaseConfig], influx: InfluxDBClient) -> Flask:
     """
     Creates BitReport core flask app.
 
@@ -24,7 +27,7 @@ def create_app(config, influx: InfluxDBClient):
     app: flask.Flask app
     """
 
-    from app.services import data_factory, sentry_setup
+    from app.services import data_factory
     from app.exchanges import fill_pair
 
     # Configure app
@@ -36,17 +39,13 @@ def create_app(config, influx: InfluxDBClient):
     # Configure flask admin
     configure_admin(app, active=config.ADMIN_ENABLED)
 
-    app.logger.info('Sentry is up and running.')
     # Sentry setup
-    if sentry_setup(config.SENTRY):
-        app.logger.info('Sentry is up and running.')
+    sentry_init(app)
 
     # Postgres and influx connections
     with app.app_context():
         db.init_app(app)
         db.create_all()
-
-    # influx = connect_influx(config.INFLUX)
 
     # API
     @app.before_request
@@ -120,11 +119,6 @@ def create_app(config, influx: InfluxDBClient):
         """
         return jsonify(msg="Wrong place, is it?")
 
-    @app.route('/test/bad/error')
-    def error():
-        x = 1/0
-        return 'Error 1/0', 200
-
     @app.errorhandler(404)
     def not_found_error(error):
         return jsonify(msg='Wrong place!'), 404
@@ -132,6 +126,19 @@ def create_app(config, influx: InfluxDBClient):
     @app.errorhandler(500)
     def internal_error(error):
         db.session.rollback()
-        return jsonify(msg='Server is dead :( '), 500
+        exc_info = traceback.format_exc()
+        app.logger.exception(error, exc_info=exc_info)
+
+        return jsonify(msg='Server is dead',
+                       error=str(error)), 500
+
+    @app.errorhandler(Exception)
+    def unhandled_exception(error):
+        db.session.rollback()
+        exc_info = traceback.format_exc()
+        app.logger.exception(error, exc_info=exc_info)
+
+        return jsonify(msg=f'Unhandled exception',
+                       error=str(error)), 500
 
     return app

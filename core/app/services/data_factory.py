@@ -78,13 +78,13 @@ class PairData:
         return response, 200
 
     @staticmethod
-    def _make_price_info(close: list) -> List[str]:
+    def _make_price_info(close: np.ndarray) -> List[str]:
         info_price = []
         if isinstance(close, list):
             close = np.array(close)
 
         # Last moves tokens
-        n = int(0.70*close.size) 
+        n = int(0.70 * close.size)
         s70 = linregress(np.arange(n), close[-n:]).slope
         s20 = linregress(np.arange(20), close[-20:]).slope
         s5 = linregress(np.arange(5), close[-5:]).slope
@@ -131,7 +131,7 @@ class PairData:
             except ValueError:
                 logging.error(f'Indicator {indicator}, error: /n {traceback.format_exc()}')
 
-        close = self.data.get('close')
+        close: np.ndarray = self.data.get('close')
         dates = np.array(self.dates)
 
         # Channels
@@ -176,7 +176,7 @@ class PairData:
 
         # Levels
         try:
-            lvl = levels.Levels(self.pair, self.timeframe, close, dates)
+            lvl = levels.Levels(self.pair, self.timeframe, close[self.magic_limit:])
             indicators_values['levels'] = lvl.make()
         except ValueError:
             logging.error(traceback.format_exc())

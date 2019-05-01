@@ -20,6 +20,9 @@ class BaseConfig(object):
     SECRET_KEY = '#OKQ2DvC\xddpg\xcd\xc2E\x84'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     CSRF_ENABLED = True
+    TESTING = False
+    DEVELOPMENT = True
+    DEBUG = False
     LOGGER = {
                 'version': 1,
                 'formatters': {
@@ -63,6 +66,8 @@ class Development(BaseConfig):
 
 class Test(BaseConfig):
     TESTING = True
+    DEVELOPMENT = False
+    DEBUG = False
     _INFLUX_HOST = os.environ.get('INFLUX_HOST', '0.0.0.0')
     INFLUX = {'host': _INFLUX_HOST, 'database': 'test',}
 

@@ -1,8 +1,8 @@
 import numpy as np
 
 
-def detect_peaks(x, mph=None, mpd=1, threshold=0, edge='rising',
-                 kpsh=False, valley=False) -> np.ndarray:
+def detect_peaks(x: np.ndarray, mph: float=None, mpd: float=1.0, threshold: float=0.0, edge: str='rising',
+                 kpsh: bool=False, valley: bool=False) -> np.ndarray:
     """Detect peaks in data based on their amplitude and other features.
 
     Parameters

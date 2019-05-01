@@ -2,30 +2,6 @@
 import pandas as pd
 import numpy as np
 from influxdb import InfluxDBClient
-import sentry_sdk
-from sentry_sdk.integrations.flask import FlaskIntegration
-import config
-
-
-def sentry_setup(active: bool) -> bool:
-    """
-    Activates Sentry logging.
-
-    Parameters
-    ----------
-    active: if True logging to Sentry is activated
-
-    Returns
-    -------
-    bool
-    """
-    if active:
-        sentry_sdk.init(
-            dsn=config.BaseConfig.SENTRY_URL,
-            integrations=[FlaskIntegration()]
-        )
-        return True
-    return False
 
 
 def get_candles(influx: InfluxDBClient, pair: str, timeframe: str, limit: int) -> dict:
