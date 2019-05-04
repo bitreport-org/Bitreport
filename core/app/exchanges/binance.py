@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
-import time
-import traceback
 import requests
 import logging
-from datetime import datetime as dt
-from app.exchanges.helpers import insert_candles
+from app.exchanges.helpers import insert_candles, downsample
 
 
 class Binance:
@@ -21,22 +18,8 @@ class Binance:
         return start_pair + end_pair
 
     def _downsample_3h(self, pair):
-        time_now = dt.now().strftime("%Y-%m-%dT%H:%M:%SZ")
-        try:
-            query = f"""
-                        SELECT 
-                        first(open) AS open, 
-                        max(high) AS high, 
-                        min(low) AS low, 
-                        last(close) AS close, 
-                        sum(volume) AS volume 
-                        INTO {pair}3h FROM {pair}1h WHERE time <= '{time_now}' GROUP BY time(3h), *
+        downsample(self.influx, from_tf='1h', to_tf='3h', pair=pair)
 
-                """
-            self.influx.query(query)
-        except:
-            logging.error(f'FAILED 3h downsample {pair} error: \n {traceback.format_exc()}')
-            pass
 
     def fetch_candles(self, pair, timeframe):
         measurement = pair + timeframe
@@ -50,8 +33,13 @@ class Binance:
             timeframeR = '1w'
 
         # max last 500 candles
-        url = f'https://api.binance.com/api/v1/klines?symbol={pair_formated}&interval={timeframeR}&limit=500'
-        request = requests.get(url)
+        url = f'https://api.binance.com/api/v1/klines'
+        params = {
+            'symbol': pair_formated,
+            'interval': timeframeR,
+            'limit': 500
+        }
+        request = requests.get(url, params=params)
         response = request.json()
 
         if not isinstance(response, list) or request.status_code != 200:

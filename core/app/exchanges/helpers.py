@@ -1,6 +1,9 @@
-import logging
 import pandas as pd
+import logging
+import traceback
 from influxdb import InfluxDBClient
+from datetime import datetime as dt
+
 
 def check_last_tmstmp(influx: InfluxDBClient, measurement: str) -> int:
     """
@@ -48,3 +51,25 @@ def insert_candles(influx: InfluxDBClient, candles: list,
     else:
         logging.error(f'FAILED to write records for {measurement} from {exchange_name}')
     return result
+
+
+def downsample(influx: InfluxDBClient,
+               pair:str,
+               from_tf: str,
+               to_tf: str) -> None:
+    time_now = dt.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+    query = f"""
+                SELECT 
+                first(open) AS open, 
+                max(high) AS high, 
+                min(low) AS low, 
+                last(close) AS close, 
+                sum(volume) AS volume 
+                INTO {pair}{to_tf} FROM {pair}{from_tf} WHERE time <= '{time_now}' GROUP BY time({to_tf}), *
+
+        """
+    try:
+        influx.query(query)
+    except:
+        logging.error(f'FAILED {to_tf} downsample {pair} error: \n {traceback.format_exc()}')
+        pass

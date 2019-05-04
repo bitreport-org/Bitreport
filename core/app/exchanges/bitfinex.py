@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 import time
-import traceback
 import requests
 import logging
-from datetime import datetime as dt
 
-from app.exchanges.helpers import check_last_tmstmp, insert_candles
+from app.exchanges.helpers import check_last_tmstmp, insert_candles, downsample
 
 
 class Bitfinex:
@@ -14,22 +12,7 @@ class Bitfinex:
         self.name = 'Bitfinex'
 
     def _downsample_2h(self, pair):
-            time_now = dt.now().strftime("%Y-%m-%dT%H:%M:%SZ")
-            try:
-                query = f"""
-                        SELECT 
-                        first(open) AS open, 
-                        max(high) AS high, 
-                        min(low) AS low, 
-                        last(close) AS close, 
-                        sum(volume) AS volume 
-                        INTO {pair}2h FROM {pair}1h WHERE time <= '{time_now}' GROUP BY time(2h), *
-                
-                """
-                self.influx.query(query)
-            except:
-                logging.error(f'FAILED 2h downsample {pair} error: \n {traceback.format_exc()}')
-                pass
+        downsample(self.influx, from_tf='1h', to_tf='2h', pair=pair)
 
     def fetch_candles(self, pair, timeframe):
         measurement = pair + timeframe
@@ -41,11 +24,20 @@ class Bitfinex:
         start = (check_last_tmstmp(self.influx, measurement)) * 1000   # ms
         end = (int(time.time()) + 100) * 1000  # ms
 
-        url = f'https://api.bitfinex.com/v2/candles/trade:{timeframeR}:t{pair}/hist?start={start}&end={end}&limit=5000'
-        request = requests.get(url)
+        url = f'https://api.bitfinex.com/v2/candles/trade:{timeframeR}:t{pair}/hist'
+        params = {
+            'start': start,
+            'end': end,
+            'limit': 5000
+        }
+        request = requests.get(url, params=params)
         response = request.json()
 
         # Check if response was successful
+        if request.status_code != 200:
+            logging.info(f'No success {response}')
+            return False
+
         if not isinstance(response, list):
             logging.info('Bitfinex response is not a list.')
             return False
