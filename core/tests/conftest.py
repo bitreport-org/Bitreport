@@ -2,6 +2,9 @@ import pytest
 from influxdb import InfluxDBClient
 import os
 import json
+import sqlalchemy
+from sqlalchemy.exc import ProgrammingError, OperationalError
+from collections import namedtuple
 
 from app.services.helpers import get_function_list
 from app.ta import indicators
@@ -9,31 +12,55 @@ from app.api import create_app, database
 from app.exchanges.helpers import insert_candles
 import config
 
+engine = sqlalchemy.create_engine(f"postgresql://postgres@{config.Test.POSTGRES_HOST}")
+App =  namedtuple('App', ['ctx', 'client'])
+
+
+def create_test_db():
+    conn = engine.connect()
+    conn.execute("commit")
+    try:
+        conn.execute("create database test")
+    except ProgrammingError:
+        pass
+    conn.close()
+
+
+def drop_test_db():
+    conn = engine.connect()
+    conn.execute("commit")
+    try:
+        conn.execute("drop database if exists test")
+    except OperationalError:
+        pass
+    conn.close()
+
 
 @pytest.fixture(scope="session")
 def app(request):
     """Session-wide test application."""
     influx_conn = database.connect_influx(config.Test.INFLUX)
+    create_test_db()
+
+    # Create app and add 500 error endpoint
     app = create_app(config.Test, influx_conn)
 
-    # Add 500 error endpoint
     @app.route('/test/bad/error')
     def error():
         x = 1/0
         return 'Error 1/0', 200
 
     client = app.test_client()
+    ctx = app.app_context()
 
-    return client
+    # When testing API use client
+    # When testing TA use ctx
+    yield App(ctx, client)
 
-
-@pytest.fixture(scope="session")
-def flask_app(request):
-    """Session-wide test application."""
-    influx_conn = database.connect_influx(config.Test.INFLUX)
-    app = create_app(config.Test, influx_conn)
-
-    return app
+    # Cleanup
+    with ctx:
+        database.db.engine.dispose()
+    drop_test_db()
 
 
 @pytest.fixture(scope='session')
@@ -98,7 +125,6 @@ def charting_names():
 
 
 @pytest.fixture
-def required_indicators():
-    return [x.__name__ for x in get_function_list(indicators)] + ['price', 'volume', 'wedge',
-                                                                  'levels', 'channel', 'double_top',
-                                                                  'double_bottom']
+def required_indicators(charting_names):
+    return [x.__name__ for
+            x in get_function_list(indicators)] + charting_names

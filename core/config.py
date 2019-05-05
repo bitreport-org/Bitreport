@@ -71,5 +71,6 @@ class Test(BaseConfig):
     _INFLUX_HOST = os.environ.get('INFLUX_HOST', '0.0.0.0')
     INFLUX = {'host': _INFLUX_HOST, 'database': 'test',}
 
-    _POSTGRES_HOST = os.environ.get('POSTGRES_HOST', '0.0.0.0')
-    SQLALCHEMY_DATABASE_URI = "postgresql://postgres@{host}".format(host=_POSTGRES_HOST)
+    POSTGRES_HOST = os.environ.get('POSTGRES_HOST', '0.0.0.0')
+    _DB_NAME = 'test'
+    SQLALCHEMY_DATABASE_URI = f"postgresql://postgres@{POSTGRES_HOST}/{_DB_NAME}"
