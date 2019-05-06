@@ -2,6 +2,8 @@ import numpy as np
 import talib  # pylint: skip-file
 import config
 from influxdb import InfluxDBClient
+from sqlalchemy import cast, String
+import json
 
 from app.services import get_candles, generate_dates
 from app.api.database import Chart
@@ -34,8 +36,18 @@ class Channel:
         return params
 
     def _save_channel(self, params: dict) -> None:
-        ch = Chart(pair=self.pair, timeframe=self.timeframe, type=self.type, params=params)
-        db.session.add(ch)
+        ch = db.session.query(Chart).filter(
+            Chart.pair==self.pair,
+            Chart.timeframe==self.timeframe,
+            Chart.type==self.type,
+            cast(Chart.params, String)==json.dumps(params)).first()
+        if not ch:
+            ch = Chart(
+                pair=self.pair,
+                timeframe=self.timeframe,
+                type=self.type,
+                params=params)
+            db.session.add(ch)
         db.session.commit()
 
     def _compare(self, params: dict) -> bool:

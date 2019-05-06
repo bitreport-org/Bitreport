@@ -1,16 +1,17 @@
 import pytest
-from influxdb import InfluxDBClient
 import os
 import json
 import sqlalchemy
+from influxdb import InfluxDBClient
 from sqlalchemy.exc import ProgrammingError, OperationalError
 from collections import namedtuple
 
+import config
 from app.services.helpers import get_function_list
 from app.ta import indicators
 from app.api import create_app, database
 from app.exchanges.helpers import insert_candles
-import config
+
 
 engine = sqlalchemy.create_engine(f"postgresql://postgres@{config.Test.POSTGRES_HOST}")
 App =  namedtuple('App', ['ctx', 'client'])
@@ -125,6 +126,5 @@ def charting_names():
 
 
 @pytest.fixture
-def required_indicators(charting_names):
-    return [x.__name__ for
-            x in get_function_list(indicators)] + charting_names
+def required_indicators(indicators_names, charting_names):
+    return indicators_names + charting_names

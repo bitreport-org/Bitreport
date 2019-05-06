@@ -80,4 +80,5 @@ class Level(db.Model):
     timeframe = db.Column(db.String)
     time = db.Column(db.DateTime, default=db.func.current_timestamp())
     type = db.Column(db.String)
+    strength = db.Column(db.Integer)
     value = db.Column(db.Float, index=True)

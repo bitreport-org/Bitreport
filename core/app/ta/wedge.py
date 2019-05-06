@@ -1,6 +1,8 @@
 import numpy as np
+import json
 from influxdb import InfluxDBClient
 from sklearn.metrics import mean_squared_error as mse
+from sqlalchemy import cast, String
 
 import config
 from app.services import get_candles, generate_dates
@@ -34,8 +36,18 @@ class Wedge:
         return params
 
     def _save_wedge(self, params: dict) -> None:
-        ch = Chart(pair=self.pair, timeframe=self.timeframe, type=self.type, params=params)
-        db.session.add(ch)
+        ch = db.session.query(Chart).filter(
+            Chart.pair==self.pair,
+            Chart.timeframe==self.timeframe,
+            Chart.type==self.type,
+            cast(Chart.params, String)==json.dumps(params)).first()
+        if not ch:
+            ch = Chart(
+                pair=self.pair,
+                timeframe=self.timeframe,
+                type=self.type,
+                params=params)
+            db.session.add(ch)
         db.session.commit()
 
     def _check_last_wedge(self) -> tuple:
@@ -58,7 +70,7 @@ class Wedge:
             return False, np.array([]), np.array([])
 
         upper_band, lower_band = self._extend(upper_band, lower_band, params)
-        upper_band, lower_band = self._shorten(upper_band, lower_band)
+        upper_band, lower_band, _ = self._shorten(upper_band, lower_band)
         return True, upper_band, lower_band
 
     def _extend(self, band_up: np.ndarray, band_down: np.ndarray, params: dict) -> tuple:
@@ -70,7 +82,7 @@ class Wedge:
     @staticmethod
     def _shorten(upper_band: np.ndarray, lower_band: np.ndarray) -> tuple:
         s = np.sum([u > l for u, l in zip(upper_band, lower_band)])
-        return upper_band[:s], lower_band[:s]
+        return upper_band[:s], lower_band[:s], s
 
     @staticmethod
     def _make_sense(band_up: np.ndarray, band_down: np.ndarray) -> bool:
@@ -79,6 +91,12 @@ class Wedge:
         if ws >= we:
             return True
         return False
+
+    def _json(self, band_up: np.ndarray, band_down: np.ndarray, close: np.ndarray) -> dict:
+        return {'upper_band': band_up.tolist(),
+                'middle_band': [],
+                'lower_band': band_down.tolist(),
+                'info': self._tokens(band_up, band_down, close)}
 
     def make(self) -> dict:
         """
@@ -91,29 +109,26 @@ class Wedge:
         close = self.close
 
         # Check if last wedge still make sense
-        actual, band_up, band_down = self._check_last_wedge()
+        actual, old_band_up, old_band_down = self._check_last_wedge()
         if actual:
-            info = self._tokens(band_up, band_down, close)
-            return {'upper_band': band_up.tolist(),
-                    'middle_band': [],
-                    'lower_band': band_down.tolist(),
-                    'info': info}
+            return self._json(old_band_up, old_band_down, close)
 
-        # Make no sense? Create new wedge:
+        # Make no sense? Create new wedge...
+
+        # Check sizes
         assert close.size == self.x_dates[:-self.margin].size, 'x, y differs'
 
         # Create wedge, make extension, shorten to avoid crossing lines
         band_up, band_down, params = self.wedge(close, self.x_dates[:-self.margin])
         band_up, band_down = self._extend(band_up, band_down, params)
-        band_up, band_down = self._shorten(band_up, band_down)
+        band_up, band_down, cross_index = self._shorten(band_up, band_down)
+
+        if cross_index < close.size:
+            return self._json(old_band_up, old_band_down, close)
 
         if self._make_sense(band_up, band_down):
             self._save_wedge(params)
-            info = self._tokens(band_up, band_down, close)
-            return {'upper_band': band_up.tolist(),
-                    'middle_band': [],
-                    'lower_band': band_down.tolist(),
-                    'info': info}
+            return self._json(band_up, band_down, close)
 
         return {'upper_band': [],
                 'middle_band': [],

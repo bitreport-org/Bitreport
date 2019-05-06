@@ -2,6 +2,7 @@ import pandas as pd
 import logging
 import traceback
 from influxdb import InfluxDBClient
+from influxdb.exceptions import InfluxDBClientError
 from datetime import datetime as dt
 
 
@@ -70,6 +71,5 @@ def downsample(influx: InfluxDBClient,
         """
     try:
         influx.query(query)
-    except:
+    except InfluxDBClientError:
         logging.error(f'FAILED {to_tf} downsample {pair} error: \n {traceback.format_exc()}')
-        pass

@@ -1,6 +1,10 @@
+import numpy as np
+import random
+import string
+
 from app.ta.patterns.double import make_double
 from app.ta.levels import Levels
-import numpy as np
+from app.api.database import Level
 
 
 class TestTA:
@@ -38,26 +42,78 @@ class TestTA:
         assert x == 39
         assert y == 0
 
-    def test_levels(self):
-        a = np.arange(50, 101, 5)
-        b = np.arange(0, 100, 5)[::-1]
-        c = np.arange(0, 70, 5)
-        d = np.arange(0, 70, 5)[::-1]
-        e = np.arange(0, 30, 5)
-        close = np.concatenate([a, b, c, d, e])
 
-        lvl = Levels('test','test', close, np.arange(close.size))
-        lvl.start = 0
+class TestLevels:
+    a = np.arange(50, 101, 2)
+    b = np.arange(0, 100, 2)[::-1]
+    c = np.arange(0, 70, 2)
+    d = np.arange(0, 70, 2)[::-1]
+    e = np.arange(0, 30, 2)
+    close = np.concatenate([a, b, c, d, e])
 
-        d = lvl.make()
-        print(d)
+    @staticmethod
+    def _levels(close, app):
+        pair =''.join(random.choice(string.ascii_letters) for _ in range(12))
+        tf = 'test_tf'
+        lvl = Levels(pair, tf, close)
+        with app.ctx:
+            result = lvl.make()
+        return result, pair, tf
 
-        assert isinstance(d, dict)
-        for k in ['fib', 'support', 'resistance', 'info']:
-            assert k in d.keys()
-            assert isinstance(d[k], list)
-            # assert False
+    def test_structure(self, app):
+        close = np.concatenate([self.a, self.b])
+        result, pair, tf = self._levels(close, app)
 
-        assert d['resistance'] == [100, 65]
-        assert d['support'] == [0]
-        assert d['fib'] == [0.0, 23.599999999999998, 38.2, 50.0, 61.8, 100.0]
+        assert isinstance(result, dict)
+        assert 'info' in result.keys()
+        assert 'levels' in result.keys()
+
+        assert isinstance(result['levels'], list)
+
+    def test_level_info(self, app):
+        close = np.concatenate([self.a, self.b])
+        result, pair, tf = self._levels(close, app)
+
+        levels = result['levels']
+        assert len(levels) == 1
+
+        level = levels[0]
+        assert isinstance(level, dict)
+
+        keys = level.keys()
+        for k in ['type', 'tf', 'value', 'resistance', 'support', 'strength']:
+            assert k in keys
+
+        # Check if level was found correctly
+        assert level['type'] == 'resistance'
+        assert level['value'] == 100
+        assert level['tf'] == tf
+        assert level['resistance'] == 1
+        assert level['support'] == 0
+        assert level['strength'] == 1
+
+        # Check if level was saved to database
+        with app.ctx:
+            result = Level.query.filter_by(pair=pair).all()
+
+        assert len(result) == 1
+        level = result[0]
+        assert level.type == 'resistance'
+        assert level.value == 100
+        assert level.strength == 1
+
+
+    def test_two_levels(self, app):
+        close = np.concatenate([self.a, self.b, self.c])
+        result, pair, tf = self._levels(close, app)
+
+        assert len(result['levels']) == 2
+        result['levels'].sort(key=lambda x: x['type'])
+
+        resistance, support = result['levels']
+
+        assert resistance['type'] == 'resistance'
+        assert support['type'] == 'support'
+
+        assert resistance['value'] == 100
+        assert support['value'] == 0
