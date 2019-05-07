@@ -177,7 +177,7 @@ class PairData:
         # Levels
         try:
             lvl = levels.Levels(self.pair, self.timeframe, close[self.magic_limit:])
-            indicators_values['levels'] = lvl.make()
+            indicators_values['levels'] = lvl()
         except ValueError:
             logging.error(traceback.format_exc())
 
