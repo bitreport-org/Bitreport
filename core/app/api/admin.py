@@ -1,4 +1,4 @@
-from flask_admin import Admin
+from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
 from werkzeug.exceptions import HTTPException
 from werkzeug.wrappers import Response
@@ -6,6 +6,12 @@ from flask import Flask, redirect
 from flask_basicauth import BasicAuth
 
 from .database import db, Level, Chart
+
+
+class CustomAdmin(AdminIndexView):
+    @expose('/')
+    def index(self):
+        return self.render('index.html')
 
 
 class AuthException(HTTPException):
@@ -39,7 +45,7 @@ class InactiveAdmin(AuthAdmin):
 
 
 def configure_admin(app: Flask, active: bool = False) -> Admin:
-    admin = Admin(app, name='Core', template_mode='bootstrap3')
+    admin = Admin(app, name='Core', template_mode='bootstrap3', index_view=CustomAdmin())
     basic_auth = BasicAuth(app)
 
     if active:

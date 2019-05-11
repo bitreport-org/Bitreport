@@ -94,13 +94,20 @@ class Levels(object):
             resistance.sort(key=lambda x: x.score)
             resistance = list(filter(lambda x: x.score == resistance[-1].score, resistance))
             resistance.sort(key=lambda x: x.dist)
-            output.append(resistance[0])
+            if resistance:
+                output.append(resistance[0])
 
         if support:
             support.sort(key=lambda x: x.score)
-            support = list(filter(lambda x: x.score == support[-1].score, support))
+            check = lambda x: x.score == support[-1].score
+            if output:
+                res_value = output[0].lvl.value
+                check = lambda x: (x.score == support[-1].score) and (x.lvl.value != res_value)
+
+            support = list(filter(lambda x: check(x), support))
             support.sort(key=lambda x: x.dist, reverse=True)
-            output.append(support[0])
+            if support:
+                output.append(support[0])
 
         return list(map(lambda x: x.json(), output))
 

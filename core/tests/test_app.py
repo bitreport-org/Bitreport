@@ -1,6 +1,3 @@
-import pytest
-
-
 class TestApp:
     def test_app_init(self, app):
         rv = app.client.get('/')

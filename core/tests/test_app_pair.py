@@ -53,7 +53,7 @@ class TestPairEndpoint:
         assert response.status_code == 200, 'Server faliure!'
         response = response.get_json()
 
-        assert  isinstance(response, dict)
+        assert isinstance(response, dict)
         keys = response.keys()
         assert 'dates' in keys
         assert 'indicators' in keys
@@ -145,7 +145,7 @@ class TestPair12:
         assert response.status_code == 200, 'Server faliure!'
         response = response.get_json()
 
-        assert  isinstance(response, dict)
+        assert isinstance(response, dict)
         keys = response.keys()
         assert 'dates' in keys
         assert 'indicators' in keys
