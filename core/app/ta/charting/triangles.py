@@ -11,12 +11,16 @@ def _find(self, peaks: List[Point], skews: List[Skew]) -> Union[Setup, None]:
         for skew in skews:
             if not self._cross_after_last_candle(peak, skew):
                 continue
-
             up, down = self._make_bands(peak, skew)
-            rule, score = self._include_enough_points(up, down)
-            if not rule:
+            start_index = min(peak.x, skew.start.x)
+            score1 = self._include_enough_points(start_index, up, down)
+            if not score1:
                 continue
-            setups.append(_make_setup(peak, skew, up, down, score))
+            score2 = self._fits_enough(up, down)
+            if not score2:
+                continue
+
+            setups.append(_make_setup(peak, skew, up, down, score1, score2))
 
     if not setups:
         return None
@@ -25,22 +29,28 @@ def _find(self, peaks: List[Point], skews: List[Skew]) -> Union[Setup, None]:
 
 
 def _make_setup(peak: Point, skew: Skew,
-                up: np.ndarray, down: np.ndarray, score: float) -> Setup:
+                up: np.ndarray, down: np.ndarray,
+                score1: float, score2: float) -> Setup:
     params = {
         'hline': peak.y,
         'slope': skew.slope,
         'coef': skew.coef
     }
-    return Setup(up, down, params, score)
+    return Setup(up, down, params, score1, score2)
 
 
 def _select_best_setup(setups: List[Setup]) -> Setup:
-    # TODO: something more sophisticated...
-    setups.sort(key=lambda s: s.score)
-    return setups[-1]
+    # Sort by number of included points
+    setups.sort(key=lambda s: s.score1, reverse=True)
+
+    # Sort by mean point position in setup
+    top = setups[:4]
+    top.sort(key=lambda s: abs(0.5 - s.score1))
+
+    return top[0]
 
 
-class AscendingTriangle(Triangle):
+class AscTriangle(Triangle):
     """
     *   *   *
         *
@@ -62,7 +72,7 @@ class AscendingTriangle(Triangle):
         self.signal = (None, None)
 
 
-class DescendingTriangle(Triangle):
+class DescTriangle(Triangle):
     """
     *
         *
@@ -94,3 +104,44 @@ class SymmetricalTriangle(Triangle):
     """
     __name__ = "symmetrical_triangle"
 
+    def _make_bands(self, skew_up: Skew, skew_down: Skew) -> Tuple[np.ndarray, np.ndarray]:
+        do = lambda s: self._time * s.slope + s.coef
+        up = do(skew_up)
+        down = do(skew_down)
+        return up, down
+
+    def _params(self, up_skew: Skew, down_skew: Skew) -> dict:
+        params = {
+            'up': (up_skew.slope, up_skew.coef),
+            'down': (down_skew.slopee, down_skew.coef)
+        }
+        return params
+
+    def _find(self, ups: List[Skew], downs: List[Skew]) -> Union[Setup, None]:
+        setups = []
+        for up_skew in ups:
+            for down_skew in downs:
+                if not self._cross_after_last_candle(up_skew, down_skew):
+                    continue
+                up, down = self._make_bands(up_skew, down_skew)
+
+                start_index = min(down_skew.start.x, up_skew.start.x)
+                score1 = self._include_enough_points(start_index, up, down)
+                if not score1:
+                    continue
+                score2 = self._fits_enough(up, down)
+                if not score2:
+                    continue
+
+                params = self._params(up_skew, down_skew)
+                setups.append(Setup(up, down, params, score1, score2))
+
+        if not setups:
+            return None
+
+        return _select_best_setup(setups)
+
+    def _create_info(self) -> None:
+        self.events = [None]
+        self.sentiment = "None"
+        self.signal = (None, None)

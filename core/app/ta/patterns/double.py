@@ -25,7 +25,7 @@ def _angle(a: tuple, b: tuple, c: tuple) -> float:
     lB = np.sqrt(B[0] ** 2 + B[1] ** 2)
 
     alpha = np.degrees(np.arccos(np.dot(A, B) / (lA * lB)))
-    return alpha
+    return float(alpha)
 
 
 def make_double(x_dates: np.ndarray, close: np.ndarray,
@@ -57,7 +57,7 @@ def make_double(x_dates: np.ndarray, close: np.ndarray,
     Ay = close[Ax]
 
     if Ax > close.size - right_margin:
-        return {'info':[]}
+        return {'info': []}
 
     # Scale series from Ax to a square [0,1]x[0,1]
     scaled_y = close[Ax:]
@@ -70,7 +70,7 @@ def make_double(x_dates: np.ndarray, close: np.ndarray,
     scaled_x = scaled_x[threshold:]
 
     if scaled_x.size < 1:
-        return {'info':[]}
+        return {'info': []}
 
     # Calculate slopes
     slopes = (scaled_y[1:] - sgn) / scaled_x[1:]
@@ -80,7 +80,7 @@ def make_double(x_dates: np.ndarray, close: np.ndarray,
     tmp = Ax + np.arange(scaled_y.size)
     slopes = [(x, s) for x, s in zip(tmp[threshold + 1:], slopes) if abs(s) < 20]
     if not slopes:
-        return {'info':[]}
+        return {'info': []}
 
     slopes.sort(key=lambda x: x[1])
 
@@ -88,7 +88,7 @@ def make_double(x_dates: np.ndarray, close: np.ndarray,
     By = close[Bx]
 
     if (Bx - Ax) > 0.3 * close.size:
-        return {'info':[]}
+        return {'info': []}
 
     # Find the midpoint
     Cx = Ax + g(close[Ax: Bx])

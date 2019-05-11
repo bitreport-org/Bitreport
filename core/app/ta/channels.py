@@ -5,7 +5,7 @@ from influxdb import InfluxDBClient
 from sqlalchemy import cast, String
 import json
 
-from app.services import get_candles, generate_dates
+from app.utils import get_candles, generate_dates
 from app.api.database import Chart
 from app.api import db
 

@@ -7,7 +7,7 @@ from sqlalchemy.exc import ProgrammingError, OperationalError
 from collections import namedtuple
 
 import config
-from app.services.helpers import get_function_list
+from app.utils.helpers import get_function_list
 from app.ta import indicators
 from app.api import create_app, database
 from app.exchanges.helpers import insert_candles

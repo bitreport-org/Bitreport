@@ -11,33 +11,33 @@ class TestPairExceptions:
 
     def test_no_timeframe(self, app):
         response = app.client.get(f'/{self.pair}')
-        assert response.status_code == 404, 'Server faliure!'
+        assert response.status_code == 400, 'Server faliure!'
         assert isinstance(response.get_json(), dict)
         assert 'msg' in response.get_json().keys()
 
     def test_unknown_timeframe(self, app):
         response = app.client.get(f'/{self.pair}?timeframe=42h&limit=100')
-        assert response.status_code == 404, 'Server faliure!'
+        assert response.status_code == 400, 'Server faliure!'
         assert isinstance(response.get_json(), dict)
         assert 'msg' in response.get_json().keys()
 
     def test_no_data(self, app):
         response = app.client.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
-        assert response.status_code == 404, 'Server faliure!'
+        assert response.status_code == 204, 'Server faliure!'
         assert isinstance(response.get_json(), dict)
         assert 'msg' in response.get_json().keys()
         assert 'No data' in response.get_json().get('msg')
 
     def test_not_enough_data1h(self, app, filled_influx):
         response = app.client.get(f'/TEST?timeframe=1h&limit={self.limit}')
-        assert response.status_code == 404, 'Server faliure!'
+        assert response.status_code == 204, 'Server faliure!'
         assert isinstance(response.get_json(), dict)
         assert 'msg' in response.get_json().keys()
         assert 'No data' in response.get_json().get('msg')
 
     def test_not_enough_data12h(self, app, filled_influx):
         response = app.client.get(f'/TEST?timeframe=12h&limit={self.limit}')
-        assert response.status_code == 404, 'Server faliure!'
+        assert response.status_code == 204, 'Server faliure!'
         assert isinstance(response.get_json(), dict)
         assert 'msg' in response.get_json().keys()
         assert 'No data' in response.get_json().get('msg')

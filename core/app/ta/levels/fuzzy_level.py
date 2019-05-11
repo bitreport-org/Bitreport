@@ -25,6 +25,7 @@ class FuzzyLevel:
                 'support': self.support,
                 'value': self.lvl.value,
                 'strength': self.lvl.strength,
+                'first_occurrence': self.lvl.first_occurrence,
                 'type': self.lvl.type,
                 'tf': self.lvl.timeframe}
 

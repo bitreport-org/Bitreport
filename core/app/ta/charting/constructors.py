@@ -5,7 +5,7 @@ from typing import List, Union
 
 
 Point = namedtuple('Point', ['x', 'y'])
-Skew = namedtuple('Skew', ['slope', 'coef'])
+Skew = namedtuple('Skew', ['slope', 'coef', 'start'])
 
 
 def _is_peak(xs: np.ndarray, ts: np.ndarray, checker: callable) -> List[Point]:
@@ -45,7 +45,13 @@ def _skew(a: Point, b: Point) -> Union[Skew, None]:
         return None
     slope = (a.y - b.y) / (a.x - b.x)
     coef = b.y - slope * b.x
-    return Skew(float(slope), float(coef))
+
+    if a.x <= b.x:
+        start = a
+    else:
+        start = b
+
+    return Skew(float(slope), float(coef), start)
 
 
 def tops(close: np.ndarray, time: np.ndarray) -> List[Point]:

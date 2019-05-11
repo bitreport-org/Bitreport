@@ -27,7 +27,7 @@ def create_app(config: Type[BaseConfig], influx: InfluxDBClient) -> Flask:
     app: flask.Flask app
     """
 
-    from app.services import data_factory
+    from app.utils import data_factory
     from app.exchanges import fill_pair
 
     # Configure app
@@ -75,10 +75,10 @@ def create_app(config: Type[BaseConfig], influx: InfluxDBClient) -> Flask:
         limit = request.args.get('limit', default=20, type=int)
 
         if not timeframe:
-            return jsonify(msg='Timeframe not provided'), 404
+            return jsonify(msg='Timeframe not provided'), 400
 
         if timeframe not in ['1h', '2h', '3h', '6h', '12h', '24h']:
-            return jsonify(msg='Wrong timeframe.'), 404
+            return jsonify(msg='Wrong timeframe.'), 400
 
         data = data_factory.PairData(influx, pair, timeframe, limit)
         output, code = data.prepare()
@@ -103,7 +103,7 @@ def create_app(config: Type[BaseConfig], influx: InfluxDBClient) -> Flask:
         pair = request.args.get('pair', default=None, type=str)
 
         if not pair:
-            return jsonify(msg='Pair not provided'), 404
+            return jsonify(msg='Pair not provided'), 400
 
         msg, code = fill_pair(influx, pair)
         return jsonify(msg=msg), code

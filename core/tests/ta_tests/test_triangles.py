@@ -4,41 +4,39 @@ from app.ta.charting import (
     constructors as cts,
     triangles as ts)
 
-from app.ta.charting.triangle import Setup
+from app.ta.charting.triangle import Setup, Universe
+from app.ta import Charting
 from app.api.database import Chart
+from app.utils.sample_prices import asc_triangle, desc_triangle
 
 
 class TrianglesSamples:
-    a = np.arange(50, 101, 2)
-    b = np.arange(0, 100, 2)[::-1]
-    c = np.arange(1, 70, 2)
-    d = np.arange(0, 69, 2)[::-1]
-    e = np.arange(1, 30, 2)
-
-    desc_triangle = np.concatenate([a, b, c, d, e])
-    asc_triangle = (-1 * desc_triangle) + np.max(desc_triangle)
-
+    tf = 'test_tf'
+    desc_triangle = desc_triangle().close
+    asc_triangle = asc_triangle().close
     time = np.arange(desc_triangle.size)
 
 
 class TestTriangles(TrianglesSamples):
-    tf = 'test_tf'
-
     def test_descending(self, app):
-        pair = 'test_descending'
         close = self.desc_triangle
+        pair = 'test_descending'
+        uni = Universe(
+            pair=pair,
+            timeframe=self.tf,
+            close=close,
+            time=self.time
+        )
+
         bottoms = cts.bottoms(close, self.time)
         tops = cts.tops(close, self.time)
         skews = cts.skews(tops)
 
         with app.ctx:
-            triangle = ts.DescendingTriangle(pair=pair,
-                                             timeframe=self.tf,
-                                             close=close,
-                                             time=self.time,
-                                             bottoms=bottoms,
-                                             skews=skews
-                                             )
+            triangle = ts.DescTriangle(universe=uni,
+                                       bottoms=bottoms,
+                                       skews=skews
+                                       )
 
         assert isinstance(triangle.setup, Setup)
         assert isinstance(triangle.json(), dict)
@@ -65,20 +63,21 @@ class TestTriangles(TrianglesSamples):
     def test_desc_no_setup(self):
         pair = 'test_descending'
         close = self.asc_triangle
+        uni = Universe(
+            pair=pair,
+            timeframe=self.tf,
+            close=close,
+            time=self.time
+        )
+
         bottoms = cts.bottoms(close, self.time)
         tops = cts.tops(close, self.time)
         skews = cts.skews(tops)
 
-        print(bottoms, tops)
-        print(skews)
-
-        triangle = ts.DescendingTriangle(pair=pair,
-                                         timeframe=self.tf,
-                                         close=close,
-                                         time=self.time,
-                                         bottoms=bottoms,
-                                         skews=skews
-                                         )
+        triangle = ts.DescTriangle(universe=uni,
+                                   bottoms=bottoms,
+                                   skews=skews
+                                   )
 
         assert triangle.setup is None
 
@@ -86,18 +85,22 @@ class TestTriangles(TrianglesSamples):
     def test_ascending(self, app):
         pair = 'test_ascending'
         close = self.asc_triangle
+        uni = Universe(
+            pair=pair,
+            timeframe=self.tf,
+            close=close,
+            time=self.time
+        )
+
         bottoms = cts.bottoms(close, self.time)
         tops = cts.tops(close, self.time)
         skews = cts.skews(bottoms)
 
         with app.ctx:
-            triangle = ts.AscendingTriangle(pair=pair,
-                                             timeframe=self.tf,
-                                             close=close,
-                                             time=self.time,
-                                             tops=tops,
-                                             skews=skews
-                                             )
+            triangle = ts.AscTriangle(universe=uni,
+                                      tops=tops,
+                                      skews=skews
+                                      )
 
         assert isinstance(triangle.setup, Setup)
         assert isinstance(triangle.json(), dict)
@@ -124,19 +127,52 @@ class TestTriangles(TrianglesSamples):
     def test_asc_no_setup(self):
         pair = 'test_ascending'
         close = self.desc_triangle
-        bottoms = cts.bottoms(close, self.time)
+        uni = Universe(
+            pair=pair,
+            timeframe=self.tf,
+            close=close,
+            time=self.time
+        )
+
         tops = cts.tops(close, self.time)
         skews = cts.skews(tops)
 
-        print(bottoms, tops)
-        print(skews)
-
-        triangle = ts.AscendingTriangle(pair=pair,
-                                         timeframe=self.tf,
-                                         close=close,
-                                         time=self.time,
-                                         tops=tops,
-                                         skews=skews
-                                         )
+        triangle = ts.AscTriangle(universe=uni,
+                                  tops=tops,
+                                  skews=skews
+                                  )
 
         assert triangle.setup is None
+
+class TestCharting(TrianglesSamples):
+    def test_asc(self, app):
+        pair = 'test_ascending'
+        close = self.asc_triangle
+        uni = Universe(
+            pair=pair,
+            timeframe=self.tf,
+            close=close,
+            time=self.time
+        )
+
+        bottoms = cts.bottoms(close, self.time)
+        tops = cts.tops(close, self.time)
+        skews = cts.skews(bottoms)
+
+        with app.ctx:
+            triangle1 = ts.AscTriangle(universe=uni,
+                                      tops=tops,
+                                      skews=skews
+                                      )
+            triangle2 = Charting(pair, self.tf, close, self.time)()
+
+        assert triangle1.setup
+        assert isinstance(triangle2, dict)
+
+        assert isinstance(triangle2['upper_band'], list)
+        assert isinstance(triangle2['lower_band'], list)
+
+        json = triangle1.json()
+        assert triangle2['info'] == json['info']
+        assert triangle2['upper_band'] == json['upper_band']
+        assert triangle2['lower_band'] == json['lower_band']

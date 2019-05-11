@@ -13,12 +13,12 @@ class TestLevels:
     d = np.arange(0, 70, 2)[::-1]
     e = np.arange(0, 30, 2)
     close = np.concatenate([a, b, c, d, e])
+    time = np.arange(close.size)
 
-    @staticmethod
-    def _levels(close, app):
+    def _levels(self, close, app):
         pair =''.join(random.choice(string.ascii_letters) for _ in range(12))
         tf = 'test_tf'
-        lvl = Levels(pair, tf, close)
+        lvl = Levels(pair, tf, close, self.time)
         with app.ctx:
             result = lvl()
         return result, pair, tf
@@ -44,7 +44,7 @@ class TestLevels:
         assert isinstance(level, dict)
 
         keys = level.keys()
-        for k in ['type', 'tf', 'value', 'resistance', 'support', 'strength']:
+        for k in ['type', 'tf', 'value', 'resistance', 'support', 'strength', 'first_occurrence']:
             assert k in keys
 
         # Check if level was found correctly

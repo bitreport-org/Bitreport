@@ -1,5 +1,5 @@
 from app.exchanges import Bitfinex, Bittrex, Binance, Poloniex
-from app.services import get_candles
+from app.utils import get_candles
 import pytest
 import numpy as np
 

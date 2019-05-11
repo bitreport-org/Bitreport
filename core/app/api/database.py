@@ -76,9 +76,11 @@ class Level(db.Model):
     __tablename__ = 'levels'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    time = db.Column(db.DateTime, default=db.func.current_timestamp())
+
     pair = db.Column(db.String)
     timeframe = db.Column(db.String)
-    time = db.Column(db.DateTime, default=db.func.current_timestamp())
+    first_occurrence = db.Column(db.Integer)
     type = db.Column(db.String)
     strength = db.Column(db.Integer)
     value = db.Column(db.Float, index=True)

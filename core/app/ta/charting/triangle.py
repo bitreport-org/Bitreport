@@ -1,14 +1,15 @@
 import numpy as np
-from typing import  Union, Tuple
+import json
+from typing import Union
 from collections import namedtuple
 from sqlalchemy import cast, String
-import json
 
 from app.api.database import Chart, db
 from .constructors import Point, Skew
 
 SkewPoint = Union[Point, Skew]
-Setup = namedtuple('Setup', ['up', 'down', 'params', 'score'])
+Setup = namedtuple('Setup', ['up', 'down', 'params', 'score1', 'score2'])
+Universe = namedtuple('Universe', ['pair', 'timeframe', 'close', 'time'])
 
 
 class Triangle:
@@ -27,36 +28,39 @@ class Triangle:
     signal: tuple
 
     def __init__(self,
-                 timeframe: str,
-                 pair: str,
-                 close: np.ndarray,
-                 time: np.ndarray,
+                 universe: Universe,
                  **kwargs) -> None:
 
-        self._timeframe = timeframe
-        self._pair = pair
-        self._close = close
-        self._time = time
-        self._last_point = time[-1]
+        assert universe.close.size == universe.time.size
+
+        self._timeframe = universe.timeframe
+        self._pair = universe.pair
+        self._close = universe.close
+        self._time = universe.time
+        self._last_point = universe.time[-1]
 
         # Check if there is an setup
         self.setup = self._find(**kwargs)
         if self.setup:
             self._create_info()
+
+            # TODO: only selected patterns will be
+            #  saved so this should be out if init?
             self._save()
 
     def json(self) -> Union[dict, None]:
         if not self.setup:
             return None
 
-        return dict(upper_band=self.setup.up,
-                    lower_band=self.setup.down,
+        return dict(upper_band=self.setup.up.tolist(),
+                    lower_band=self.setup.down.tolist(),
                     info=self._info_json())
 
     def _info_json(self) -> dict:
-        return dict(events=self.events,
-                    signal=self.signal,
-                    sentiment=self.sentiment)
+        return []
+        # return dict(events=self.events,
+        #             signal=self.signal,
+        #             sentiment=self.sentiment)
 
     def _save(self) -> None:
         if not self.setup:
@@ -79,6 +83,9 @@ class Triangle:
         db.session.commit()
 
     def _cross_after_last_candle(self, a: SkewPoint, b: SkewPoint) -> bool:
+        """
+        This also asserts that triangle is getting narrower.
+        """
         assert isinstance(a, (Point, Skew))
         assert isinstance(b, (Point, Skew))
 
@@ -94,13 +101,33 @@ class Triangle:
         except ZeroDivisionError:
             return False
 
-    def _include_enough_points(self, up: np.ndarray, down: np.ndarray, threshold: float = 0.85) -> Tuple[bool, float]:
-        under = self._close <= up
-        above = self._close >= down
+    def _include_enough_points(self,
+                               start: int,
+                               up: np.ndarray,
+                               down: np.ndarray,
+                               threshold: float = 0.85) -> Union[float, None]:
+
+        idx = np.where(self._time == start)[0][0]
+        close, up, down = self._close[idx:], up[idx:], down[idx:]
+        under = close <= up
+        above = close >= down
         between = sum(a and b for a, b in zip(under, above))
-        score = between / self._close.size
-        above_threshold = score  >= threshold
-        return above_threshold, score
+        score = between / close.size
+        if score >= threshold:
+            return score
+        return None
+
+    def _fits_enough(self,
+                     up: np.ndarray,
+                     down: np.ndarray,
+                     threshold_down: float = 0.4,
+                     threshold_up: float = 0.75) -> Union[float, None]:
+
+        dist = (self._close - down) / (up - down)
+        score = np.mean(dist)
+        if threshold_down <= score <= threshold_up:
+            return float(score)
+        return None
 
     def _find(self, **kwargs) -> Union[Setup, None]:
         NotImplemented()
@@ -109,3 +136,18 @@ class Triangle:
     def _create_info(self) -> None:
         NotImplemented()
         return None
+
+
+def compare(t1: Triangle, t2: Triangle) -> Union[Triangle, None]:
+    if t1.setup and t2.setup:
+        if t1.setup.score1 >= t2.setup.score1:
+            return t1
+        return t2
+
+    if t1.setup:
+        return t1
+
+    if t2.setup:
+        return t2
+
+    return None

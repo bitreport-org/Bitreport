@@ -9,7 +9,7 @@ class TestApp:
 
     def test_no_pair(self, app):
         response = app.client.post('/fill')
-        assert response.status_code == 404, 'Wrong code'
+        assert response.status_code == 400, 'Wrong code'
 
     def test_404(self, app):
         response = app.client.get('/lsjdfs/erwre')

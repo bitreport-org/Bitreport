@@ -52,4 +52,4 @@ def fill_pair(influx: InfluxDBClient, pair: str) -> tuple:
         return f"{pair} filled from {', '.join(exchanges_filled)}", 200
     else:
         logging.error(f"{pair} failed to fill!")
-        return f"{pair} failed to fill!", 404
+        return f"{pair} failed to fill!", 204
