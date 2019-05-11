@@ -5,7 +5,7 @@ from app.ta.charting import (
     triangles as ts)
 
 from app.ta.charting.triangle import Setup, Universe
-from app.ta import Charting
+from app.ta.charting import Charting
 from app.api.database import Chart
 from app.utils.sample_prices import asc_triangle, desc_triangle
 

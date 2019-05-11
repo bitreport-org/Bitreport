@@ -4,12 +4,16 @@ import logging
 import config
 from typing import List, Tuple
 from influxdb import InfluxDBClient
-
 from scipy.stats import linregress
-from app.utils import get_candles, generate_dates, get_function_list
-import app.ta as ta
+
+
 import app.ta.indicators as indicators
+import app.ta.charting as charting
+from app.ta.channels import Channel
+from app.ta.patterns import make_double
+from app.ta.levels import Levels
 from app.ta.charting.triangle import Universe
+from app.utils import get_candles, generate_dates, get_function_list
 
 
 class PairData:
@@ -120,7 +124,7 @@ class PairData:
         # Channels
         empty_pattern = {'info': [], 'upper_band': [], 'lower_band': []}
         try:
-            ch = ta.Channel(universe)
+            ch = Channel(universe)
             indicators_values['channel'] = ch.make()
         except (ValueError, AssertionError):
             indicators_values['channel'] = empty_pattern
@@ -128,7 +132,7 @@ class PairData:
         
         # Wedges
         try:
-            wg = ta.Charting(universe)
+            wg = charting.Charting(universe)
             indicators_values['wedge'] = wg()
         except (ValueError, AssertionError):
             indicators_values['wedge'] = empty_pattern
@@ -137,14 +141,14 @@ class PairData:
         # Patterns
         empty_pattern = {'info': [], 'A': (), 'B': (), 'C': ()}
         try:
-            dt = ta.make_double(universe, type_='top')
+            dt = make_double(universe, type_='top')
             indicators_values['double_top'] = dt
         except (ValueError, AssertionError):
             indicators_values['double_top'] = empty_pattern
             logging.error(f'Indicator double top, error: /n {traceback.format_exc()}')
 
         try:
-            db = ta.make_double(universe, type_='bottom')
+            db = make_double(universe, type_='bottom')
             indicators_values['double_bottom'] = db
         except (ValueError, AssertionError):
             indicators_values['double_bottom'] = empty_pattern
@@ -152,7 +156,7 @@ class PairData:
 
         # Levels
         try:
-            lvl = ta.Levels(universe)
+            lvl = Levels(universe)
             indicators_values['levels'] = lvl()
         except (ValueError, AssertionError):
             indicators_values['levels'] = {'info': [], 'levels': []}
