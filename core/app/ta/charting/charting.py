@@ -1,45 +1,37 @@
 from functools import reduce
 
-import app.ta.charting.constructors as cts
-import app.ta.charting.triangles as ts
-import app.ta.charting.triangle as t
+from .constructors import tops, bottoms, skews
+from .triangle import compare, Universe, Setup
+from .triangles import AscTriangle, DescTriangle, SymmetricalTriangle
 
 
 class Charting:
-    def __init__(self, universe: t.Universe) -> None:
+    def __init__(self, universe: Universe) -> None:
         self._universe = universe
 
     def __call__(self):
-        tops = cts.tops(self._universe.close, self._universe.time)
-        bottoms = cts.bottoms(self._universe.close, self._universe.time)
-        skews_up = cts.skews(tops)
-        skews_down = cts.skews(bottoms)
+        tops_ = tops(self._universe.close, self._universe.time)
+        bottoms_ = bottoms(self._universe.close, self._universe.time)
+        skews_up = skews(tops_)
+        skews_down = skews(bottoms_)
 
-        asc_triangle = ts.AscTriangle(universe=self._universe,
-                                      tops=tops,
-                                      skews=skews_down
-                                      )
+        asc_triangle = AscTriangle(universe=self._universe,
+                                   tops=tops_,
+                                   skews=skews_down)
 
-        desc_triangle = ts.DescTriangle(universe=self._universe,
-                                        bottoms=bottoms,
-                                        skews=skews_up
-                                        )
+        desc_triangle = DescTriangle(universe=self._universe,
+                                     bottoms=bottoms_,
+                                     skews=skews_up)
 
-        symm_triangle = ts.SymmetricalTriangle(universe=self._universe,
-                                               ups=skews_up,
-                                               downs=skews_down)
+        symm_triangle = SymmetricalTriangle(universe=self._universe,
+                                            ups=skews_up,
+                                            downs=skews_down)
 
         charts = [asc_triangle, desc_triangle, symm_triangle]
 
-        # for ch in charts:
-        #     if ch:
-                # print(ch.setup.score1, ch.setup.score2)
+        best = reduce(lambda a, b: compare(a, b), charts)
 
-        # TODO: symm triangle is not best when it should be :<
-
-        best = reduce(lambda a, b: t.compare(a, b), charts)
-
-        if best and isinstance(best.setup, t.Setup):
+        if best and isinstance(best.setup, Setup):
             return best.json()
 
         return dict(upper_band=[],
