@@ -95,7 +95,7 @@ class Triangle:
             elif isinstance(b, Point) and isinstance(a, Skew):
                 cross = (b.y - a.coef) / a.slope
             else:
-                cross = (a.slope - b.slope) / (b.coef - a.coef)
+                cross = (b.coef - a.coef) / (a.slope - b.slope)
             return cross >= self._last_point
 
         except ZeroDivisionError:
@@ -118,12 +118,15 @@ class Triangle:
         return None
 
     def _fits_enough(self,
+                     start: int,
                      up: np.ndarray,
                      down: np.ndarray,
                      threshold_down: float = 0.4,
-                     threshold_up: float = 0.75) -> Union[float, None]:
+                     threshold_up: float = 0.6) -> Union[float, None]:
 
-        dist = (self._close - down) / (up - down)
+        idx = np.where(self._time == start)[0][0]
+        close, up, down = self._close[idx:], up[idx:], down[idx:]
+        dist = (close - down) / (up - down)
         score = np.mean(dist)
         if threshold_down <= score <= threshold_up:
             return float(score)
@@ -139,15 +142,16 @@ class Triangle:
 
 
 def compare(t1: Triangle, t2: Triangle) -> Union[Triangle, None]:
-    if t1.setup and t2.setup:
-        if t1.setup.score1 >= t2.setup.score1:
+    if t1 and t2:
+        if t1.setup and t2.setup:
+            if t1.setup.score1 >= t2.setup.score1:
+                return t1
+            return t2
+
+        if t1.setup:
             return t1
-        return t2
 
-    if t1.setup:
-        return t1
-
-    if t2.setup:
-        return t2
+        if t2.setup:
+            return t2
 
     return None

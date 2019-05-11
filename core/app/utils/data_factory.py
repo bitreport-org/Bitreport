@@ -141,23 +141,16 @@ class PairData:
             ch = ta.Channel(self.pair, self.timeframe, close, dates)
             indicators_values['channel'] = ch.make()
         except (ValueError, AssertionError):
+            indicators_values['channel'] = {'info': [], 'upper_band': [], 'lower_band': []}
             logging.error(f'Indicator channel, error: /n {traceback.format_exc()}')
-        try:
-            indicators_values['channel12'] = ta.make_long_channel(self.influx, self.pair, '12h', dates)
-        except (ValueError, AssertionError):
-            logging.error(f'Indicator channel12, error: /n {traceback.format_exc()}')
         
         # Wedges
         try:
             wg = ta.Charting(self.pair, self.timeframe, close[-self.limit:], dates[:-self.margin])
             indicators_values['wedge'] = wg()
         except (ValueError, AssertionError):
+            indicators_values['wedge'] = {'info': [], 'upper_band': [], 'lower_band': []}
             logging.error(f'Indicator wedge, error: /n {traceback.format_exc()}')
-
-        # try:
-        #     indicators_values['wedge12'] = wedge.make_long_wedge(self.influx, self.pair, '12h', dates)
-        # except (ValueError, AssertionError):
-        #     logging.error(f'Indicator wedge12, error: /n {traceback.format_exc()}')
 
         # Patterns
         try:
@@ -166,6 +159,7 @@ class PairData:
                                 type_='top')
             indicators_values['double_top'] = dt
         except (ValueError, AssertionError):
+            indicators_values['double_top'] = {'info': [], 'A': (), 'B': (), 'C': ()}
             logging.error(f'Indicator double top, error: /n {traceback.format_exc()}')
 
         try:
@@ -174,13 +168,15 @@ class PairData:
                                 type_='bottom')
             indicators_values['double_bottom'] = db
         except (ValueError, AssertionError):
+            indicators_values['double_bottom'] = {'info': [], 'A': (), 'B': (), 'C': ()}
             logging.error(f'Indicator double bottom, error: /n {traceback.format_exc()}')
 
         # Levels
         try:
-            lvl = ta.Levels(self.pair, self.timeframe, close[self.magic_limit:], dates[:-self.margin])
+            lvl = ta.Levels(self.pair, self.timeframe, close[-self.limit::], dates[:-self.margin])
             indicators_values['levels'] = lvl()
         except (ValueError, AssertionError):
+            indicators_values['levels'] = {'info': [], 'levels': []}
             logging.error(traceback.format_exc())
 
         return indicators_values

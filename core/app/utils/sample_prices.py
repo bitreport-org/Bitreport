@@ -1,6 +1,7 @@
 import numpy as np
 from collections import namedtuple
 from influxdb import InfluxDBClient
+from numpy.random import normal
 
 from app.exchanges.helpers import insert_candles
 from app.ta.charting.constructors import Point
@@ -48,6 +49,7 @@ def double_top() -> Sample:
     points = [Point(float(x), float(y)) for x, y in zip(xs, ys)]
     return Sample(make_sample(points), points)
 
+
 def double_bottom() -> Sample:
     xs = [0, 40, 80, 100, 120, 160, 200]
     ys = [100, 50, 0, 20, 0, 50, 100]
@@ -75,16 +77,17 @@ def break_down(s: Sample) -> Sample:
 
 def _sample_dict(measurement: str, i: int, x: float) -> dict:
     timestamp = 1550207200
+    noise = lambda: float(normal(0, 5))
     json_body = {
         "measurement": 'TEST' + measurement.upper() + 'BTC1h',
         "tags": {'exchange': 'bitfinex'},
         "time": timestamp + (i * 3600),
         "fields": {
-            "open": float(x),
+            "open": float(x) + noise(),
             "close": float(x),
-            "high": float(x),
-            "low": float(x),
-            "volume": float(x)
+            "high": float(x) + noise(),
+            "low": float(x) + noise(),
+            "volume": float(x) + noise()
         }
     }
     return json_body

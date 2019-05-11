@@ -70,7 +70,7 @@ def make_double(x_dates: np.ndarray, close: np.ndarray,
     scaled_x = scaled_x[threshold:]
 
     if scaled_x.size < 1:
-        return {'info': []}
+        return {'info': [], 'A': (), 'B': (), 'C': ()}
 
     # Calculate slopes
     slopes = (scaled_y[1:] - sgn) / scaled_x[1:]
@@ -80,15 +80,18 @@ def make_double(x_dates: np.ndarray, close: np.ndarray,
     tmp = Ax + np.arange(scaled_y.size)
     slopes = [(x, s) for x, s in zip(tmp[threshold + 1:], slopes) if abs(s) < 20]
     if not slopes:
-        return {'info': []}
+        return {'info': [], 'A': (), 'B': (), 'C': ()}
 
     slopes.sort(key=lambda x: x[1])
 
-    Bx = slopes[-1][0]
+    # TODO: select best skew !? how
+    # TODO: Assert that 2nd bottom is higher, top lower
+    # TODO: assert distance between peaks
+    Bx = slopes[-sgn][0]
     By = close[Bx]
 
     if (Bx - Ax) > 0.3 * close.size:
-        return {'info': []}
+        return {'info': [], 'A': (), 'B': (), 'C': ()}
 
     # Find the midpoint
     Cx = Ax + g(close[Ax: Bx])
@@ -107,7 +110,7 @@ def make_double(x_dates: np.ndarray, close: np.ndarray,
 
     alpha = _angle((ax, ay), (bx, by), (cx, cy))
     if alpha > 95:
-        return {'info': []}
+        return {'info': [], 'A': (), 'B': (), 'C': ()}
 
     Ax = x_dates[Ax]
     Bx = x_dates[Bx]

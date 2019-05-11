@@ -2,10 +2,10 @@ import numpy as np
 from collections import namedtuple
 from functools import reduce
 
-LevelTuple = namedtuple('LevelTuple', ['type', 'value', 'strength'])
+LevelTuple = namedtuple('LevelTuple', ['type', 'value', 'time', 'strength'])
 
 
-def is_level(i: int, x: float, xs: np.ndarray) -> tuple:
+def is_level(i: int, x: float, xs: np.ndarray, t: int) -> tuple:
     """
     Checks if value x is a significant level in series of xs.
     Parameters
@@ -37,8 +37,8 @@ def is_level(i: int, x: float, xs: np.ndarray) -> tuple:
         support = reduce(lambda a, b: a and b, ys >= np.array([x] * ys.size))
         resistance = reduce(lambda a, b: a and b, ys <= np.array([x] * ys.size))
         if support:
-            lvl = LevelTuple('support', x, strength)
+            lvl = LevelTuple('support', x, int(t), strength)
         elif resistance:
-            lvl = LevelTuple('resistance', x, strength)
+            lvl = LevelTuple('resistance', x, int(t), strength)
 
     return lvl

@@ -13,12 +13,14 @@ class TestLevels:
     d = np.arange(0, 70, 2)[::-1]
     e = np.arange(0, 30, 2)
     close = np.concatenate([a, b, c, d, e])
-    time = np.arange(close.size)
+
+    def _time(self, close: np.ndarray) -> np.ndarray:
+        return np.arange(close.size)
 
     def _levels(self, close, app):
-        pair =''.join(random.choice(string.ascii_letters) for _ in range(12))
+        pair = ''.join(random.choice(string.ascii_letters) for _ in range(12))
         tf = 'test_tf'
-        lvl = Levels(pair, tf, close, self.time)
+        lvl = Levels(pair, tf, close, self._time(close))
         with app.ctx:
             result = lvl()
         return result, pair, tf
@@ -64,7 +66,6 @@ class TestLevels:
         assert level.type == 'resistance'
         assert level.value == 100
         assert level.strength == 1
-
 
     def test_two_levels(self, app):
         close = np.concatenate([self.a, self.b, self.c])

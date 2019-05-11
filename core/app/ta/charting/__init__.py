@@ -40,9 +40,19 @@ class Charting:
                                         skews=skews_up
                                         )
 
+        symm_triangle = ts.SymmetricalTriangle(universe=self._universe,
+                                               ups=skews_up,
+                                               downs=skews_down)
 
-        charts = [asc_triangle, desc_triangle]
-        best = reduce(lambda a,b : t.compare(a,b), charts)
+        charts = [asc_triangle, desc_triangle, symm_triangle]
+
+        # for ch in charts:
+        #     if ch:
+                # print(ch.setup.score1, ch.setup.score2)
+
+        # TODO: symm triangle is not best when it should be :<
+
+        best = reduce(lambda a, b: t.compare(a, b), charts)
 
         if best and isinstance(best.setup, t.Setup):
             return best.json()

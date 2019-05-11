@@ -9,13 +9,15 @@ class Levels(object):
     def __init__(self, pair: str, timeframe: str, close: np.ndarray, time: np.ndarray) -> None:
         self.pair = pair
         self.timeframe = timeframe
+
+        assert close.size == time.size, f'{close.size} != {time.size}'
         self.close = close
         self.time = time
 
     def __call__(self) -> dict:
         # TODO: do not create levels with each request...
         # Look for new levels
-        self._find_levels(self.close)
+        self._find_levels(self.close, self.time)
 
         # Select best levels
         levels = {
@@ -35,16 +37,12 @@ class Levels(object):
             )
             lvl = Level.query.filter_by(**params).first()
             if not lvl:
-                params.update(first_occurrence=self._first_occurrence_info(x.value))
+                params.update(first_occurrence=x.time)
                 db.session.add(Level(**params))
 
         db.session.commit()
 
-    def _first_occurrence_info(self, x: float) -> int:
-        idx = np.where(self.close == x)[0][0]
-        return int(self.time[int(idx)])
-
-    def _find_levels(self, close: np.ndarray) -> None:
+    def _find_levels(self, close: np.ndarray, time: np.ndarray) -> None:
         """
         Searches for new levels in the given time series.
         New, unique levels are saved to database.
@@ -53,7 +51,7 @@ class Levels(object):
         ----------
         close - time series of price values
         """
-        lvls = [is_level(i, x, close) for i, x in enumerate(close)]
+        lvls = [is_level(i, x, close, time[i]) for i, x in enumerate(close)]
         lvls = list(filter(lambda x: x, lvls))
         self._save_levels(lvls)
 
@@ -89,17 +87,21 @@ class Levels(object):
         lvls = [lvl.update(lvls) for lvl in lvls]
 
         resistance = list(filter(lambda x: x.dist > 0, lvls))
-        support = list(filter(lambda x: x.dist < 0, lvls))
+        support = list(filter(lambda x: x.dist <= 0, lvls))
 
         output = []
         # TODO: what if same score but different strength?
         if resistance:
             resistance.sort(key=lambda x: x.score)
-            output.append(resistance[-1])
+            resistance = list(filter(lambda x: x.score == resistance[-1].score, resistance))
+            resistance.sort(key=lambda x: x.dist)
+            output.append(resistance[0])
 
         if support:
             support.sort(key=lambda x: x.score)
-            output.append(support[-1])
+            support = list(filter(lambda x: x.score == support[-1].score, support))
+            support.sort(key=lambda x: x.dist)
+            output.append(support[0])
 
         return list(map(lambda x: x.json(), output))
 

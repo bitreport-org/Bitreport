@@ -16,7 +16,7 @@ def _find(self, peaks: List[Point], skews: List[Skew]) -> Union[Setup, None]:
             score1 = self._include_enough_points(start_index, up, down)
             if not score1:
                 continue
-            score2 = self._fits_enough(up, down)
+            score2 = self._fits_enough(start_index, up, down)
             if not score2:
                 continue
 
@@ -113,7 +113,7 @@ class SymmetricalTriangle(Triangle):
     def _params(self, up_skew: Skew, down_skew: Skew) -> dict:
         params = {
             'up': (up_skew.slope, up_skew.coef),
-            'down': (down_skew.slopee, down_skew.coef)
+            'down': (down_skew.slope, down_skew.coef)
         }
         return params
 
@@ -129,7 +129,7 @@ class SymmetricalTriangle(Triangle):
                 score1 = self._include_enough_points(start_index, up, down)
                 if not score1:
                     continue
-                score2 = self._fits_enough(up, down)
+                score2 = self._fits_enough(start_index, up, down)
                 if not score2:
                     continue
 
