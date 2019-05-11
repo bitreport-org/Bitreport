@@ -31,6 +31,8 @@ module Pairs
     end
 
     def data_fill
+      return if testing?
+
       @data_fill ||= Pairs::Filler.new(pair: pair).call
     end
 
@@ -44,6 +46,10 @@ module Pairs
 
     def tags
       @tags ||= %W[##{name} ##{first_part} $#{first_part}]
+    end
+
+    def testing?
+      first_part.start_with?('TEST')
     end
   end
 end
