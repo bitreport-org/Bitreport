@@ -8,13 +8,13 @@ from collections import namedtuple
 
 import config
 from app.utils.helpers import get_function_list
-from app.ta import indicators
+import app.ta.indicators as indicators
 from app.api import create_app, database
 from app.exchanges.helpers import insert_candles
 
 
 engine = sqlalchemy.create_engine(f"postgresql://postgres@{config.Test.POSTGRES_HOST}")
-App =  namedtuple('App', ['ctx', 'client'])
+App = namedtuple('App', ['ctx', 'client'])
 
 
 def create_test_db():
