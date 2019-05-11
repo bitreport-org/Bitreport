@@ -1,25 +1,19 @@
 import numpy as np
+from app.ta.charting.constructors import Point
+from app.ta.charting.triangle import Universe
 
 
-def _angle(a: tuple, b: tuple, c: tuple) -> float:
+def _angle(a: Point, b: Point, c: Point) -> float:
     """
     Calculates angle between sections AB, BC.
-
-    Parameters
-    ----------
-    a: a tuple representing a point (x, y)
-    b: a tuple representing a point (x, y)
-    c: a tuple representing a point (x, y)
 
     Returns
     -------
     alpha: the angle in degrees
     """
-    ax, ay = a
-    bx, by = b
-    cx, cy = c
-    A = [ax - bx, ay - by]
-    B = [cx - bx, cy - cy]
+
+    A = [a.x - b.x, a.y - b.y]
+    B = [c.x - b.x, c.y - c.y]
 
     lA = np.sqrt(A[0] ** 2 + A[1] ** 2)
     lB = np.sqrt(B[0] ** 2 + B[1] ** 2)
@@ -28,15 +22,16 @@ def _angle(a: tuple, b: tuple, c: tuple) -> float:
     return float(alpha)
 
 
-def make_double(x_dates: np.ndarray, close: np.ndarray,
-                type_: str = 'top', right_margin: int=5, threshold: int=3) -> dict:
+def make_double(universe: Universe,
+                type_: str = 'top',
+                right_margin: int = 15,
+                threshold: int = 3) -> dict:
     """
     Check if a patter of double top or double bottom can be found in given data
 
     Parameters
     ----------
-    x_dates: dates used as x axis
-    close: price close data
+    universe: Universe object
     type_: the type of patter to look for, top or bottom
     right_margin: number of last points excluded from search
     threshold: minimal distance between peaks
@@ -45,6 +40,8 @@ def make_double(x_dates: np.ndarray, close: np.ndarray,
     -------
     dt: dictionary with params A, B, C which represents the following points in the pattern
     """
+    x_dates = universe.time
+    close = universe.close
     assert x_dates.size == close.size, f'Double pattern, x, y sizes differ: {x_dates.size}, {close.size}'
 
     if type_ == 'top':
@@ -53,14 +50,14 @@ def make_double(x_dates: np.ndarray, close: np.ndarray,
         f, g, sgn = np.argmin, np.argmax, 0
 
     # First top
-    Ax = f(close)
-    Ay = close[Ax]
+    x = f(close)
+    A = Point(int(x), float(close[x]))
 
-    if Ax > close.size - right_margin:
-        return {'info': []}
+    if A.x > close.size - right_margin:
+        return {'info': [], 'A': (), 'B': (), 'C': ()}
 
     # Scale series from Ax to a square [0,1]x[0,1]
-    scaled_y = close[Ax:]
+    scaled_y = close[A.x+1:]
     scaled_y = (scaled_y - np.min(scaled_y)) / (np.max(scaled_y) - np.min(scaled_y))
 
     scaled_x = np.arange(scaled_y.size)
@@ -77,52 +74,44 @@ def make_double(x_dates: np.ndarray, close: np.ndarray,
     slopes = np.degrees(np.arctan(slopes))
 
     # Select second top
-    tmp = Ax + np.arange(scaled_y.size)
+    tmp = A.x + 1 + np.arange(scaled_y.size)
     slopes = [(x, s) for x, s in zip(tmp[threshold + 1:], slopes) if abs(s) < 20]
+
+    # Select only points that are dist points from A
     if not slopes:
         return {'info': [], 'A': (), 'B': (), 'C': ()}
 
-    slopes.sort(key=lambda x: x[1])
+    slopes.sort(key=lambda x: abs(x[1]))
 
-    # TODO: select best skew !? how
-    # TODO: Assert that 2nd bottom is higher, top lower
-    # TODO: assert distance between peaks
-    Bx = slopes[-sgn][0]
-    By = close[Bx]
+    bx = slopes[0][0]
+    B = Point(int(bx), float(close[bx]))
 
-    if (Bx - Ax) > 0.3 * close.size:
-        return {'info': [], 'A': (), 'B': (), 'C': ()}
+    if (B.x - A.x) > 0.3 * close.size:
+        return {'info': []}
 
     # Find the midpoint
-    Cx = Ax + g(close[Ax: Bx])
-    Cy = close[Cx]
+    cx = A.x + g(close[A.x: B.x])
+    C = Point(int(cx), float(close[cx]))
 
     # Scale 3 points to [0,1]x[0,1]
-    xs = np.array([Ax, Bx, Cx])
-    ax, bx, cx = (xs - Bx) / (Ax - Bx)
+    xs = np.array([A.x, B.x, C.x])
+    scaled_x = (xs - B.x) / (A.x - B.x)
 
-    ys = np.array([Ay, By, Cy])
+    ys = np.array([A.y, B.y, C.y])
 
     if type_ == 'top':
-        ay, by, cy = (ys - By) / (Ay - By)
+        scaled_y = (ys - B.y) / (A.y - B.y)
     else:
-        ay, by, cy = (ys - Ay) / (By - Ay)
+        scaled_y = (ys - A.y) / (B.y - A.y)
 
-    alpha = _angle((ax, ay), (bx, by), (cx, cy))
+    sA, sB, sC = [Point(x, y) for x, y in zip(scaled_x, scaled_y)]
+    alpha = _angle(sA, sB, sC)
     if alpha > 95:
         return {'info': [], 'A': (), 'B': (), 'C': ()}
 
-    Ax = x_dates[Ax]
-    Bx = x_dates[Bx]
-    Cx = x_dates[Cx]
-
     # Here we change points order from A, C, B to A, B, C
-    dt = {
-        'A' : (int(Ax), float(Ay)),
-        'B': (int(Cx), float(Cy)),
-        'C': (int(Bx), float(By)),
-        'info': []
-    }
+    dt = {k: (int(x_dates[p.x]), p.y) for k, p in zip('ACB', [A, B, C])}
+
+    dt['info'] = []
 
     return dt
-

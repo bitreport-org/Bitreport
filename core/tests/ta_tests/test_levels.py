@@ -4,6 +4,7 @@ import string
 
 from app.ta.levels import Levels
 from app.api.database import Level
+from app.ta.charting.triangle import Universe
 
 
 class TestLevels:
@@ -14,16 +15,21 @@ class TestLevels:
     e = np.arange(0, 30, 2)
     close = np.concatenate([a, b, c, d, e])
 
-    def _time(self, close: np.ndarray) -> np.ndarray:
+    @staticmethod
+    def _time(close: np.ndarray) -> np.ndarray:
         return np.arange(close.size)
 
     def _levels(self, close, app):
-        pair = ''.join(random.choice(string.ascii_letters) for _ in range(12))
-        tf = 'test_tf'
-        lvl = Levels(pair, tf, close, self._time(close))
+        universe = Universe(
+            pair=''.join(random.choice(string.ascii_letters) for _ in range(12)),
+            timeframe='test_tf',
+            close=close,
+            time=self._time(close)
+        )
+        lvl = Levels(universe)
         with app.ctx:
             result = lvl()
-        return result, pair, tf
+        return result, universe.pair, universe.timeframe
 
     def test_structure(self, app):
         close = np.concatenate([self.a, self.b])

@@ -4,25 +4,11 @@ from functools import reduce
 import app.ta.charting.constructors as cts
 import app.ta.charting.triangles as ts
 import app.ta.charting.triangle as t
-from config import BaseConfig
 
 
 class Charting:
-    def __init__(self,
-                 pair: str,
-                 timeframe: str,
-                 close: np.ndarray,
-                 time: np.ndarray) -> None:
-
-        if close.size != time.size:
-            time = time[:-BaseConfig.MARGIN]
-
-        self._universe = t.Universe(
-            pair=pair,
-            timeframe=timeframe,
-            close=close,
-            time=time
-        )
+    def __init__(self, universe: t.Universe) -> None:
+        self._universe = universe
 
     def __call__(self):
         tops = cts.tops(self._universe.close, self._universe.time)

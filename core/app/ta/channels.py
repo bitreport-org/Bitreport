@@ -8,16 +8,17 @@ import json
 from app.utils import get_candles, generate_dates
 from app.api.database import Chart
 from app.api import db
+from app.ta.charting.triangle import Universe
 
 Config = config.BaseConfig()
 
 
 class Channel:
-    def __init__(self, pair: str, timeframe: str, close: np.ndarray, x_dates: np.ndarray):
-        self.pair = pair
-        self.timeframe = timeframe
-        self.close = close
-        self.x_dates = x_dates / 10000  # to increase precision
+    def __init__(self, universe: Universe):
+        self.pair = universe.pair
+        self.timeframe = universe.timeframe
+        self.close = universe.close
+        self.x_dates = universe.time / 10000  # to increase precision
         self.type = 'channel'
         self.margin = Config.MARGIN
         self.start = Config.MAGIC_LIMIT

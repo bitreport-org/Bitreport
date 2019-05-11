@@ -59,7 +59,6 @@ class TestTriangles(TrianglesSamples):
         assert results[0].timeframe == self.tf
         assert results[0].params == params
 
-
     def test_desc_no_setup(self):
         pair = 'test_descending'
         close = self.asc_triangle
@@ -80,7 +79,6 @@ class TestTriangles(TrianglesSamples):
                                    )
 
         assert triangle.setup is None
-
 
     def test_ascending(self, app):
         pair = 'test_ascending'
@@ -123,7 +121,6 @@ class TestTriangles(TrianglesSamples):
         assert results[0].timeframe == self.tf
         assert results[0].params == params
 
-
     def test_asc_no_setup(self):
         pair = 'test_ascending'
         close = self.desc_triangle
@@ -144,6 +141,7 @@ class TestTriangles(TrianglesSamples):
 
         assert triangle.setup is None
 
+
 class TestCharting(TrianglesSamples):
     def test_asc(self, app):
         pair = 'test_ascending'
@@ -161,10 +159,10 @@ class TestCharting(TrianglesSamples):
 
         with app.ctx:
             triangle1 = ts.AscTriangle(universe=uni,
-                                      tops=tops,
-                                      skews=skews
-                                      )
-            triangle2 = Charting(pair, self.tf, close, self.time)()
+                                       tops=tops,
+                                       skews=skews
+                                       )
+            triangle2 = Charting(universe=uni)()
 
         assert triangle1.setup
         assert isinstance(triangle2, dict)

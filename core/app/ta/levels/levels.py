@@ -3,16 +3,16 @@ from app.api.database import Level
 from app.api import db
 from app.ta.levels.checker import is_level
 from app.ta.levels.fuzzy_level import FuzzyLevel
+from app.ta.charting.triangle import Universe
 
 
 class Levels(object):
-    def __init__(self, pair: str, timeframe: str, close: np.ndarray, time: np.ndarray) -> None:
-        self.pair = pair
-        self.timeframe = timeframe
-
-        assert close.size == time.size, f'{close.size} != {time.size}'
-        self.close = close
-        self.time = time
+    def __init__(self, universe: Universe) -> None:
+        self.pair = universe.pair
+        self.timeframe = universe.timeframe
+        self.close = universe.close
+        self.time = universe.time
+        assert self.close.size == self.time.size, f'{self.close.size} != {self.time.size}'
 
     def __call__(self) -> dict:
         # TODO: do not create levels with each request...
@@ -86,11 +86,10 @@ class Levels(object):
         lvls = [FuzzyLevel(lvl, last_price) for lvl in lvls]
         lvls = [lvl.update(lvls) for lvl in lvls]
 
-        resistance = list(filter(lambda x: x.dist > 0, lvls))
+        resistance = list(filter(lambda x: x.dist >= 0, lvls))
         support = list(filter(lambda x: x.dist <= 0, lvls))
 
         output = []
-        # TODO: what if same score but different strength?
         if resistance:
             resistance.sort(key=lambda x: x.score)
             resistance = list(filter(lambda x: x.score == resistance[-1].score, resistance))
@@ -100,7 +99,7 @@ class Levels(object):
         if support:
             support.sort(key=lambda x: x.score)
             support = list(filter(lambda x: x.score == support[-1].score, support))
-            support.sort(key=lambda x: x.dist)
+            support.sort(key=lambda x: x.dist, reverse=True)
             output.append(support[0])
 
         return list(map(lambda x: x.json(), output))

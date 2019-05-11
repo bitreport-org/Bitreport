@@ -81,11 +81,3 @@ def skews_up(close: np.ndarray, time: np.ndarray) -> list:
 
 def skews_down(close: np.ndarray, time: np.ndarray) -> list:
     return skews(bottoms(close, time))
-
-
-# def all_borders(close: np.ndarray):
-#     tops = tops(close)
-#     bottoms = bottoms(close)
-#     skews_up = skews(tops)
-#     skews_down = skews(bottoms)
-

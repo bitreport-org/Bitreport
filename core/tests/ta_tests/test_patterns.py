@@ -1,6 +1,7 @@
 import numpy as np
 
 from app.ta.patterns.double import make_double
+from app.ta.charting.triangle import Universe
 
 
 class TestTA:
@@ -9,7 +10,14 @@ class TestTA:
         b = np.arange(30, 40)
         c = np.concatenate([a, b[::-1], b, a[::-1]])
 
-        d = make_double(np.arange(c.size), c, type_='top')
+        universe = Universe(
+            close=c,
+            time=np.arange(c.size),
+            timeframe='test',
+            pair='test'
+        )
+
+        d = make_double(universe, type_='top')
 
         # assert structure
         assert isinstance(d, dict)
@@ -26,8 +34,15 @@ class TestTA:
         a = np.arange(0, 40)
         b = np.arange(0, 5)
         c = np.concatenate([a[::-1], b, b[::-1], a])
+        universe = Universe(
+            close=c,
+            time=np.arange(c.size),
+            timeframe='test',
+            pair='test'
+        )
 
-        d = make_double(np.arange(c.size), c, type_='bottom')
+        d = make_double(universe, type_='bottom')
+
         assert isinstance(d, dict)
         assert 'info' in d.keys() and isinstance(d['info'], list)
         for k in ['A', 'B', 'C']:
