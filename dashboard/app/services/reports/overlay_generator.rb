@@ -27,6 +27,7 @@ module Reports
       image = Vips::Image.new_from_file(background, access: :sequential).insert(@plot, 0, 110)
       image = timestamp.ifthenelse([54, 54, 49], symbol.ifthenelse([238], image, blend: true), blend: true)
       image = description.ifthenelse([54, 54, 49], image, blend: true)
+      image = version.ifthenelse([54, 54, 49], image, blend: true)
       image.write_to_buffer('.png')
     end
 
@@ -49,6 +50,12 @@ module Reports
       description.add_header('Comment')
       description.add_text(comment.strip)
       description.image
+    end
+
+    def version
+      version = TextLayerGenerator.new(x_offset: 1995, y_offset: 0, font_size: 19)
+      version.add_text("v#{Settings.version}", float: :right)
+      version.image
     end
   end
 end

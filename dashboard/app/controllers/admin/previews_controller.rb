@@ -4,7 +4,7 @@ module Admin
   class PreviewsController < AdminController
     def show
       timeframe = params[:timeframe] || 6
-      indicators = (params[:indicators] || 'RSI,wedge,double_top,double_bottom').split(',')
+      indicators = (params[:indicators] || 'RSI,wedge,double_top,double_bottom,levels').split(',')
       report = Reports::Creator.new(pair: pair,
                                     timeframe: timeframe,
                                     indicators: indicators).call
