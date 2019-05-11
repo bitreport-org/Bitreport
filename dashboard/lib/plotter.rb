@@ -116,7 +116,7 @@ class Plotter
   end
 
   def draw_levels
-    return unless indicators['levels']['levels']
+    return unless indicators['levels'] && indicators['levels']['levels']
 
     out = []
     indicators['levels']['levels'].each do |level|
@@ -124,7 +124,7 @@ class Plotter
       next unless (lows.min..highs.max).cover?(value)
 
       out << <<~TXT
-        set arrow from #{level['first_occurrence']},#{value} to #{timestamps.last},#{value} nohead lc rgb "#c0#{YELLOW}" lw 1.5 dt 1
+        set arrow from #{level['first_occurrence']},#{value} to #{timestamps.last},#{value} nohead lc rgb "#70#{YELLOW}" lw 1.5 dt 2
       TXT
     end
     out
@@ -227,8 +227,8 @@ class Plotter
       next unless indicator && indicator['A']
 
       out << <<~TXT
-        set label at #{indicator['A'][0]}, #{indicator['A'][1]} "#{info[:symbol]}" center font ',20' front textcolor '#{info[:color]}' offset #{info[:offset]}
-        set label at #{indicator['C'][0]}, #{indicator['C'][1]} "#{info[:symbol]}" center font ',20' front textcolor '#{info[:color]}' offset #{info[:offset]}
+        set label at #{indicator['A'][0]}, #{indicator['A'][1]} "#{info[:symbol]}" center font ',14' front textcolor '#{info[:color]}' offset #{info[:offset]}
+        set label at #{indicator['C'][0]}, #{indicator['C'][1]} "#{info[:symbol]}" center font ',14' front textcolor '#{info[:color]}' offset #{info[:offset]}
       TXT
     end
     out
