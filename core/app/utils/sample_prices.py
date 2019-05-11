@@ -48,6 +48,12 @@ def double_top() -> Sample:
     points = [Point(float(x), float(y)) for x, y in zip(xs, ys)]
     return Sample(make_sample(points), points)
 
+def double_bottom() -> Sample:
+    xs = [0, 40, 80, 100, 120, 160, 200]
+    ys = [100, 50, 0, 20, 0, 50, 100]
+    points = [Point(float(x), float(y)) for x, y in zip(xs, ys)]
+    return Sample(make_sample(points), points)
+
 
 def append_new(s: Sample, ys: np.ndarray) -> Sample:
     d = s.points[-1].x - s.points[-2].x
@@ -96,7 +102,8 @@ def init_samples(influx: InfluxDBClient) -> None:
         ('asc', asc_triangle()),
         ('desc', desc_triangle()),
         ('symm', symm_triangle()),
-        ('dt', double_top())
+        ('dt', double_top()),
+        ('db', double_bottom())
     ]
 
     for name, s in samples:
