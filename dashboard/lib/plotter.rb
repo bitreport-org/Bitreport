@@ -26,8 +26,8 @@ class Plotter
   }.freeze
 
   DOUBLES = {
-    'double_top' => { color: "#70#{RED}", symbol: '▼', offset: '0,1', name: 'Double Top' },
-    'double_bottom' => { color: "#70#{GREEN}", symbol: '▲', offset: '0,-1', name: 'Double Bottom' }
+    'double_top' => { color: "#70#{RED}", symbol: '▼', offset: '0,1.5', name: 'Double Top' },
+    'double_bottom' => { color: "#70#{GREEN}", symbol: '▲', offset: '0,-1.5', name: 'Double Bottom' }
   }.freeze
 
   def initialize(timestamps:, indicators: {})
@@ -123,8 +123,11 @@ class Plotter
       value = level['value']
       next unless (lows.min..highs.max).cover?(value)
 
+      type = value > closes.last ? 'resistance' : 'support'
+
       out << <<~TXT
         set arrow from #{level['first_occurrence']},#{value} to #{timestamps.last},#{value} nohead lc rgb "#70#{YELLOW}" lw 1.5 dt 2
+        set label at #{timestamps.last}, #{value} "#{type} #{value}" right font ',13' front textcolor '#70#{YELLOW}' offset -0.9,0.5
       TXT
     end
     out
@@ -224,7 +227,7 @@ class Plotter
     out = []
     DOUBLES.each do |name, info|
       indicator = indicators[name]
-      next unless indicator && indicator['A']
+      next unless indicator && indicator['A']&.any?
 
       out << <<~TXT
         set label at #{indicator['A'][0]}, #{indicator['A'][1]} "#{info[:symbol]}" center font ',14' front textcolor '#{info[:color]}' offset #{info[:offset]}

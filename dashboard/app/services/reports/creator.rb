@@ -35,7 +35,11 @@ module Reports
 
     def comment
       @comment ||= Reports::CommentGenerator.new(data: chart_data,
-                                                 indicators: indicators).call
+                                                 indicators: indicators).call + working_hard_text
+    end
+
+    def working_hard_text
+      "\n\nWe're working hard on the comments section. Stay tuned for future updates!"
     end
 
     def plot
