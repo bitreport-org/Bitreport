@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Plotter
-  attr_reader :timestamps, :indicators, :levels, :step, :margin, :filename
+  attr_reader :timestamps, :indicators, :step, :margin, :filename
 
   WHITE = 'e6e6e6'
   BLACK = '363631'
@@ -30,10 +30,9 @@ class Plotter
     'double_bottom' => { color: "#70#{GREEN}", symbol: '▲', offset: '0,-1', name: 'Double Bottom' }
   }.freeze
 
-  def initialize(timestamps:, indicators: {}, levels: {})
+  def initialize(timestamps:, indicators: {})
     @timestamps = timestamps
     @indicators = indicators
-    @levels = levels
     @step = timestamps[1].to_i - timestamps[0].to_i
     @margin = (10 * (highs.max.to_f - lows.min.to_f) / 100)
     @filename = 'plot-' + SecureRandom.uuid + '.png'
@@ -117,14 +116,15 @@ class Plotter
   end
 
   def draw_levels
-    return unless levels
+    return unless indicators['levels']['levels']
 
     out = []
-    levels.each_with_index do |level, i|
-      next unless (lows.min..highs.max).cover?(level)
+    indicators['levels']['levels'].each do |level|
+      value = level['value']
+      next unless (lows.min..highs.max).cover?(value)
 
       out << <<~TXT
-        set arrow #{i + 1} from #{timestamps.first},#{level} to #{timestamps.last},#{level} nohead lc rgb "#c0#{WHITE}" lw 1.5 dt 2
+        set arrow from #{level['first_occurrence']},#{value} to #{timestamps.last},#{value} nohead lc rgb "#c0#{YELLOW}" lw 1.5 dt 1
       TXT
     end
     out
@@ -224,7 +224,7 @@ class Plotter
     out = []
     DOUBLES.each do |name, info|
       indicator = indicators[name]
-      next unless indicator['A']
+      next unless indicator && indicator['A']
 
       out << <<~TXT
         set label at #{indicator['A'][0]}, #{indicator['A'][1]} "#{info[:symbol]}" center font ',20' front textcolor '#{info[:color]}' offset #{info[:offset]}
