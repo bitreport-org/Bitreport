@@ -1,6 +1,6 @@
 import numpy as np
 import json
-from typing import Union
+from typing import Union, List, Tuple
 from collections import namedtuple
 from sqlalchemy import cast, String
 
@@ -9,10 +9,10 @@ from .constructors import Point, Skew
 
 SkewPoint = Union[Point, Skew]
 Setup = namedtuple('Setup', ['up', 'down', 'params', 'score1', 'score2'])
-Universe = namedtuple('Universe', ['pair', 'timeframe', 'close', 'time'])
+Universe = namedtuple('Universe', ['pair', 'timeframe', 'close', 'time', 'future_time'])
 
 
-class Triangle:
+class BaseChart:
     # Universe setup
     _timeframe: str
     _pair: str
@@ -29,6 +29,7 @@ class Triangle:
 
     def __init__(self,
                  universe: Universe,
+                 remake: bool = False,
                  **kwargs) -> None:
 
         assert universe.close.size == universe.time.size
@@ -38,15 +39,16 @@ class Triangle:
         self._close = universe.close
         self._time = universe.time
         self._last_point = universe.time[-1]
+        self._future_time = universe.future_time
 
         # Check if there is an setup
-        self.setup = self._find(**kwargs)
-        if self.setup:
-            self._create_info()
-
-            # TODO: only selected patterns will be
-            #  saved so this should be out if init?
-            self._save()
+        if remake:
+            self._remake(**kwargs)
+        else:
+            self.setup = self._find(**kwargs)
+            if self.setup:
+                self._extend()
+                self._create_info()
 
     def json(self) -> Union[dict, None]:
         if not self.setup:
@@ -62,7 +64,7 @@ class Triangle:
         #             signal=self.signal,
         #             sentiment=self.sentiment)
 
-    def _save(self) -> None:
+    def save(self) -> None:
         if not self.setup:
             return None
 
@@ -132,6 +134,23 @@ class Triangle:
             return float(score)
         return None
 
+    def _extend(self):
+        ua, ub = self.setup.params['up']
+        da, db = self.setup.params['down']
+        extension_up = ua * self. _future_time + ub
+        extension_down = da * self._future_time + db
+
+        # till crossing
+        i = sum(1 for u, d in zip(extension_up, extension_down) if u >= d)
+
+        self.setup = Setup(
+            up=np.concatenate([self.setup.up, extension_up[:i]]),
+            down=np.concatenate([self.setup.down, extension_down[:i]]),
+            params=self.setup.params,
+            score1=self.setup.score1,
+            score2=self.setup.score2
+        )
+
     def _find(self, **kwargs) -> Union[Setup, None]:
         NotImplemented()
         return None
@@ -140,18 +159,6 @@ class Triangle:
         NotImplemented()
         return None
 
-
-def compare(t1: Triangle, t2: Triangle) -> Union[Triangle, None]:
-    if t1 and t2:
-        if t1.setup and t2.setup:
-            if t1.setup.score1 >= t2.setup.score1:
-                return t1
-            return t2
-
-        if t1.setup:
-            return t1
-
-        if t2.setup:
-            return t2
-
-    return None
+    def _remake(self, **kwargs) -> None:
+        NotImplemented()
+        return None

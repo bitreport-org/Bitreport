@@ -4,7 +4,7 @@ import string
 
 from app.ta.levels import Levels
 from app.api.database import Level
-from app.ta.charting.triangle import Universe
+from app.ta.charting.base import Universe
 
 
 class TestLevels:
@@ -24,7 +24,8 @@ class TestLevels:
             pair=''.join(random.choice(string.ascii_letters) for _ in range(12)),
             timeframe='test_tf',
             close=close,
-            time=self._time(close)
+            time=self._time(close),
+            future_time=np.array([])
         )
         lvl = Levels(universe)
         with app.ctx:

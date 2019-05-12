@@ -1,7 +1,7 @@
 import numpy as np
 
 from app.ta.patterns.double import make_double
-from app.ta.charting.triangle import Universe
+from app.ta.charting.base import Universe
 
 
 class TestTA:
@@ -14,7 +14,8 @@ class TestTA:
             close=c,
             time=np.arange(c.size),
             timeframe='test',
-            pair='test'
+            pair='test',
+            future_time=np.array([])
         )
 
         d = make_double(universe, type_='top')
@@ -38,7 +39,8 @@ class TestTA:
             close=c,
             time=np.arange(c.size),
             timeframe='test',
-            pair='test'
+            pair='test',
+            future_time=np.array([])
         )
 
         d = make_double(universe, type_='bottom')

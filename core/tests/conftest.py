@@ -122,7 +122,7 @@ def indicators_names():
 
 @pytest.fixture
 def charting_names():
-    return ['wedge', 'levels', 'channel', 'double_top', 'double_bottom']
+    return ['wedge', 'levels', 'double_top', 'double_bottom']
 
 
 @pytest.fixture

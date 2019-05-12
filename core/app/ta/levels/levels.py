@@ -3,7 +3,7 @@ from app.api.database import Level
 from app.api import db
 from app.ta.levels.checker import is_level
 from app.ta.levels.fuzzy_level import FuzzyLevel
-from app.ta.charting.triangle import Universe
+from app.ta.charting.base import Universe
 
 
 class Levels(object):

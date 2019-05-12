@@ -9,10 +9,9 @@ from scipy.stats import linregress
 
 import app.ta.indicators as indicators
 import app.ta.charting as charting
-from app.ta.channels import Channel
 from app.ta.patterns import make_double
 from app.ta.levels import Levels
-from app.ta.charting.triangle import Universe
+from app.ta.charting.base import Universe
 from app.utils import get_candles, generate_dates, get_function_list
 
 
@@ -118,17 +117,18 @@ class PairData:
             pair=self.pair,
             timeframe=self.timeframe,
             close=close[-self.limit:],
-            time=dates[:-self.margin]
+            time=dates[:-self.margin],
+            future_time=dates[-self.margin:]
         )
 
         # Channels
         empty_pattern = {'info': [], 'upper_band': [], 'lower_band': []}
-        try:
-            ch = Channel(universe)
-            indicators_values['channel'] = ch.make()
-        except (ValueError, AssertionError):
-            indicators_values['channel'] = empty_pattern
-            logging.error(f'Indicator channel, error: /n {traceback.format_exc()}')
+        # try:
+        #     ch = Channel(universe)
+        #     indicators_values['channel'] = ch.make()
+        # except (ValueError, AssertionError):
+        #     indicators_values['channel'] = empty_pattern
+        #     logging.error(f'Indicator channel, error: /n {traceback.format_exc()}')
         
         # Wedges
         try:

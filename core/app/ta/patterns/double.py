@@ -1,6 +1,6 @@
 import numpy as np
 from app.ta.charting.constructors import Point
-from app.ta.charting.triangle import Universe
+from app.ta.charting.base import Universe
 
 
 def _angle(a: Point, b: Point, c: Point) -> float:
@@ -40,6 +40,8 @@ def make_double(universe: Universe,
     -------
     dt: dictionary with params A, B, C which represents the following points in the pattern
     """
+    # TODO: assert that middle point is at least at some height?
+
     x_dates = universe.time
     close = universe.close
     assert x_dates.size == close.size, f'Double pattern, x, y sizes differ: {x_dates.size}, {close.size}'
