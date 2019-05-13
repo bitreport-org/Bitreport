@@ -107,7 +107,7 @@ class PairData:
         for indicator in indicators_list:
             try:
                 indicators_values[indicator.__name__] = indicator(self.data)
-            except (ValueError, AssertionError):
+            except:
                 logging.error(f'Indicator {indicator}, error: /n {traceback.format_exc()}')
 
         close: np.ndarray = self.data.get('close')

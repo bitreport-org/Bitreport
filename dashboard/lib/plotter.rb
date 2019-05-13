@@ -128,7 +128,7 @@ class Plotter
 
       out << <<~TXT
         set arrow from #{level['first_occurrence']},#{value} to #{timestamps.last},#{value} nohead lc rgb "#70#{YELLOW}" lw 1.5 dt 2
-        set label at #{timestamps.last}, #{value} "#{type} #{value}" right font ',13' front textcolor '#70#{YELLOW}' offset -0.9,0.5
+        set label at #{timestamps.last}, #{value} "#{type} #{formatted_value}" right font ',13' front textcolor '#70#{YELLOW}' offset -0.9,0.5
       TXT
     end
     out
