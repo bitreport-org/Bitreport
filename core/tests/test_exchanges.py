@@ -1,7 +1,8 @@
-from app.exchanges import fill_pair, Bitfinex, Bittrex, Binance, Poloniex
-from app.services import get_candles
+from app.exchanges import Bitfinex, Bittrex, Binance, Poloniex
+from app.utils import get_candles
 import pytest
 import numpy as np
+
 
 class TestFillExchange:
     @staticmethod
@@ -29,13 +30,11 @@ class TestFillExchange:
         assert candles['high'].size == limit
         assert candles['low'].size == limit
 
-
     @pytest.mark.vcr(match_on=['host', 'path'], ignore_localhost=True)
     def test_bitfinex_fill(self, influx):
         pair = 'BTCUSD'
         Bitfinex(influx).fill(pair), f'Failed to fill from Bitfinex'
         self.check_candles_structure(influx, pair)
-
 
     @pytest.mark.vcr(match_on=['uri'], ignore_localhost=True)
     def test_binance_fill(self, influx):
@@ -54,7 +53,6 @@ class TestFillExchange:
         pair = 'SCBTC'
         Poloniex(influx).fill(pair), f'Failed to fill from Poloniex'
         self.check_candles_structure(influx, pair)
-
 
 
 class TestErrorExchange:

@@ -1,4 +1,6 @@
-[![CircleCI](https://circleci.com/gh/nuclearpinguin/Bitreport/tree/master.svg?style=svg&circle-token=e676d0a74df9747c7251c49b88072ce4e8fe36ef)](https://circleci.com/gh/nuclearpinguin/Bitreport/tree/master)
+[![CircleCI](https://circleci.com/gh/nuclearpinguin/Bitreport/tree/master.svg?style=svg&circle-token=e676d0a74df9747c7251c49b88072ce4e8fe36ef)](https://circleci.com/gh/nuclearpinguin/Bitreport/tree/master) 
+[![CodeFactor](https://www.codefactor.io/repository/github/nuclearpinguin/bitreport/badge)](https://www.codefactor.io/repository/github/nuclearpinguin/bitreport)
+
 
 # Bitreport
 Daily bitfinex report

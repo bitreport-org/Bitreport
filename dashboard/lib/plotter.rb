@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Plotter
-  attr_reader :timestamps, :indicators, :levels, :step, :margin, :filename
+  attr_reader :timestamps, :indicators, :step, :margin, :filename
 
   WHITE = 'e6e6e6'
   BLACK = '363631'
@@ -25,12 +25,16 @@ class Plotter
     'ALLIGATOR' => { colors: %W[#70#{BLUE} #70#{GREEN} #70#{RED}], attributes: %w[jaw lips teeth], name: 'Alligator' }
   }.freeze
 
-  def initialize(timestamps:, indicators: {}, levels: {})
+  DOUBLES = {
+    'double_top' => { color: "#70#{RED}", symbol: '▼', offset: '0,1.5', name: 'Double Top' },
+    'double_bottom' => { color: "#70#{GREEN}", symbol: '▲', offset: '0,-1.5', name: 'Double Bottom' }
+  }.freeze
+
+  def initialize(timestamps:, indicators: {})
     @timestamps = timestamps
     @indicators = indicators
-    @levels = levels
     @step = timestamps[1].to_i - timestamps[0].to_i
-    @margin = (5 * (highs.max.to_f - lows.min.to_f) / 100)
+    @margin = (10 * (highs.max.to_f - lows.min.to_f) / 100)
     @filename = 'plot-' + SecureRandom.uuid + '.png'
     @plots = []
     @data = []
@@ -41,6 +45,7 @@ class Plotter
     out << terminal
     out << upper_preamble
     out << draw_levels
+    out << draw_doubles
     prepare_volume
     prepare_bands_bg
     prepare_ichimoku_bg
@@ -111,12 +116,19 @@ class Plotter
   end
 
   def draw_levels
-    return unless levels
+    return unless indicators['levels'] && indicators['levels']['levels']
+
     out = []
-    levels.each_with_index do |level, i|
-      next unless (lows.min..highs.max).cover?(level)
+    indicators['levels']['levels'].each do |level|
+      value = level['value']
+      next unless (lows.min..highs.max).cover?(value)
+
+      type = value > closes.last ? 'resistance' : 'support'
+      formatted_value = value >= 100 ? value.round : value >= 1 ? value.round(2) : value
+
       out << <<~TXT
-        set arrow #{i + 1} from #{timestamps.first},#{level} to #{timestamps.last},#{level} nohead lc rgb "#c0#{WHITE}" lw 1.5 dt 2
+        set arrow from #{level['first_occurrence']},#{value} to #{timestamps.last},#{value} nohead lc rgb "#70#{YELLOW}" lw 1.5 dt 2
+        set label at #{timestamps.last}, #{value} "#{type} #{formatted_value}" right font ',13' front textcolor '#70#{YELLOW}' offset -0.9,0.5
       TXT
     end
     out
@@ -131,6 +143,7 @@ class Plotter
     BANDS.each do |name, info|
       indicator = indicators[name]
       next unless indicator
+
       @plots << "using 1:2:3 notitle with filledcurves linecolor '#{info[:colors][0]}'" <<
         "using 1:2 notitle with lines linecolor '#{info[:colors][1]}' lw 1.5" <<
         "using 1:3 notitle with lines linecolor '#{info[:colors][1]}' lw 1.5"
@@ -141,6 +154,7 @@ class Plotter
 
   def prepare_ichimoku_bg
     return unless indicators['ICM']
+
     @plots << "using 1:2:3 notitle with filledcurves above linecolor '#dd#{GREEN}'" <<
       "using 1:2:3 notitle with filledcurves below linecolor '#dd#{RED}'" <<
       "using 1:2 notitle with lines linecolor '#88#{GREEN}' lw 1.5" <<
@@ -158,6 +172,7 @@ class Plotter
     BANDS.each do |name, info|
       indicator = indicators[name]
       next unless indicator && info[:middle]
+
       @plots << "using 1:2 title '#{info[:name]}' with lines linecolor '#{info[:colors][1]}' lw 1.5"
       @data << timestamps.zip(indicator['middle_band']).map { |candle| candle.join(' ') }.push('e')
     end
@@ -165,12 +180,14 @@ class Plotter
 
   def prepare_ichimoku_fg
     return unless indicators['ICM']
+
     @plots << "using 1:2 title 'Ichimoku Base Line' with lines linecolor '#60#{RED}' lw 1.5"
     @data << timestamps.zip(indicators['ICM']['base_line']).map { |candle| candle.join(' ') }.push('e')
   end
 
   def prepare_sar
     return unless indicators['SAR']
+
     @plots << "using 1:2 title 'SAR' with points lt 6 ps 0.3 lc '##{BLUE}'"
     @data << timestamps.zip(indicators['SAR']['sar']).map { |candle| candle.join(' ') }.push('e')
   end
@@ -179,6 +196,7 @@ class Plotter
     AVERAGES.each do |name, info|
       indicator = indicators[name]
       next unless indicator
+
       @plots << "using 1:2 title '#{info[:name]} #{info[:attributes][0]}' with lines lw 1.5 lc '#{info[:colors][0]}'" <<
         "using 1:3 title '#{info[:name]} #{info[:attributes][1]}' with lines lw 1.5 lc '#{info[:colors][1]}'" <<
         "using 1:4 title '#{info[:name]} #{info[:attributes][2]}' with lines lw 1.5 lc '#{info[:colors][2]}'"
@@ -206,12 +224,28 @@ class Plotter
     @data << timestamps.zip(prices, vals, counts).select { |el| el[1] && el[3] >= 9 }.map { |candle| candle[0..2].join(' ') }.push('e')
   end
 
+  def draw_doubles
+    out = []
+    DOUBLES.each do |name, info|
+      indicator = indicators[name]
+      next unless indicator && indicator['A']&.any?
+
+      out << <<~TXT
+        set label at #{indicator['A'][0]}, #{indicator['A'][1]} "#{info[:symbol]}" center font ',14' front textcolor '#{info[:color]}' offset #{info[:offset]}
+        set label at #{indicator['C'][0]}, #{indicator['C'][1]} "#{info[:symbol]}" center font ',14' front textcolor '#{info[:color]}' offset #{info[:offset]}
+      TXT
+    end
+    out
+  end
+
   def commands
     "plot '-' " + @plots.join(",\\\n'-' ") + "\n" + @data.join("\n")
   end
 
   def lower_preamble(label, margin: 0, yrange: '*:*', ytics: [0])
     <<~GNU
+      unset label
+
       set size 1.0,0.25
       set origin 0.0,0.05
 

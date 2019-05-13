@@ -21,7 +21,9 @@ module Tweets
     def run
       return if symbols.blank?
 
-      report = Reports::Creator.new(pair: pair, timeframe: 6, indicators: %w[RSI wedge]).call
+      report = Reports::Creator.new(pair: pair,
+                                    timeframe: 6,
+                                    indicators: %w[RSI wedge double_top double_bottom levels]).call
       Tweets::Publisher.new(twitter_post: twitter_post,
                             message: "Hi. Here is your report for #{pair.symbol}",
                             report: report).call

@@ -4,14 +4,19 @@ import logging
 import config
 from typing import List, Tuple
 from influxdb import InfluxDBClient
-
 from scipy.stats import linregress
-from app.services import get_candles, generate_dates, get_function_list
-from app.ta import indicators, levels, channels, wedge, patterns
+
+
+import app.ta.indicators as indicators
+import app.ta.charting as charting
+from app.ta.patterns import make_double
+from app.ta.levels import Levels
+from app.ta.charting.base import Universe
+from app.utils import get_candles, generate_dates, get_function_list
 
 
 class PairData:
-    def __init__(self, influx: InfluxDBClient, pair: str, timeframe: str, limit: int):
+    def __init__(self, influx: InfluxDBClient, pair: str, timeframe: str, limit: int) -> None:
         """
         To return data without NaN values indicators are calculated on period of
         length: limit + magic_limit, however data returned by prepare() has length = limit
@@ -50,7 +55,7 @@ class PairData:
         if not self.data.get('date'):
             message = dict(msg=f'No data for {self.pair+self.timeframe}')
             logging.error(message)
-            return message, 404
+            return message, 204
 
         # Price data and information
         price = {k: self.data[k].tolist()[-self.limit:] for k in ['open', 'high', 'close', 'low']}
@@ -64,12 +69,7 @@ class PairData:
         dates = generate_dates(self.data['date'], self.timeframe, self.margin)
         self.dates = dates[-(self.limit + self.margin):]
 
-        # Handle not enough data
-        if self.data['close'].size < self.limit + self.magic_limit:
-            indicators_dict = dict()
-        else:
-            # Prepare indicators
-            indicators_dict = self._make_indicators()
+        indicators_dict = self._make_indicators()
 
         indicators_dict.update(price=price)
         indicators_dict.update(volume=volume)
@@ -78,29 +78,8 @@ class PairData:
         return response, 200
 
     @staticmethod
-    def _make_price_info(close: list) -> List[str]:
+    def _make_price_info(close: np.ndarray) -> List[str]:
         info_price = []
-        if isinstance(close, list):
-            close = np.array(close)
-
-        # Last moves tokens
-        n = int(0.70*close.size) 
-        s70 = linregress(np.arange(n), close[-n:]).slope
-        s20 = linregress(np.arange(20), close[-20:]).slope
-        s5 = linregress(np.arange(5), close[-5:]).slope
-        if s5 > s20 > s70 > 0:
-            info_price.append('MOVE_STRONG_UP')
-        elif s5 < s20 < s70 < 0:
-            info_price.append('MOVE_STRONG_DOWN')
-        elif s70 < 0 and s20 < 0 and s5 > 0:
-            info_price.append('MOVE_SMALL_UP')
-        elif s70 > 0 and s20 > 0 and s5 < 0:
-            info_price.append('MOVE_SMALL_DOWN')
-        elif s70 < 0 and s20 > 0 and s5 > 0:
-            info_price.append('MOVE_BIG_UP')
-        elif s70 > 0 and s20 < 0 and s5 < 0:
-            info_price.append('MOVE_BIG_DOWN')
-
         return info_price
 
     def _make_volume_info(self, volume: np.array) -> List[str]:
@@ -128,57 +107,59 @@ class PairData:
         for indicator in indicators_list:
             try:
                 indicators_values[indicator.__name__] = indicator(self.data)
-            except ValueError:
+            except:
                 logging.error(f'Indicator {indicator}, error: /n {traceback.format_exc()}')
 
-
-        close = self.data.get('close')
+        close: np.ndarray = self.data.get('close')
         dates = np.array(self.dates)
 
+        universe = Universe(
+            pair=self.pair,
+            timeframe=self.timeframe,
+            close=close[-self.limit:],
+            time=dates[:-self.margin],
+            future_time=dates[-self.margin:]
+        )
+
         # Channels
-        try:
-            ch = channels.Channel(self.pair, self.timeframe, close, dates)
-            indicators_values['channel'] = ch.make()
-        except ValueError:
-            logging.error(f'Indicator channel, error: /n {traceback.format_exc()}')
-        try:
-            indicators_values['channel12'] = channels.make_long_channel(self.influx, self.pair, '12h', dates)
-        except ValueError:
-            logging.error(f'Indicator channel12, error: /n {traceback.format_exc()}')
+        empty_pattern = {'info': [], 'upper_band': [], 'lower_band': []}
+        # try:
+        #     ch = Channel(universe)
+        #     indicators_values['channel'] = ch.make()
+        # except (ValueError, AssertionError):
+        #     indicators_values['channel'] = empty_pattern
+        #     logging.error(f'Indicator channel, error: /n {traceback.format_exc()}')
         
         # Wedges
         try:
-            wg = wedge.Wedge(self.pair, self.timeframe, close[self.magic_limit:], dates)
-            indicators_values['wedge'] = wg.make()
-        except ValueError:
+            wg = charting.Charting(universe)
+            indicators_values['wedge'] = wg()
+        except (ValueError, AssertionError):
+            indicators_values['wedge'] = empty_pattern
             logging.error(f'Indicator wedge, error: /n {traceback.format_exc()}')
 
-        try:
-            indicators_values['wedge12'] = wedge.make_long_wedge(self.influx, self.pair, '12h', dates)
-        except ValueError:
-            logging.error(f'Indicator wedge12, error: /n {traceback.format_exc()}')
-
         # Patterns
+        empty_pattern = {'info': [], 'A': (), 'B': (), 'C': ()}
         try:
-            dt = patterns.make_double(x_dates=dates[: -self.margin],
-                                      close=close[self.magic_limit:], type_='top')
+            dt = make_double(universe, type_='top')
             indicators_values['double_top'] = dt
-        except ValueError:
+        except (ValueError, AssertionError):
+            indicators_values['double_top'] = empty_pattern
             logging.error(f'Indicator double top, error: /n {traceback.format_exc()}')
 
         try:
-            db = patterns.make_double(x_dates=dates[: -self.margin],
-                                      close=close[self.magic_limit:], type_='bottom')
+            db = make_double(universe, type_='bottom')
             indicators_values['double_bottom'] = db
-        except ValueError:
+        except (ValueError, AssertionError):
+            indicators_values['double_bottom'] = empty_pattern
             logging.error(f'Indicator double bottom, error: /n {traceback.format_exc()}')
 
         # Levels
         try:
-            lvl = levels.Levels(self.pair, self.timeframe, close, dates)
-            indicators_values['levels'] = lvl.make()
-        except ValueError:
+            lvl = Levels(universe)
+            indicators_values['levels'] = lvl()
+        except (ValueError, AssertionError):
+            indicators_values['levels'] = {'info': [], 'levels': []}
             logging.error(traceback.format_exc())
-            indicators_values.update(levels={'support': [], 'resistance': [], 'auto': [], 'info': []})
 
         return indicators_values

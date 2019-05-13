@@ -1,7 +1,8 @@
 import numpy as np
 
-def detect_peaks(x, mph=None, mpd=1, threshold=0, edge='rising',
-                 kpsh=False, valley=False, show=False, ax=None):
+
+def detect_peaks(x: np.ndarray, mph: float=None, mpd: float=1.0, threshold: float=0.0, edge: str='rising',
+                 kpsh: bool=False, valley: bool=False) -> np.ndarray:
     """Detect peaks in data based on their amplitude and other features.
 
     Parameters
@@ -95,14 +96,5 @@ def detect_peaks(x, mph=None, mpd=1, threshold=0, edge='rising',
                 idel[i] = 0  # Keep current peak
         # remove the small peaks and sort back the indices by their occurrence
         ind = np.sort(ind[~idel])
-
-    if show:
-        if indnan.size:
-            x[indnan] = np.nan
-        if valley:
-            x = -x
-            if mph is not None:
-                mph = -mph
-        _plot(x, mph, mpd, threshold, edge, valley, ax, ind)
 
     return ind

@@ -2,31 +2,7 @@
 import pandas as pd
 import numpy as np
 from influxdb import InfluxDBClient
-import sentry_sdk
-from sentry_sdk.integrations.flask import FlaskIntegration
-import config
-
-
-def sentry_setup(active: bool) -> bool:
-    """
-    Activates Sentry logging.
-
-    Parameters
-    ----------
-    active: if True logging to Sentry is activated
-
-    Returns
-    -------
-    bool
-    """
-    if active:
-        sentry_sdk.init(
-            dsn=config.BaseConfig.SENTRY_URL,
-            integrations=[FlaskIntegration()]
-        )
-        return True
-    return False
-
+from config import BaseConfig
 
 def get_candles(influx: InfluxDBClient, pair: str, timeframe: str, limit: int) -> dict:
     """
@@ -73,7 +49,7 @@ def get_candles(influx: InfluxDBClient, pair: str, timeframe: str, limit: int) -
     r = influx.query(q, epoch='s')
     df = pd.DataFrame(list(r.get_points(measurement=measurement)))
 
-    if df.shape[0] != limit:
+    if df.shape[0] < BaseConfig.MAGIC_LIMIT + 5:
         return dict(date=[], open=np.array([]), close=np.array([]),
                     hight=np.array([]), low=np.array([]), volume=np.array([]))
 

@@ -1,5 +1,6 @@
 from config import BaseConfig
 
+
 class TestPairExceptions:
     """
     Tests /pair endpoint and the response with price and TA info.
@@ -9,37 +10,35 @@ class TestPairExceptions:
     limit = 100
 
     def test_no_timeframe(self, app):
-        response = app.get(f'/{self.pair}')
-        assert response.status_code == 404, 'Server faliure!'
+        response = app.client.get(f'/{self.pair}')
+        assert response.status_code == 400, 'Server faliure!'
         assert isinstance(response.get_json(), dict)
         assert 'msg' in response.get_json().keys()
 
     def test_unknown_timeframe(self, app):
-        response = app.get(f'/{self.pair}?timeframe=42h&limit=100')
-        assert response.status_code == 404, 'Server faliure!'
+        response = app.client.get(f'/{self.pair}?timeframe=42h&limit=100')
+        assert response.status_code == 400, 'Server faliure!'
         assert isinstance(response.get_json(), dict)
         assert 'msg' in response.get_json().keys()
 
     def test_no_data(self, app):
-        response = app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
-        assert response.status_code == 404, 'Server faliure!'
-        assert isinstance(response.get_json(), dict)
-        assert 'msg' in response.get_json().keys()
-        assert 'No data' in response.get_json().get('msg')
+        response = app.client.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
+        assert response.status_code == 204, 'Server faliure!'
 
     def test_not_enough_data1h(self, app, filled_influx):
-        response = app.get(f'/TEST?timeframe=1h&limit={self.limit}')
-        assert response.status_code == 404, 'Server faliure!'
+        response = app.client.get(f'/TEST?timeframe=1h&limit={self.limit}')
+        assert response.status_code == 200, 'Server faliure!'
         assert isinstance(response.get_json(), dict)
-        assert 'msg' in response.get_json().keys()
-        assert 'No data' in response.get_json().get('msg')
+        close = response.get_json()['indicators']['price']['close']
+        assert len(close) <= self.limit
 
     def test_not_enough_data12h(self, app, filled_influx):
-        response = app.get(f'/TEST?timeframe=12h&limit={self.limit}')
-        assert response.status_code == 404, 'Server faliure!'
+        response = app.client.get(f'/TEST?timeframe=12h&limit={self.limit}')
+        assert response.status_code == 200, 'Server faliure!'
         assert isinstance(response.get_json(), dict)
-        assert 'msg' in response.get_json().keys()
-        assert 'No data' in response.get_json().get('msg')
+        close = response.get_json()['indicators']['price']['close']
+        assert len(close) <= self.limit
+
 
 class TestPairEndpoint:
     """
@@ -50,17 +49,17 @@ class TestPairEndpoint:
     limit = 100
 
     def test_response_json(self, app, filled_influx):
-        response = app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
+        response = app.client.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
         assert response.status_code == 200, 'Server faliure!'
         response = response.get_json()
 
-        assert  isinstance(response, dict)
+        assert isinstance(response, dict)
         keys = response.keys()
         assert 'dates' in keys
         assert 'indicators' in keys
 
     def test_tstmps(self, app, filled_influx):
-        response = app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
+        response = app.client.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
         assert response.status_code == 200, 'Server faliure!'
         response = response.get_json()
 
@@ -72,7 +71,7 @@ class TestPairEndpoint:
             assert y - x == int(self.timeframe[:-1]) * 3600
 
     def test_indicators_json(self, required_indicators, app, filled_influx):
-        response = app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
+        response = app.client.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
         assert response.status_code == 200, 'Server faliure!'
         response = response.get_json()
 
@@ -84,7 +83,7 @@ class TestPairEndpoint:
             assert k in keys, f'Indicator {k} is absent.'
 
     def test_price_json(self, app, filled_influx):
-        response = app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
+        response = app.client.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
         assert response.status_code == 200, 'Server faliure!'
         response = response.get_json()
 
@@ -105,9 +104,8 @@ class TestPairEndpoint:
         assert 'volume' in vol.keys()
         assert len(vol['volume']) == self.limit
 
-
     def test_indicators_info(self, app, filled_influx):
-        response = app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
+        response = app.client.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
         assert response.status_code == 200, 'Server faliure!'
         response = response.get_json()
 
@@ -119,7 +117,7 @@ class TestPairEndpoint:
             assert 'info' in i.keys(), f'Indicator {k} has no info'
 
     def test_channels(self, charting_names, app, filled_influx):
-        response = app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
+        response = app.client.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
         assert response.status_code == 200, 'Server faliure!'
         response = response.get_json()
 
@@ -134,7 +132,6 @@ class TestPairEndpoint:
                 assert 'lower_band' in ch.keys(), 'No lowerband in channel!'
 
 
-
 class TestPair12:
     """
     Tests /pair endpoint and the response with price and TA info.
@@ -144,17 +141,17 @@ class TestPair12:
     limit = 100
 
     def test_response_json(self, app, filled_influx):
-        response = app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
+        response = app.client.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
         assert response.status_code == 200, 'Server faliure!'
         response = response.get_json()
 
-        assert  isinstance(response, dict)
+        assert isinstance(response, dict)
         keys = response.keys()
         assert 'dates' in keys
         assert 'indicators' in keys
 
     def test_tstmps(self, app, filled_influx):
-        response = app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
+        response = app.client.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
         assert response.status_code == 200, 'Server faliure!'
         response = response.get_json()
 
@@ -166,7 +163,7 @@ class TestPair12:
             assert y - x == int(self.timeframe[:-1]) * 3600
 
     def test_indicators_json(self, required_indicators, app, filled_influx):
-        response = app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
+        response = app.client.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
         assert response.status_code == 200, 'Server faliure!'
         response = response.get_json()
 
@@ -178,7 +175,7 @@ class TestPair12:
             assert k in keys, f'Indicator {k} is absent.'
 
     def test_price_json(self, app, filled_influx):
-        response = app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
+        response = app.client.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
         assert response.status_code == 200, 'Server faliure!'
         response = response.get_json()
 
@@ -199,9 +196,8 @@ class TestPair12:
         assert 'volume' in vol.keys()
         assert len(vol['volume']) == self.limit
 
-
     def test_indicators_info(self, app, filled_influx):
-        response = app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
+        response = app.client.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
         assert response.status_code == 200, 'Server faliure!'
         response = response.get_json()
 
@@ -213,7 +209,7 @@ class TestPair12:
             assert 'info' in i.keys(), f'Indicator {k} has no info'
 
     def test_channels(self, charting_names, app, filled_influx):
-        response = app.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
+        response = app.client.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
         assert response.status_code == 200, 'Server faliure!'
         response = response.get_json()
 

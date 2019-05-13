@@ -22,7 +22,7 @@ module Reports
     def request_data_fill
       return if pair.last_updated_at > timeframe.to_i.hours.ago
 
-      Pairs::Filler.new(pair: pair).call
+      pair.fill
     end
 
     def data_url

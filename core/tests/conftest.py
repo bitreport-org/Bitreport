@@ -1,22 +1,67 @@
 import pytest
-from influxdb import InfluxDBClient
 import os
 import json
+import sqlalchemy
+from influxdb import InfluxDBClient
+from sqlalchemy.exc import ProgrammingError, OperationalError
+from collections import namedtuple
 
-from app.services.helpers import get_function_list
-from app.ta import indicators
-from app.api import create_app
-from app.exchanges.helpers import insert_candles
 import config
+from app.utils.helpers import get_function_list
+import app.ta.indicators as indicators
+from app.api import create_app, database
+from app.exchanges.helpers import insert_candles
+
+
+engine = sqlalchemy.create_engine(f"postgresql://postgres@{config.Test.POSTGRES_HOST}")
+App = namedtuple('App', ['ctx', 'client'])
+
+
+def create_test_db():
+    conn = engine.connect()
+    conn.execute("commit")
+    try:
+        conn.execute("create database test")
+    except ProgrammingError:
+        pass
+    conn.close()
+
+
+def drop_test_db():
+    conn = engine.connect()
+    conn.execute("commit")
+    try:
+        conn.execute("drop database if exists test")
+    except OperationalError:
+        pass
+    conn.close()
 
 
 @pytest.fixture(scope="session")
 def app(request):
     """Session-wide test application."""
-    app = create_app(config.Test)
-    client = app.test_client()
+    influx_conn = database.connect_influx(config.Test.INFLUX)
+    create_test_db()
 
-    return client
+    # Create app and add 500 error endpoint
+    app = create_app(config.Test, influx_conn)
+
+    @app.route('/test/bad/error')
+    def error():
+        raise KeyError
+        return 'Error 1/0', 200
+
+    client = app.test_client()
+    ctx = app.app_context()
+
+    # When testing API use client
+    # When testing TA use ctx
+    yield App(ctx, client)
+
+    # Cleanup
+    with ctx:
+        database.db.engine.dispose()
+    drop_test_db()
 
 
 @pytest.fixture(scope='session')
@@ -77,11 +122,9 @@ def indicators_names():
 
 @pytest.fixture
 def charting_names():
-    return ['wedge', 'levels', 'channel', 'double_top', 'double_bottom']
+    return ['wedge', 'levels', 'double_top', 'double_bottom']
 
 
 @pytest.fixture
-def required_indicators():
-    return [x.__name__ for x in get_function_list(indicators)] + ['price', 'volume', 'wedge',
-                                                                  'levels', 'channel', 'double_top',
-                                                                  'double_bottom']
+def required_indicators(indicators_names, charting_names):
+    return indicators_names + charting_names

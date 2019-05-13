@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
-import time
-import traceback
 import requests
 import logging
-from datetime import datetime as dt
-from app.exchanges.helpers import insert_candles, check_last_tmstmp
+from app.exchanges.helpers import insert_candles, check_last_tmstmp, downsample
 
 
 class Poloniex:
@@ -21,22 +18,7 @@ class Poloniex:
         return end_pair + '_' + start_pair
 
     def _downsample(self, pair, from_tf, to_tf):
-        time_now = dt.now().strftime("%Y-%m-%dT%H:%M:%SZ")
-        try:
-            query = f"""
-                        SELECT 
-                        first(open) AS open, 
-                        max(high) AS high, 
-                        min(low) AS low, 
-                        last(close) AS close, 
-                        sum(volume) AS volume 
-                        INTO {pair+to_tf} FROM {pair+from_tf} WHERE time <= '{time_now}' GROUP BY time({to_tf}), *
-
-                """
-            self.influx.query(query)
-        except:
-            logging.error(f'FAILED {to_tf} downsample {pair} error: \n {traceback.format_exc()}')
-            pass
+        downsample(self.influx, pair=pair, from_tf=from_tf, to_tf=to_tf)
 
     def fetch_candles(self, pair, timeframe):
         measurement = pair + timeframe
@@ -54,13 +36,20 @@ class Poloniex:
                 timeframe = '2h'
         measurement = pair + timeframe
 
-        url = f'https://poloniex.com/public?command=returnChartData&currencyPair={pair_formatted}&start={start-30}&period={tf_map[timeframe]}'
-        request = requests.get(url)
+        url = f'https://poloniex.com/public'
+
+        params = {
+            'command': 'returnChartData',
+            'currencyPair': pair_formatted,
+            'start': start - 30,
+            'period': tf_map[timeframe]
+        }
+        request = requests.get(url, params=params)
         response = request.json()
 
         # Check if response was successful
         if request.status_code != 200 or not isinstance(response, list):
-            logging.error(f"FAILED {measurement} Poloniex response: {response}")
+            logging.info(f"FAILED {measurement} Poloniex response: {response}")
             return False
 
         points = []

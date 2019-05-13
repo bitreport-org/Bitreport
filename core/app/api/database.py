@@ -6,6 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
+
 def connect_influx(kwargs: dict, retries: int = 10) -> InfluxDBClient:
     """
     Using input params establishes connection to influxDB and creates a database.
@@ -73,10 +74,13 @@ class Level(db.Model):
     value: value of the level
     """
     __tablename__ = 'levels'
+
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    time = db.Column(db.DateTime, default=db.func.current_timestamp())
+
     pair = db.Column(db.String)
     timeframe = db.Column(db.String)
-    time = db.Column(db.DateTime, default=db.func.current_timestamp())
+    first_occurrence = db.Column(db.Integer)
     type = db.Column(db.String)
-    value = db.Column(db.Integer, index=True, unique=True)
-
+    strength = db.Column(db.Integer)
+    value = db.Column(db.Float, index=True)

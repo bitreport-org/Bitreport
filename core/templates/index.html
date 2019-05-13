@@ -1,0 +1,17 @@
+{% extends 'admin/master.html' %}
+{% block body %}
+{{ super() }}
+<div class="row-fluid">
+    <h1>BitReport magic</h1>
+    <p class="lead">
+        Samples
+    </p>
+    <lu>
+        <li><a href="http://0.0.0.0:3000/admin/preview?symbol=TESTSYMMBTC&timeframe=1">Symmetrical Triangle</a></li>
+        <li><a href="http://0.0.0.0:3000/admin/preview?symbol=TESTASCBTC&timeframe=1">Ascending Triangle</a></li>
+        <li><a href="http://0.0.0.0:3000/admin/preview?symbol=TESTDESCBTC&timeframe=1">Descending Triangle</a></li>
+        <li><a href="http://0.0.0.0:3000/admin/preview?symbol=TESTDTBTC&timeframe=1">Double Top</a></li>
+        <li><a href="http://0.0.0.0:3000/admin/preview?symbol=TESTDBBTC&timeframe=1">Double Bottom</a></li>
+    </lu>
+</div>
+{% endblock body %}

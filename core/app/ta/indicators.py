@@ -5,16 +5,17 @@ import config
 
 from scipy import stats
 
-config = config.BaseConfig()
+Config = config.BaseConfig()
 
 __all__ = ['ADX', 'ALLIGATOR', 'AROON', 'BB',
            'EMA', 'EWO', 'ICM', 'KC', 'MACD',
            'MOM', 'OBV', 'RSI', 'SAR', 'SMA',
            'STOCH', 'STOCHRSI', 'TDS']
 
-###################     TAlib indicators    ###################
+
+# TAlib indicators
 def BB(data, timeperiod=20):
-    start = config.MAGIC_LIMIT
+    start = Config.MAGIC_LIMIT
     m = 1000000
     close = m * data['close']
     upperband, middleband, lowerband = talib.BBANDS(close, timeperiod, 2, 2, matype = 0)
@@ -56,7 +57,7 @@ def BB(data, timeperiod=20):
 
 
 def MACD(data, fastperiod=12, slowperiod=26, signalperiod=9 ):
-    start = config.MAGIC_LIMIT
+    start = Config.MAGIC_LIMIT
     macd, signal, hist = talib.MACD(data['close'], fastperiod, slowperiod, signalperiod)
     return {'macd' : macd.tolist()[start:],
             'signal':signal.tolist()[start:],
@@ -65,7 +66,7 @@ def MACD(data, fastperiod=12, slowperiod=26, signalperiod=9 ):
 
 
 def RSI(data, timeperiod=14):
-    start = config.MAGIC_LIMIT
+    start = Config.MAGIC_LIMIT
     close = data['close']
     m = 10000000
     real = talib.RSI(m*close, timeperiod)
@@ -89,7 +90,7 @@ def RSI(data, timeperiod=14):
 
 
 def STOCH(data, fastk_period=14, slowk_period=14, slowk_matype=3, slowd_period=14, slowd_matype=3):
-    start = config.MAGIC_LIMIT
+    start = Config.MAGIC_LIMIT
     slowk, slowd = talib.STOCH(data['high'], data['low'], data['close'],
                                fastk_period, slowk_period, slowk_matype, slowd_period, slowd_matype)
     
@@ -104,32 +105,32 @@ def STOCH(data, fastk_period=14, slowk_period=14, slowk_matype=3, slowd_period=1
 
 
 def STOCHRSI(data, timeperiod=14, fastk_period=14, fastd_period=14, fastd_matype=3):
-    start = config.MAGIC_LIMIT
+    start = Config.MAGIC_LIMIT
     m = 10000000
     fastk, fastd = talib.STOCHRSI(m*data['close'], timeperiod, fastk_period, fastd_period, fastd_matype)
     return {'k': fastk.tolist()[start:], 'd': fastd.tolist()[start:], 'info': []}
 
 
 def MOM(data, timeperiod=10):
-    start = config.MAGIC_LIMIT
+    start = Config.MAGIC_LIMIT
     real = talib.MOM(data['close'], timeperiod)
     return {'mom': real.tolist()[start:], 'info': []}
 
 
 def ADX(data, timeperiod=14):
-    start = config.MAGIC_LIMIT
+    start = Config.MAGIC_LIMIT
     real = talib.ADX(data['high'], data['low'], data['close'], timeperiod)
     return {'adx': real.tolist()[start:], 'info': []}
 
 
 def AROON(data, timeperiod=14):
-    start = config.MAGIC_LIMIT
+    start = Config.MAGIC_LIMIT
     aroondown, aroonup = talib.AROON(data['high'], data['low'], timeperiod)
     return {'down': aroondown.tolist()[start:], 'up': aroonup.tolist()[start:], 'info': []}
 
 
 def SMA(data):
-    start = config.MAGIC_LIMIT
+    start = Config.MAGIC_LIMIT
     close = data['close']
     periods = [10, 20 ,50]
     names = ['fast', 'medium','slow']
@@ -164,13 +165,13 @@ def SMA(data):
 
 
 def OBV(data):
-    start = config.MAGIC_LIMIT
+    start = Config.MAGIC_LIMIT
     real = talib.OBV(data['close'], data['volume'])
     return {'obv': real.tolist()[start:], 'info': []}
 
 
 def EMA(data):
-    start = config.MAGIC_LIMIT
+    start = Config.MAGIC_LIMIT
     close = data['close']
     periods = [10, 20 ,50]
     names = ['fast', 'medium','slow']
@@ -205,7 +206,7 @@ def EMA(data):
 
 
 def SAR(data):
-    start = config.MAGIC_LIMIT
+    start = Config.MAGIC_LIMIT
     close = data['close']
     real = talib.SAR(data['high'], data['low'], acceleration=0.02, maximum=0.2)
 
@@ -224,7 +225,7 @@ def SAR(data):
 
 
 def ALLIGATOR(data):
-    start = config.MAGIC_LIMIT
+    start = Config.MAGIC_LIMIT
     close = data['close']
     data_len = close.size
 
@@ -240,14 +241,16 @@ def ALLIGATOR(data):
 
     return {'jaw': jaw[start:], 'teeth': teeth[start:], 'lips': lips[start:], 'info': []}
 
-###################   Bitreport indicators   ###################
+# Bitreport indicators
+
 
 # Elliott Wave Oscillator:
 def EWO(data, fast = 5, slow = 35):
-    start = config.MAGIC_LIMIT
+    start = Config.MAGIC_LIMIT
     close = data['close']
     real = talib.EMA(close, fast) - talib.EMA(close, slow)
     return {'ewo': real.tolist()[start:], 'info': []}
+
 
 # Keltner channels:
 def KC(data):
@@ -255,7 +258,7 @@ def KC(data):
     # Middle Line: 20-day exponential moving average
     # Upper Channel Line: 20-day EMA + (2 x ATR(10))
     # Lower Channel Line: 20-day EMA - (2 x ATR(10))
-    start = config.MAGIC_LIMIT
+    start = Config.MAGIC_LIMIT
     close = data['close']
     high = data['high']
     low = data['low']
@@ -269,9 +272,10 @@ def KC(data):
             'lower_band':lowerch.tolist()[start:], 
             'info': []}
 
+
 # Tom Demark Sequential
 def TDS(data):
-    start = config.MAGIC_LIMIT
+    start = Config.MAGIC_LIMIT
     close = data['close']
     low = data['low']
     high = data['high']
@@ -320,10 +324,11 @@ def TDS(data):
 
     return {'tds':td_list_type[start:], 'info': info}
 
+
 # Ichimoku Cloud:
 def ICM(data):
-    start = config.MAGIC_LIMIT
-    margin = config.MARGIN
+    start = Config.MAGIC_LIMIT
+    margin = Config.MARGIN
     high, low, close = data['high'], data['low'], data['close']
     close_size = close.size
 

@@ -20,7 +20,7 @@ module Pairs
       @pair = Pair.create!(symbol: full_symbol,
                            name: name,
                            tags: Array.wrap(tags).uniq.join(' ').split)
-      data_fill
+      pair.fill
       pair
     end
 
@@ -28,10 +28,6 @@ module Pairs
       regex = /(\w{3,})(BTC|USD[TC]?|ETH|EUR)$/i
       @first_part = symbol.gsub(regex, '\1').upcase
       @second_part = (symbol.match(regex).try(:[], 2) || (first_part == 'BTC' ? 'USD' : 'BTC')).upcase
-    end
-
-    def data_fill
-      @data_fill ||= Pairs::Filler.new(pair: pair).call
     end
 
     def full_symbol
