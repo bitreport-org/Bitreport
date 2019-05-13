@@ -124,6 +124,7 @@ class Plotter
       next unless (lows.min..highs.max).cover?(value)
 
       type = value > closes.last ? 'resistance' : 'support'
+      formatted_value = value >= 100 ? value.round : value >= 1 ? value.round(2) : value
 
       out << <<~TXT
         set arrow from #{level['first_occurrence']},#{value} to #{timestamps.last},#{value} nohead lc rgb "#70#{YELLOW}" lw 1.5 dt 2
