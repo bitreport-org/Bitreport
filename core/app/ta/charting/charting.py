@@ -15,7 +15,9 @@ class Charting:
     def select_best(xs: List[BaseChart]) -> Union[BaseChart, None]:
         bests = [x for x in xs if (x and x.setup)]
         bests.sort(key=lambda x: x.setup.score1)
-        return bests[-1]
+        if bests:
+            return bests[-1]
+        return None
 
     def is_actual(self, up: np.ndarray, down: np.ndarray, threshold: float = 0.6) -> bool:
         close = self._universe.close

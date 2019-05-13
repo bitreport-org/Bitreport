@@ -4,8 +4,6 @@ from typing import List, Tuple, Union
 from .constructors import Point, Skew
 from .base import BaseChart, Setup
 
-# TODO: write and read charting
-
 
 def _find(self, peaks: List[Point], skews: List[Skew]) -> Union[Setup, None]:
     setups = []
