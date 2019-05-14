@@ -5,7 +5,7 @@ from functools import reduce
 LevelTuple = namedtuple('LevelTuple', ['type', 'value', 'time', 'strength'])
 
 
-def is_level(i: int, x: float, xs: np.ndarray, t: int) -> tuple:
+def is_level(i: int, x: float, xs: np.ndarray, t: int) -> [LevelTuple]:
     """
     Checks if value x is a significant level in series of xs.
     Parameters
@@ -25,7 +25,7 @@ def is_level(i: int, x: float, xs: np.ndarray, t: int) -> tuple:
         1: 10
     }
 
-    lvl = None
+    lvls = []
 
     # For each strength level
     for strength, radius in _radius_map.items():
@@ -38,7 +38,9 @@ def is_level(i: int, x: float, xs: np.ndarray, t: int) -> tuple:
         resistance = reduce(lambda a, b: a and b, ys <= np.array([x] * ys.size))
         if support:
             lvl = LevelTuple('support', x, int(t), strength)
+            lvls.append(lvl)
         elif resistance:
             lvl = LevelTuple('resistance', x, int(t), strength)
+            lvls.append(lvl)
 
-    return lvl
+    return lvls

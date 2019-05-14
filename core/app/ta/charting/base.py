@@ -1,6 +1,6 @@
 import numpy as np
 import json
-from typing import Union, List, Tuple
+from typing import Union
 from collections import namedtuple
 from sqlalchemy import cast, String
 

@@ -5,6 +5,7 @@ from app.ta.levels.checker import is_level
 from app.ta.levels.fuzzy_level import FuzzyLevel
 from app.ta.charting.base import Universe
 
+from functools import reduce
 
 class Levels(object):
     def __init__(self, universe: Universe) -> None:
@@ -52,8 +53,9 @@ class Levels(object):
         close - time series of price values
         """
         lvls = [is_level(i, x, close, time[i]) for i, x in enumerate(close)]
-        lvls = list(filter(lambda x: x, lvls))
-        self._save_levels(lvls)
+        lvls = reduce(lambda a, b: a + b, lvls)
+        if lvls:
+            self._save_levels(lvls)
 
     def _score_levels(self, close: np.ndarray, r: float = 0.03) -> list:
         """

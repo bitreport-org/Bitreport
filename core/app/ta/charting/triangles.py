@@ -61,6 +61,7 @@ class AscTriangle(BaseChart):
     def _remake(self, params: dict) -> None:
         up, slope, coef = params.values()
         down = slope * self._time + coef
+        up = np.array([up] * down.size)
         self.setup = Setup(up, down, params, 1, 1)
         self._extend()
 
@@ -107,6 +108,7 @@ class DescTriangle(BaseChart):
     def _remake(self, params: dict) -> None:
         down, slope, coef = params.values()
         up = slope * self._time + coef
+        down = np.array([down] * up.size)
         self.setup = Setup(up, down, params, 1, 1)
         self._extend()
 

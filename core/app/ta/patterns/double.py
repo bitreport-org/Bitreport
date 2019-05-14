@@ -13,12 +13,18 @@ def _angle(a: Point, b: Point, c: Point) -> float:
     """
 
     A = [a.x - b.x, a.y - b.y]
-    B = [c.x - b.x, c.y - c.y]
+    B = [c.x - b.x, c.y - b.y]
+    C = [c.x - a.x, c.y - a.y]
 
     lA = np.sqrt(A[0] ** 2 + A[1] ** 2)
     lB = np.sqrt(B[0] ** 2 + B[1] ** 2)
+    lC = np.sqrt(C[0] ** 2 + C[1] ** 2)
 
-    alpha = np.degrees(np.arccos(np.dot(A, B) / (lA * lB)))
+    d = (lC ** 2 - lA ** 2 - lB ** 2) / (-2 * lA * lB)
+
+    print(d)
+
+    alpha = np.degrees(np.arccos(d))
     return float(alpha)
 
 
@@ -85,34 +91,33 @@ def make_double(universe: Universe,
 
     slopes.sort(key=lambda x: abs(x[1]))
 
-    bx = slopes[0][0]
-    B = Point(int(bx), float(close[bx]))
+    cx = slopes[0][0]
+    C = Point(int(cx), float(close[cx]))
 
-    if (B.x - A.x) > 0.3 * close.size:
+    if (C.x - A.x) > 0.3 * close.size:
         return {'info': []}
 
     # Find the midpoint
-    cx = A.x + g(close[A.x: B.x])
-    C = Point(int(cx), float(close[cx]))
+    bx = A.x + g(close[A.x: C.x])
+    B = Point(int(bx), float(close[bx]))
 
     # Scale 3 points to [0,1]x[0,1]
-    xs = np.array([A.x, B.x, C.x])
-    scaled_x = (xs - B.x) / (A.x - B.x)
+    xs = np.array([A.x, C.x, B.x])
+    scaled_x = (xs - C.x) / (A.x - C.x)
 
-    ys = np.array([A.y, B.y, C.y])
+    ys = np.array([A.y, C.y, B.y])
 
     if type_ == 'top':
-        scaled_y = (ys - B.y) / (A.y - B.y)
+        scaled_y = (ys - C.y) / (A.y - C.y)
     else:
-        scaled_y = (ys - A.y) / (B.y - A.y)
+        scaled_y = (ys - A.y) / (C.y - A.y)
 
-    sA, sB, sC = [Point(x, y) for x, y in zip(scaled_x, scaled_y)]
-    alpha = _angle(sA, sB, sC)
+    scaled_a, scaled_b, scaled_c = [Point(x, y) for x, y in zip(scaled_x, scaled_y)]
+    alpha = _angle(scaled_a, scaled_b, scaled_c)
     if alpha > 95:
         return {'info': [], 'A': (), 'B': (), 'C': ()}
 
-    # Here we change points order from A, C, B to A, B, C
-    dt = {k: (int(x_dates[p.x]), p.y) for k, p in zip('ACB', [A, B, C])}
+    dt = {k: (int(x_dates[p.x]), p.y) for k, p in zip('ABC', [A, B, C])}
 
     dt['info'] = []
 

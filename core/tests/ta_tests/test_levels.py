@@ -62,7 +62,7 @@ class TestLevels:
         assert level['tf'] == tf
         assert level['resistance'] == 1
         assert level['support'] == 0
-        assert level['strength'] == 1
+        assert level['strength'] == 2
 
         # Check if level was saved to database
         with app.ctx:

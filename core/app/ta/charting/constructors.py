@@ -22,7 +22,7 @@ def _is_peak(xs: np.ndarray, ts: np.ndarray, checker: callable) -> List[Point]:
     list of peaks
     """
     lines = []
-    radius = 10
+    radius = 7
 
     # For each strength level
     for i, (y, t) in enumerate(zip(xs, ts)):
