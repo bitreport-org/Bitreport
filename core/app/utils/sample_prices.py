@@ -22,6 +22,8 @@ def sample_from_lists(xs: list, ys: list) -> np.ndarray:
     return make_sample([Point(float(x), float(y)) for x, y in zip(xs, ys)])
 
 
+# ==== TRIANGLES === =#
+
 def asc_triangle() -> Sample:
     xs = [0, 40, 70, 100, 130, 160, 190]
     ys = [60, 0, 100, 30, 100, 60, 100]
@@ -43,6 +45,8 @@ def symm_triangle() -> Sample:
     return Sample(make_sample(points), points)
 
 
+# ==== PATTERNS === =#
+
 def double_top() -> Sample:
     xs = [0, 40, 80, 100, 120, 160, 200]
     ys = [0, 50, 100, 80, 100, 50, 0]
@@ -56,6 +60,17 @@ def double_bottom() -> Sample:
     points = [Point(float(x), float(y)) for x, y in zip(xs, ys)]
     return Sample(make_sample(points), points)
 
+
+# ==== CHANNELS === =#
+
+def channel() -> Sample:
+    xs = [0, 40, 70, 100, 130, 160, 190]
+    ys = [0, 40, 20, 60, 40, 80, 60]
+    points = [Point(float(x), float(y)) for x, y in zip(xs, ys)]
+    return Sample(make_sample(points), points)
+
+
+# ==== HELPERS === =#
 
 def append_new(s: Sample, ys: np.ndarray) -> Sample:
     d = s.points[-1].x - s.points[-2].x
@@ -94,7 +109,7 @@ def _sample_dict(measurement: str, i: int, x: float) -> dict:
 
 
 def save_sample(influx: InfluxDBClient, sample: Sample, name: str) -> bool:
-    margin = np.array([50] * BaseConfig.MAGIC_LIMIT)
+    margin = np.array([sample.close[0]] * BaseConfig.MAGIC_LIMIT)
     points = np.concatenate([margin, sample.close])
     points = [_sample_dict(name, i, x) for i, x in enumerate(points)]
     return insert_candles(influx, points, name, 'test', time_precision='s')
@@ -106,7 +121,8 @@ def init_samples(influx: InfluxDBClient) -> None:
         ('desc', desc_triangle()),
         ('symm', symm_triangle()),
         ('dt', double_top()),
-        ('db', double_bottom())
+        ('db', double_bottom()),
+        ('chan', channel())
     ]
 
     for name, s in samples:

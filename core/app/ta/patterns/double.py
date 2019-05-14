@@ -11,7 +11,6 @@ def _angle(a: Point, b: Point, c: Point) -> float:
     -------
     alpha: the angle in degrees
     """
-
     A = [a.x - b.x, a.y - b.y]
     B = [c.x - b.x, c.y - b.y]
     C = [c.x - a.x, c.y - a.y]
@@ -21,8 +20,6 @@ def _angle(a: Point, b: Point, c: Point) -> float:
     lC = np.sqrt(C[0] ** 2 + C[1] ** 2)
 
     d = (lC ** 2 - lA ** 2 - lB ** 2) / (-2 * lA * lB)
-
-    print(d)
 
     alpha = np.degrees(np.arccos(d))
     return float(alpha)
@@ -94,8 +91,8 @@ def make_double(universe: Universe,
     cx = slopes[0][0]
     C = Point(int(cx), float(close[cx]))
 
-    if (C.x - A.x) > 0.3 * close.size:
-        return {'info': []}
+    if (C.x - A.x) > 0.3 * close.size or C.x - A.x < 10:
+        return {'info': [], 'A': (), 'B': (), 'C': ()}
 
     # Find the midpoint
     bx = A.x + g(close[A.x: C.x])

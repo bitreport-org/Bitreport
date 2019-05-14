@@ -1,11 +1,12 @@
 import numpy as np
 from collections import namedtuple
 from functools import reduce
+from typing import Union
 
 LevelTuple = namedtuple('LevelTuple', ['type', 'value', 'time', 'strength'])
 
 
-def is_level(i: int, x: float, xs: np.ndarray, t: int) -> [LevelTuple]:
+def is_level(i: int, x: float, xs: np.ndarray, t: int) -> Union[None, LevelTuple]:
     """
     Checks if value x is a significant level in series of xs.
     Parameters
@@ -25,7 +26,7 @@ def is_level(i: int, x: float, xs: np.ndarray, t: int) -> [LevelTuple]:
         1: 10
     }
 
-    lvls = []
+    lvl = None
 
     # For each strength level
     for strength, radius in _radius_map.items():
@@ -37,10 +38,8 @@ def is_level(i: int, x: float, xs: np.ndarray, t: int) -> [LevelTuple]:
         support = reduce(lambda a, b: a and b, ys >= np.array([x] * ys.size))
         resistance = reduce(lambda a, b: a and b, ys <= np.array([x] * ys.size))
         if support:
-            lvl = LevelTuple('support', x, int(t), strength)
-            lvls.append(lvl)
+            return LevelTuple('support', x, int(t), strength)
         elif resistance:
-            lvl = LevelTuple('resistance', x, int(t), strength)
-            lvls.append(lvl)
+            return LevelTuple('resistance', x, int(t), strength)
 
-    return lvls
+    return lvl

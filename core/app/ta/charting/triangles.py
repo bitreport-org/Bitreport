@@ -12,6 +12,10 @@ def _find(self, peaks: List[Point], skews: List[Skew]) -> Union[Setup, None]:
             if not self._cross_after_last_candle(peak, skew):
                 continue
             up, down = self._make_bands(peak, skew)
+
+            if not self._is_triangle(up, down):
+                continue
+
             start_index = min(peak.x, skew.start.x)
             score1 = self._include_enough_points(start_index, up, down)
             if not score1:
@@ -25,7 +29,7 @@ def _find(self, peaks: List[Point], skews: List[Skew]) -> Union[Setup, None]:
     if not setups:
         return None
 
-    return _select_best_setup(setups)
+    return self._select_best_setup(setups)
 
 
 def _make_setup(peak: Point, skew: Skew,
@@ -37,17 +41,6 @@ def _make_setup(peak: Point, skew: Skew,
         'coef': skew.coef
     }
     return Setup(up, down, params, score1, score2)
-
-
-def _select_best_setup(setups: List[Setup]) -> Setup:
-    # Sort by number of included points
-    setups.sort(key=lambda s: s.score1, reverse=True)
-
-    # Sort by mean point position in setup
-    top = setups[:4]
-    top.sort(key=lambda s: abs(0.5 - s.score1))
-
-    return top[0]
 
 
 class AscTriangle(BaseChart):
@@ -178,10 +171,19 @@ class SymmetricalTriangle(BaseChart):
     def _find(self, ups: List[Skew], downs: List[Skew]) -> Union[Setup, None]:
         setups = []
         for up_skew in ups:
+            if self._is_horizontal(up_skew):
+                continue
+
             for down_skew in downs:
+                if self._is_horizontal(down_skew):
+                    continue
+
                 if not self._cross_after_last_candle(up_skew, down_skew):
                     continue
                 up, down = self._make_bands(up_skew, down_skew)
+
+                if not self._is_triangle(up, down):
+                    continue
 
                 start_index = min(down_skew.start.x, up_skew.start.x)
                 score1 = self._include_enough_points(start_index, up, down)
@@ -197,7 +199,7 @@ class SymmetricalTriangle(BaseChart):
         if not setups:
             return None
 
-        return _select_best_setup(setups)
+        return self._select_best_setup(setups)
 
     def _create_info(self) -> None:
         self.events = [None]

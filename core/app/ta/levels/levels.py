@@ -53,7 +53,7 @@ class Levels(object):
         close - time series of price values
         """
         lvls = [is_level(i, x, close, time[i]) for i, x in enumerate(close)]
-        lvls = reduce(lambda a, b: a + b, lvls)
+        lvls = list(filter(lambda x: x, lvls))
         if lvls:
             self._save_levels(lvls)
 

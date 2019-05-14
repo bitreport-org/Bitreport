@@ -123,8 +123,8 @@ class BaseChart:
                      start: int,
                      up: np.ndarray,
                      down: np.ndarray,
-                     threshold_down: float = 0.4,
-                     threshold_up: float = 0.6) -> Union[float, None]:
+                     threshold_down: float = 0.47,
+                     threshold_up: float = 0.55) -> Union[float, None]:
 
         idx = np.where(self._time == start)[0][0]
         close, up, down = self._close[idx:], up[idx:], down[idx:]
@@ -133,6 +133,29 @@ class BaseChart:
         if threshold_down <= score <= threshold_up:
             return float(score)
         return None
+
+    @staticmethod
+    def _is_triangle(up: np.ndarray,
+                     down: np.ndarray) -> bool:
+        width = up - down
+        return width[-1] < 0.85 * width[0]
+
+    # @staticmethod
+    def _is_horizontal(self, skew: Skew) -> bool:
+        a = np.degrees(np.arctan(skew.slope))
+        # TODO: this should scale skew to [0,1] x [0,1]... otherwise the slope is ~ 0
+        return skew.coef == 0.0
+
+    @staticmethod
+    def _select_best_setup(setups: [Setup]) -> Setup:
+        # Sort by number of included points
+        setups.sort(key=lambda s: s.score1, reverse=True)
+
+        # Sort by mean point position in setup
+        top = setups[:4]
+        top.sort(key=lambda s: abs(0.5 - s.score1))
+
+        return top[0]
 
     def _extend(self):
         ua, ub = self.setup.params['up']
