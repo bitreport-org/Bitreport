@@ -2,23 +2,25 @@ import numpy as np
 
 from app.ta.charting import (
     constructors as cts,
-    triangles as ts)
+    triangles as ts,
+    channel as ch)
 
 from app.ta.charting.base import Setup, Universe
 from app.ta.charting import Charting
 from app.api.database import Chart
-from app.utils.sample_prices import asc_triangle, desc_triangle, symm_triangle
+from app.utils.sample_prices import asc_triangle, desc_triangle, symm_triangle, channel
 
 
-class TrianglesSamples:
+class Samples:
     tf = 'test_tf'
     desc_triangle = desc_triangle().close
     asc_triangle = asc_triangle().close
     sym_triangle = symm_triangle().close
+    channel = channel().close
     time = np.arange(desc_triangle.size)
 
 
-class TestTriangles(TrianglesSamples):
+class TestTriangles(Samples):
     def test_descending(self, app):
         close = self.desc_triangle
         pair = 'test_descending1'
@@ -193,7 +195,7 @@ class TestTriangles(TrianglesSamples):
         assert results[0].params == {k: list(v) for k, v in params.items()}
 
 
-class TestCharting(TrianglesSamples):
+class TestCharting(Samples):
     def test_asc(self, app):
         pair = 'test_ascending3'
         close = self.asc_triangle
@@ -226,3 +228,53 @@ class TestCharting(TrianglesSamples):
         assert triangle2['info'] == json['info']
         assert triangle2['upper_band'] == json['upper_band']
         assert triangle2['lower_band'] == json['lower_band']
+
+
+class TestChannels(Samples):
+    def test_channel(self, app):
+        close = self.channel
+        pair = 'test_channel1'
+        uni = Universe(
+            pair=pair,
+            timeframe=self.tf,
+            close=close,
+            time=self.time,
+            future_time=np.array([])
+        )
+
+        bottoms = cts.bottoms(close, self.time)
+        tops = cts.tops(close, self.time)
+        ups = cts.skews(tops)
+        downs = cts.skews(bottoms)
+
+        with app.ctx:
+            channel = ch.Channel(universe=uni,
+                                 ups=ups,
+                                 downs=downs
+                                 )
+            channel.save()
+
+        assert isinstance(channel.setup, Setup)
+        assert isinstance(channel.json(), dict)
+
+        # Assert proper values
+        params = channel.setup.params
+        assert isinstance(params, dict)
+        # assert params['shift'] == 0.0
+        # assert params['slope'] < 0.0
+        assert 'band' in params.keys()
+        assert 'shift' in params.keys()
+
+        assert isinstance(params['band'], tuple)
+
+        # Assert setup is saved
+        with app.ctx:
+            results = Chart.query.filter_by(
+                type=channel.__name__,
+                pair=pair
+            ).all()
+
+        assert len(results) == 1
+        assert results[0].timeframe == self.tf
+        assert results[0].params['band'] == list(params['band'])
+        assert results[0].params['shift'] == params['shift']

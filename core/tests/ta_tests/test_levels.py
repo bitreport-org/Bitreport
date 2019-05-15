@@ -62,7 +62,7 @@ class TestLevels:
         assert level['tf'] == tf
         assert level['resistance'] == 1
         assert level['support'] == 0
-        assert level['strength'] == 1
+        assert level['strength'] == 2
 
         # Check if level was saved to database
         with app.ctx:
@@ -72,7 +72,7 @@ class TestLevels:
         level = result[0]
         assert level.type == 'resistance'
         assert level.value == 100
-        assert level.strength == 1
+        assert level.strength == 2
 
     def test_two_levels(self, app):
         close = np.concatenate([self.a, self.b, self.c])

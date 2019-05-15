@@ -5,6 +5,7 @@ from app.api.database import Chart
 from .constructors import tops, bottoms, skews
 from .base import Universe, Setup, BaseChart
 from .triangles import AscTriangle, DescTriangle, SymmetricalTriangle
+from .channel import Channel
 
 
 class Charting:
@@ -51,7 +52,7 @@ class Charting:
     def __call__(self):
         chart = self.check_last_pattern()
         if chart:
-            # TODO: generate info
+            # TODO: generate actual info
             return chart.json()
 
         tops_ = tops(self._universe.close, self._universe.time)
@@ -59,21 +60,21 @@ class Charting:
         skews_up = skews(tops_)
         skews_down = skews(bottoms_)
 
-        asc_triangle = AscTriangle(universe=self._universe,
-                                   tops=tops_,
-                                   skews=skews_down)
-
-        desc_triangle = DescTriangle(universe=self._universe,
-                                     bottoms=bottoms_,
-                                     skews=skews_up)
-
-        symm_triangle = SymmetricalTriangle(universe=self._universe,
-                                            ups=skews_up,
-                                            downs=skews_down)
-
-        charts = [asc_triangle, desc_triangle, symm_triangle]
+        charts = [
+            AscTriangle(universe=self._universe, tops=tops_, skews=skews_down),
+            DescTriangle(universe=self._universe, bottoms=bottoms_, skews=skews_up),
+            SymmetricalTriangle(universe=self._universe, ups=skews_up, downs=skews_down)
+        ]
 
         best = self.select_best(charts)
+
+        if best and isinstance(best.setup, Setup):
+            best.save()
+            return best.json()
+
+        # If no triangle, the check if there is channel
+
+        best = Channel(universe=self._universe, ups=skews_up, downs=skews_down)
 
         if best and isinstance(best.setup, Setup):
             best.save()

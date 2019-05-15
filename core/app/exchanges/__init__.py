@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
+from functools import reduce
+from multiprocessing.dummy import Pool as ThreadPool
+from influxdb import InfluxDBClient
+import logging
+
 from .binance import Binance
 from .bitfinex import Bitfinex
 from .bittrex import Bittrex
 from .poloniex import Poloniex
 
-from functools import reduce
-from multiprocessing.dummy import Pool as ThreadPool
-from influxdb import InfluxDBClient
-import logging
+from app.ta.levels import generate_levels
 
 
 def fill_pair(influx: InfluxDBClient, pair: str) -> tuple:
@@ -44,11 +46,15 @@ def fill_pair(influx: InfluxDBClient, pair: str) -> tuple:
     pool.close()
     pool.join()
 
-    status = reduce(lambda x,y : x or y, results)
+    status = reduce(lambda x, y: x or y, results)
     exchanges_filled = [name for name, r in zip(fillers.keys(), results) if r]
 
     if status:
         logging.info(f"{pair} filled from {', '.join(exchanges_filled)}")
+
+        # Generate levels based on last 500 candles
+        generate_levels(influx, pair)
+
         return f"{pair} filled from {', '.join(exchanges_filled)}", 200
     else:
         logging.error(f"{pair} failed to fill!")

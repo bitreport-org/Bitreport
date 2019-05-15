@@ -7,12 +7,12 @@ from influxdb import InfluxDBClient
 from scipy.stats import linregress
 
 
-import app.ta.indicators as indicators
 import app.ta.charting as charting
 from app.ta.patterns import make_double
 from app.ta.levels import Levels
 from app.ta.charting.base import Universe
-from app.utils import get_candles, generate_dates, get_function_list
+from app.utils import get_candles, generate_dates
+from app.ta.indicators import make_indicators
 
 
 class PairData:
@@ -103,13 +103,9 @@ class PairData:
         indicators_values = dict()
 
         # Indicators
-        indicators_list = get_function_list(indicators)
-        for indicator in indicators_list:
-            try:
-                indicators_values[indicator.__name__] = indicator(self.data)
-            except:
-                logging.error(f'Indicator {indicator}, error: /n {traceback.format_exc()}')
+        indicators_values.update(make_indicators(self.data, self.limit))
 
+        # Setup universe for charting
         close: np.ndarray = self.data.get('close')
         dates = np.array(self.dates)
 
@@ -123,12 +119,6 @@ class PairData:
 
         # Channels
         empty_pattern = {'info': [], 'upper_band': [], 'lower_band': []}
-        # try:
-        #     ch = Channel(universe)
-        #     indicators_values['channel'] = ch.make()
-        # except (ValueError, AssertionError):
-        #     indicators_values['channel'] = empty_pattern
-        #     logging.error(f'Indicator channel, error: /n {traceback.format_exc()}')
         
         # Wedges
         try:
