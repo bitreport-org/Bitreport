@@ -39,7 +39,8 @@ def is_level(i: int, x: float, xs: np.ndarray, t: int) -> Union[None, LevelTuple
         resistance = reduce(lambda a, b: a and b, ys <= np.array([x] * ys.size))
         if support:
             return LevelTuple('support', x, int(t), strength)
-        elif resistance:
+
+        if resistance:
             return LevelTuple('resistance', x, int(t), strength)
 
     return lvl

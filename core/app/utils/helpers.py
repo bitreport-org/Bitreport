@@ -4,6 +4,7 @@ import numpy as np
 from influxdb import InfluxDBClient
 from config import BaseConfig
 
+
 def get_candles(influx: InfluxDBClient, pair: str, timeframe: str, limit: int) -> dict:
     """
     Retrieves `limit` points for measurement `pair + timeframe`. Returns dictionary:
@@ -78,23 +79,8 @@ def generate_dates(date: list, timeframe: str, n: int) -> list:
     -------
     date: the input list with new points appended
     """
-    _map = { 'm': 60, 'h': 3600,'W': 648000}
+    _map = {'m': 60, 'h': 3600, 'W': 648000}
     dt = _map[timeframe[-1]] * int(timeframe[:-1])
     date = date + [date[-1] + (i+1)*dt for i, x in enumerate(range(n))]
 
     return date
-
-
-def get_function_list(module) -> list:
-    """
-    Helper to obtain list of functions in the given module
-
-    Parameters
-    ----------
-    module: the module for which list have to be obtained
-
-    Returns
-    -------
-    list
-    """
-    return [getattr(module, a) for a in module.__all__]

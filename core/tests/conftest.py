@@ -7,8 +7,7 @@ from sqlalchemy.exc import ProgrammingError, OperationalError
 from collections import namedtuple
 
 import config
-from app.utils.helpers import get_function_list
-import app.ta.indicators as indicators
+from app.ta.indicators import INDICATORS
 from app.api import create_app, database
 from app.exchanges.helpers import insert_candles
 
@@ -117,7 +116,7 @@ def filled_influx():
 
 @pytest.fixture
 def indicators_names():
-    return [x.__name__ for x in get_function_list(indicators)]
+    return list(INDICATORS.keys())
 
 
 @pytest.fixture
