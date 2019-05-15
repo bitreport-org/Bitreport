@@ -1,15 +1,11 @@
 # -*- coding: utf-8 -*-
 import talib  # pylint: skip-file
 import numpy as np
-import config
 
 from scipy import stats
 
-Config = config.BaseConfig()
 
-
-def BB(data, timeperiod=20):
-    start = Config.MAGIC_LIMIT
+def BB(data, limit, timeperiod=20):
     m = 1000000
     close = m * data['close']
     upperband, middleband, lowerband = talib.BBANDS(close, timeperiod, 2, 2, matype=0)
@@ -44,23 +40,21 @@ def BB(data, timeperiod=20):
     middleband = middleband / m
     lowerband = lowerband / m
 
-    return {'upper_band': upperband.tolist()[start:],
-            'middle_band': middleband.tolist()[start:],
-            'lower_band': lowerband.tolist()[start:],
+    return {'upper_band': upperband.tolist()[-limit:],
+            'middle_band': middleband.tolist()[-limit:],
+            'lower_band': lowerband.tolist()[-limit:],
             'info': info}
 
 
-def MACD(data, fastperiod=12, slowperiod=26, signalperiod=9):
-    start = Config.MAGIC_LIMIT
+def MACD(data, limit, fastperiod=12, slowperiod=26, signalperiod=9):
     macd, signal, hist = talib.MACD(data['close'], fastperiod, slowperiod, signalperiod)
-    return {'macd': macd.tolist()[start:],
-            'signal': signal.tolist()[start:],
-            'histogram': hist.tolist()[start:],
+    return {'macd': macd.tolist()[-limit:],
+            'signal': signal.tolist()[-limit:],
+            'histogram': hist.tolist()[-limit:],
             'info': []}
 
 
-def RSI(data, timeperiod=14):
-    start = Config.MAGIC_LIMIT
+def RSI(data, limit, timeperiod=14):
     close = data['close']
     m = 10000000
     real = talib.RSI(m * close, timeperiod)
@@ -72,7 +66,7 @@ def RSI(data, timeperiod=14):
     elif real[-1] <= 30:
         info.append('OSCILLATOR_OVERSOLD')
 
-    n = int(0.20 * (close.size - start))
+    n = int(0.20 * limit)
     dir_rsi = stats.linregress(np.arange(n), real[-n:]).slope
     dir_price = stats.linregress(np.arange(n), close[-n:]).slope
     if dir_rsi * dir_price >= 0.01:
@@ -80,11 +74,10 @@ def RSI(data, timeperiod=14):
     elif dir_rsi * dir_price < -0.01:
         info.append('DIV_NEGATIVE')
 
-    return {'rsi': real.tolist()[start:], 'info': info}
+    return {'rsi': real.tolist()[-limit:], 'info': info}
 
 
-def STOCH(data, fastk_period=14, slowk_period=14, slowk_matype=3, slowd_period=14, slowd_matype=3):
-    start = Config.MAGIC_LIMIT
+def STOCH(data, limit, fastk_period=14, slowk_period=14, slowk_matype=3, slowd_period=14, slowd_matype=3):
     slowk, slowd = talib.STOCH(data['high'], data['low'], data['close'],
                                fastk_period, slowk_period, slowk_matype, slowd_period, slowd_matype)
 
@@ -95,24 +88,21 @@ def STOCH(data, fastk_period=14, slowk_period=14, slowk_matype=3, slowd_period=1
     elif slowk[-1] <= 20:
         info.append('OSCILLATOR_OVERSOLD')
 
-    return {'k': slowk.tolist()[start:], 'd': slowd.tolist()[start:], 'info': info}
+    return {'k': slowk.tolist()[-limit:], 'd': slowd.tolist()[-limit:], 'info': info}
 
 
-def STOCHRSI(data, timeperiod=14, fastk_period=14, fastd_period=14, fastd_matype=3):
-    start = Config.MAGIC_LIMIT
+def STOCHRSI(data, limit, timeperiod=14, fastk_period=14, fastd_period=14, fastd_matype=3):
     m = 10000000
     fastk, fastd = talib.STOCHRSI(m * data['close'], timeperiod, fastk_period, fastd_period, fastd_matype)
-    return {'k': fastk.tolist()[start:], 'd': fastd.tolist()[start:], 'info': []}
+    return {'k': fastk.tolist()[-limit:], 'd': fastd.tolist()[-limit:], 'info': []}
 
 
-def MOM(data, timeperiod=10):
-    start = Config.MAGIC_LIMIT
+def MOM(data, limit, timeperiod=10):
     real = talib.MOM(data['close'], timeperiod)
-    return {'mom': real.tolist()[start:], 'info': []}
+    return {'mom': real.tolist()[-limit:], 'info': []}
 
 
-def SMA(data):
-    start = Config.MAGIC_LIMIT
+def SMA(data, limit):
     close = data['close']
     periods = [10, 20, 50]
     names = ['fast', 'medium', 'slow']
@@ -121,7 +111,7 @@ def SMA(data):
 
     for name, p in zip(names, periods):
         real = talib.SMA(close, p)
-        dic[name] = real.tolist()[start:]
+        dic[name] = real.tolist()[-limit:]
         # TOKENS
         if close[-1] > real[-1]:
             info.append('POSITION_UP_{}'.format(name.upper()))
@@ -146,14 +136,12 @@ def SMA(data):
     return dic
 
 
-def OBV(data):
-    start = Config.MAGIC_LIMIT
+def OBV(data, limit):
     real = talib.OBV(data['close'], data['volume'])
-    return {'obv': real.tolist()[start:], 'info': []}
+    return {'obv': real.tolist()[-limit:], 'info': []}
 
 
-def EMA(data):
-    start = Config.MAGIC_LIMIT
+def EMA(data, limit):
     close = data['close']
     periods = [10, 20, 50]
     names = ['fast', 'medium', 'slow']
@@ -162,7 +150,7 @@ def EMA(data):
 
     for name, p in zip(names, periods):
         real = talib.EMA(close, p)
-        dic[name] = real.tolist()[start:]
+        dic[name] = real.tolist()[-limit:]
         # TOKENS
         if close[-1] > real[-1]:
             info.append('POSITION_UP_{}'.format(name.upper()))
@@ -185,4 +173,3 @@ def EMA(data):
 
     dic.update(info=info)
     return dic
-

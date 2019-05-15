@@ -103,7 +103,7 @@ class PairData:
         indicators_values = dict()
 
         # Indicators
-        indicators_values.update(make_indicators(self.data))
+        indicators_values.update(make_indicators(self.data, self.limit))
 
         # Setup universe for charting
         close: np.ndarray = self.data.get('close')

@@ -8,15 +8,15 @@ Config = config.BaseConfig()
 
 
 # Elliott Wave Oscillator:
-def EWO(data, fast=5, slow=35):
+def EWO(data, limit, fast=5, slow=35):
     start = Config.MAGIC_LIMIT
     close = data['close']
     real = talib.EMA(close, fast) - talib.EMA(close, slow)
-    return {'ewo': real.tolist()[start:], 'info': []}
+    return {'ewo': real.tolist()[-limit:], 'info': []}
 
 
 # Keltner channels:
-def KC(data):
+def KC(data, limit):
     # Keltner Channels
     # Middle Line: 20-day exponential moving average
     # Upper Channel Line: 20-day EMA + (2 x ATR(10))
@@ -30,15 +30,14 @@ def KC(data):
     upperch = mid + (2 * talib.ATR(high, low, close, 10))
     lowerch = mid - (2 * talib.ATR(high, low, close, 10))
 
-    return {'middle_band': mid.tolist()[start:],
-            'upper_band': upperch.tolist()[start:],
-            'lower_band': lowerch.tolist()[start:],
+    return {'middle_band': mid.tolist()[-limit:],
+            'upper_band': upperch.tolist()[-limit:],
+            'lower_band': lowerch.tolist()[-limit:],
             'info': []}
 
 
 # Ichimoku Cloud:
-def ICM(data):
-    start = Config.MAGIC_LIMIT
+def ICM(data, limit):
     margin = Config.MARGIN
     high, low, close = data['high'], data['low'], data['close']
     close_size = close.size
@@ -70,8 +69,8 @@ def ICM(data):
     leading_span_b = np.array(leading_span_b)
 
     # Some magic
-    leading_span_a = leading_span_a[start - n2:]
-    leading_span_b = leading_span_b[start - n2:]
+    leading_span_a = leading_span_a[-(limit + margin):]
+    leading_span_b = leading_span_b[-(limit + margin):]
 
     # Tokens
     info = []
@@ -99,5 +98,5 @@ def ICM(data):
 
     return {'leading_span_a': leading_span_a.tolist(),
             'leading_span_b': leading_span_b.tolist(),
-            'base_line': base_line.tolist()[start:],
+            'base_line': base_line.tolist()[-limit:],
             'info': info}
