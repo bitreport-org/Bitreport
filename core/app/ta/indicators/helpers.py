@@ -30,7 +30,6 @@ INDICATORS = {
 
 def make_indicators(data: dict, limit: int):
     output = dict()
-    # TODO: handle when there is less data then requested ! !
     for name, (f, default) in INDICATORS.items():
         try:
             output[name] = f(data, limit)
