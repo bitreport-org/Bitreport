@@ -66,10 +66,6 @@ def create_app(config: Type[BaseConfig], influx: InfluxDBClient) -> Flask:
         Parameters
         ----------
         pair : pair name ex. 'BTCUSD'
-
-        Returns
-        -------
-        response
         """
         timeframe = request.args.get('timeframe', default=None, type=str)
         limit = request.args.get('limit', default=20, type=int)
@@ -95,10 +91,6 @@ def create_app(config: Type[BaseConfig], influx: InfluxDBClient) -> Flask:
         which exchanges data was fetched.
 
         Otherwise an it returns error message and code of 404.
-
-        Returns
-        -------
-        response
         """
         pair = request.args.get('pair', default=None, type=str)
 
@@ -112,10 +104,6 @@ def create_app(config: Type[BaseConfig], influx: InfluxDBClient) -> Flask:
     def hello():
         """
         Test endpoint to check if app is on and working.
-
-        Returns
-        -------
-        response
         """
         return jsonify(msg="Wrong place, is it?")
 

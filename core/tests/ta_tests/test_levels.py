@@ -29,7 +29,7 @@ class TestLevels:
         )
         lvl = Levels(universe)
         with app.ctx:
-            result = lvl()
+            result = lvl()['levels']
         return result, universe.pair, universe.timeframe
 
     def test_structure(self, app):

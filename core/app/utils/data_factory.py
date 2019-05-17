@@ -1,5 +1,4 @@
 import numpy as np
-import traceback
 import logging
 import config
 from typing import List, Tuple
@@ -8,7 +7,7 @@ from scipy.stats import linregress
 
 
 import app.ta.charting as charting
-from app.ta.patterns import make_double
+import app.ta.patterns as patterns
 from app.ta.levels import Levels
 from app.ta.charting.base import Universe
 from app.utils import get_candles, generate_dates
@@ -59,11 +58,11 @@ class PairData:
 
         # Price data and information
         price = {k: self.data[k].tolist()[-self.limit:] for k in ['open', 'high', 'close', 'low']}
-        price.update(info=self._make_price_info(price['close']))
+        price.update(info=self._price_info(price['close']))
 
         # Volume data and information
         volume = dict(volume=self.data['volume'].tolist()[-self.limit:],
-                      info=self._make_volume_info(self.data['volume']))
+                      info=self._volume_info(self.data['volume']))
 
         # Prepare dates
         dates = generate_dates(self.data['date'], self.timeframe, self.margin)
@@ -78,11 +77,11 @@ class PairData:
         return response, 200
 
     @staticmethod
-    def _make_price_info(close: np.ndarray) -> List[str]:
+    def _price_info(close: np.ndarray) -> List[str]:
         info_price = []
         return info_price
 
-    def _make_volume_info(self, volume: np.array) -> List[str]:
+    def _volume_info(self, volume: np.array) -> List[str]:
         info_volume = []
         check_period = int(0.35 * self.limit)
 
@@ -117,39 +116,16 @@ class PairData:
             future_time=dates[-self.margin:]
         )
 
-        # Channels
-        empty_pattern = {'info': [], 'upper_band': [], 'lower_band': []}
-        
         # Wedges
-        try:
-            wg = charting.Charting(universe)
-            indicators_values['wedge'] = wg()
-        except (ValueError, AssertionError):
-            indicators_values['wedge'] = empty_pattern
-            logging.error(f'Indicator wedge, error: /n {traceback.format_exc()}')
+        wg = charting.Charting(universe)
+        indicators_values.update(wg())
 
         # Patterns
-        empty_pattern = {'info': [], 'A': (), 'B': (), 'C': ()}
-        try:
-            dt = make_double(universe, type_='top')
-            indicators_values['double_top'] = dt
-        except (ValueError, AssertionError):
-            indicators_values['double_top'] = empty_pattern
-            logging.error(f'Indicator double top, error: /n {traceback.format_exc()}')
-
-        try:
-            db = make_double(universe, type_='bottom')
-            indicators_values['double_bottom'] = db
-        except (ValueError, AssertionError):
-            indicators_values['double_bottom'] = empty_pattern
-            logging.error(f'Indicator double bottom, error: /n {traceback.format_exc()}')
+        indicators_values.update(patterns.double_top(universe))
+        indicators_values.update(patterns.double_bottom(universe))
 
         # Levels
-        try:
-            lvl = Levels(universe)
-            indicators_values['levels'] = lvl()
-        except (ValueError, AssertionError):
-            indicators_values['levels'] = {'info': [], 'levels': []}
-            logging.error(traceback.format_exc())
+        lvl = Levels(universe)
+        indicators_values.update(lvl())
 
         return indicators_values

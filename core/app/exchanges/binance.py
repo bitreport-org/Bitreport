@@ -71,7 +71,7 @@ class Binance:
         return result
 
     def fill(self, pair):
-        for tf in  ['1h', '2h', '6h', '12h', '24h']:
+        for tf in ['1h', '2h', '6h', '12h', '24h']:
             status = self.fetch_candles(pair, tf)
             if not status:
                 return False

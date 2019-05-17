@@ -3,11 +3,13 @@ import talib  # pylint: skip-file
 import numpy as np
 import config
 
+from app.ta.helpers import indicator
 
 Config = config.BaseConfig()
 
 
 # Elliott Wave Oscillator:
+@indicator('EWO', ['ewo'])
 def EWO(data, limit, fast=5, slow=35):
     start = Config.MAGIC_LIMIT
     close = data['close']
@@ -16,6 +18,7 @@ def EWO(data, limit, fast=5, slow=35):
 
 
 # Keltner channels:
+@indicator('KC', ['upper_band', 'middle_band', 'lower_band'])
 def KC(data, limit):
     # Keltner Channels
     # Middle Line: 20-day exponential moving average
@@ -37,6 +40,7 @@ def KC(data, limit):
 
 
 # Ichimoku Cloud:
+@indicator('ICM', ['leading_span_a', 'leading_span_b', 'base_line'])
 def ICM(data, limit):
     margin = Config.MARGIN
     high, low, close = data['high'], data['low'], data['close']
