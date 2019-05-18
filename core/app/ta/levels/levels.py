@@ -6,6 +6,7 @@ from app.ta.levels.checker import is_level
 from app.ta.levels.fuzzy_level import FuzzyLevel
 from app.ta.charting.base import Universe
 
+from functools import reduce
 
 class Levels(object):
     def __init__(self, universe: Universe) -> None:
