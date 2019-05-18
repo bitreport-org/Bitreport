@@ -111,7 +111,7 @@ def make_double(universe: Universe,
     B = Point(int(bx), float(close[bx]))
 
     # Assert that the pattern is not flat
-    h1, h2 = abs(A.y / B.y - 1), abs(B.y / C.y - 1)
+    h1, h2 = abs(A.y / B.y - 1), abs(C.y / B.y - 1)
     if h1 < 0.02 or h2 < 0.02:
         return DEAFULT
 
