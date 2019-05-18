@@ -38,7 +38,6 @@ class AuthAdmin(ModelView):
 
 
 class InactiveAdmin(AuthAdmin):
-    an_create = False
     can_edit = False
     can_delete = False
     can_create = False

@@ -2,7 +2,6 @@
 import time
 import logging
 from influxdb import InfluxDBClient
-from influxdb.exceptions import InfluxDBClientError, InfluxDBServerError
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
@@ -32,7 +31,7 @@ def connect_influx(kwargs: dict, retries: int = 10) -> InfluxDBClient:
             logging.info('Successfully connected to InfluxDB.')
             success = True
             break
-        except (InfluxDBServerError, InfluxDBClientError):
+        except:
             i += 1
             logging.info('Waiting for InfluxDB...')
             time.sleep(3)

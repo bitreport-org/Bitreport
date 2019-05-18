@@ -90,14 +90,14 @@ def create_app(config: Type[BaseConfig], influx: InfluxDBClient) -> Flask:
         In case of a success it returns msg with information about from
         which exchanges data was fetched.
 
-        Otherwise an it returns error message and code of 404.
+        Otherwise an it returns error message and code of 400.
         """
         pair = request.args.get('pair', default=None, type=str)
 
         if not pair:
             return jsonify(msg='Pair not provided'), 400
 
-        msg, code = fill_pair(influx, pair)
+        msg, code = fill_pair(app, influx, pair)
         return jsonify(msg=msg), code
 
     @app.route("/")
@@ -126,7 +126,7 @@ def create_app(config: Type[BaseConfig], influx: InfluxDBClient) -> Flask:
         exc_info = traceback.format_exc()
         app.logger.exception(error, exc_info=exc_info)
 
-        return jsonify(msg=f'Unhandled exception',
+        return jsonify(msg='Unhandled exception',
                        error=str(error)), 500
 
     return app
