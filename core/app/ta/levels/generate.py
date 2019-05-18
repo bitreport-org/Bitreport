@@ -1,4 +1,5 @@
 from influxdb import InfluxDBClient
+from flask import Flask
 import logging
 import numpy as np
 
@@ -7,7 +8,8 @@ from .levels import Levels
 from app.ta.charting.base import Universe
 
 
-def generate_levels(influx: InfluxDBClient,
+def generate_levels(app: Flask,
+                    influx: InfluxDBClient,
                     pair: str,
                     limit: int = 500) -> None:
 
@@ -30,7 +32,8 @@ def generate_levels(influx: InfluxDBClient,
 
         # Find levels and save them
         try:
-            Levels(universe)()
+            with app.app_context():
+                Levels(universe)()
         except (ValueError, AssertionError):
             if not logged:
                 logging.error(f'Levels production unsuccessful for {pair} and {tf}')

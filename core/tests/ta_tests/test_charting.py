@@ -216,7 +216,7 @@ class TestCharting(Samples):
                                        tops=tops,
                                        skews=skews
                                        )
-            triangle2 = Charting(universe=uni)()
+            triangle2 = Charting(universe=uni)()['wedge']
 
         assert triangle1.setup
         assert isinstance(triangle2, dict)

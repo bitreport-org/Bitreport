@@ -66,10 +66,6 @@ def create_app(config: Type[BaseConfig], influx: InfluxDBClient) -> Flask:
         Parameters
         ----------
         pair : pair name ex. 'BTCUSD'
-
-        Returns
-        -------
-        response
         """
         timeframe = request.args.get('timeframe', default=None, type=str)
         limit = request.args.get('limit', default=20, type=int)
@@ -94,28 +90,20 @@ def create_app(config: Type[BaseConfig], influx: InfluxDBClient) -> Flask:
         In case of a success it returns msg with information about from
         which exchanges data was fetched.
 
-        Otherwise an it returns error message and code of 404.
-
-        Returns
-        -------
-        response
+        Otherwise an it returns error message and code of 400.
         """
         pair = request.args.get('pair', default=None, type=str)
 
         if not pair:
             return jsonify(msg='Pair not provided'), 400
 
-        msg, code = fill_pair(influx, pair)
+        msg, code = fill_pair(app, influx, pair)
         return jsonify(msg=msg), code
 
     @app.route("/")
     def hello():
         """
         Test endpoint to check if app is on and working.
-
-        Returns
-        -------
-        response
         """
         return jsonify(msg="Wrong place, is it?")
 
@@ -138,7 +126,7 @@ def create_app(config: Type[BaseConfig], influx: InfluxDBClient) -> Flask:
         exc_info = traceback.format_exc()
         app.logger.exception(error, exc_info=exc_info)
 
-        return jsonify(msg=f'Unhandled exception',
+        return jsonify(msg='Unhandled exception',
                        error=str(error)), 500
 
     return app

@@ -1,6 +1,7 @@
 import numpy as np
 from app.api.database import Level
 from app.api import db
+from app.ta.helpers import indicator
 from app.ta.levels.checker import is_level
 from app.ta.levels.fuzzy_level import FuzzyLevel
 from app.ta.charting.base import Universe
@@ -15,6 +16,7 @@ class Levels(object):
         self.time = universe.time
         assert self.close.size == self.time.size, f'{self.close.size} != {self.time.size}'
 
+    @indicator('levels', ['levels'])
     def __call__(self) -> dict:
         # TODO: do not create levels with each request...
         # Look for new levels

@@ -4,7 +4,10 @@ import numpy as np
 
 from scipy import stats
 
+from app.ta.helpers import indicator
 
+
+@indicator('BB', ['upper_band', 'middle_band', 'lower_band'])
 def BB(data, limit, timeperiod=20):
     m = 1000000
     close = m * data['close']
@@ -46,6 +49,7 @@ def BB(data, limit, timeperiod=20):
             'info': info}
 
 
+@indicator('MACD', ['macd', 'signal', 'histogram'])
 def MACD(data, limit, fastperiod=12, slowperiod=26, signalperiod=9):
     macd, signal, hist = talib.MACD(data['close'], fastperiod, slowperiod, signalperiod)
     return {'macd': macd.tolist()[-limit:],
@@ -54,6 +58,7 @@ def MACD(data, limit, fastperiod=12, slowperiod=26, signalperiod=9):
             'info': []}
 
 
+@indicator('RSI', ['rsi'])
 def RSI(data, limit, timeperiod=14):
     close = data['close']
     m = 10000000
@@ -77,6 +82,7 @@ def RSI(data, limit, timeperiod=14):
     return {'rsi': real.tolist()[-limit:], 'info': info}
 
 
+@indicator('STOCH', ['k', 'd'])
 def STOCH(data, limit, fastk_period=14, slowk_period=14, slowk_matype=3, slowd_period=14, slowd_matype=3):
     slowk, slowd = talib.STOCH(data['high'], data['low'], data['close'],
                                fastk_period, slowk_period, slowk_matype, slowd_period, slowd_matype)
@@ -91,17 +97,20 @@ def STOCH(data, limit, fastk_period=14, slowk_period=14, slowk_matype=3, slowd_p
     return {'k': slowk.tolist()[-limit:], 'd': slowd.tolist()[-limit:], 'info': info}
 
 
+@indicator('STOCHRSI', ['k', 'd'])
 def STOCHRSI(data, limit, timeperiod=14, fastk_period=14, fastd_period=14, fastd_matype=3):
     m = 10000000
     fastk, fastd = talib.STOCHRSI(m * data['close'], timeperiod, fastk_period, fastd_period, fastd_matype)
     return {'k': fastk.tolist()[-limit:], 'd': fastd.tolist()[-limit:], 'info': []}
 
 
+@indicator('MOM', ['mom'])
 def MOM(data, limit, timeperiod=10):
     real = talib.MOM(data['close'], timeperiod)
     return {'mom': real.tolist()[-limit:], 'info': []}
 
 
+@indicator('SMA', ['fast', 'medium', 'slow'])
 def SMA(data, limit):
     close = data['close']
     periods = [10, 20, 50]
@@ -136,11 +145,13 @@ def SMA(data, limit):
     return dic
 
 
+@indicator('OBV', ['obv'])
 def OBV(data, limit):
     real = talib.OBV(data['close'], data['volume'])
     return {'obv': real.tolist()[-limit:], 'info': []}
 
 
+@indicator('EMA', ['fast', 'medium', 'slow'])
 def EMA(data, limit):
     close = data['close']
     periods = [10, 20, 50]

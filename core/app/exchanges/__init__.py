@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 from functools import reduce
+from flask import Flask
 from multiprocessing.dummy import Pool as ThreadPool
 from influxdb import InfluxDBClient
 import logging
+import threading
 
 from .binance import Binance
 from .bitfinex import Bitfinex
@@ -12,7 +14,9 @@ from .poloniex import Poloniex
 from app.ta.levels import generate_levels
 
 
-def fill_pair(influx: InfluxDBClient, pair: str) -> tuple:
+def fill_pair(app: Flask,
+              influx: InfluxDBClient,
+              pair: str) -> tuple:
     """
     Retrieves data for a given pair from Binance, Bitfinex, Bittrex and Poloniex
     and inserts it to influx database. If it's needed a downsampling is being
@@ -26,6 +30,7 @@ def fill_pair(influx: InfluxDBClient, pair: str) -> tuple:
 
     Parameters
     ----------
+    app: Flask app
     influx: instance of InfluxDBCLient
     pair: pair name ex. 'BTCUSD'
 
@@ -53,7 +58,11 @@ def fill_pair(influx: InfluxDBClient, pair: str) -> tuple:
         logging.info(f"{pair} filled from {', '.join(exchanges_filled)}")
 
         # Generate levels based on last 500 candles
-        generate_levels(influx, pair)
+        try:
+            t = threading.Thread(target=generate_levels, args=(app, influx, pair))
+            t.start()
+        except:
+            pass
 
         return f"{pair} filled from {', '.join(exchanges_filled)}", 200
     else:

@@ -2,6 +2,7 @@ import numpy as np
 from typing import List, Tuple, Union
 
 from app.api.database import Chart
+from app.ta.helpers import indicator
 from .constructors import tops, bottoms, skews
 from .base import Universe, Setup, BaseChart
 from .triangles import AscTriangle, DescTriangle, SymmetricalTriangle
@@ -49,6 +50,7 @@ class Charting:
 
         return chart
 
+    @indicator('wedge', ['upper_band', 'lower_band'])
     def __call__(self):
         chart = self.check_last_pattern()
         if chart:

@@ -142,9 +142,17 @@ class BaseChart:
 
     # @staticmethod
     def _is_horizontal(self, skew: Skew) -> bool:
-        a = np.degrees(np.arctan(skew.slope))
-        # TODO: this should scale skew to [0,1] x [0,1]... otherwise the slope is ~ 0
-        return skew.coef == 0.0
+        # x1, x2 = self._time[0], self._time[-1]
+        # y1 = skew.slope * x1 + skew.coef
+        # y2 = skew.slope * x2 + skew.coef
+        #
+        # M, m = np.max([y1, y2]), np.min([y1, y2])
+        # y1, y2 = (y1 - m) / (M - m), (y2 - m) / (M - m)
+        #
+        # speed = abs(y2-y1 / self._close.size)
+        # print(skew.slope, speed)
+        # return speed < 0.01
+        return skew.slope == 0.0
 
     @staticmethod
     def _select_best_setup(setups: [Setup]) -> Setup:
