@@ -5,6 +5,7 @@ import config
 
 from app.ta.helpers import indicator, nan_to_null
 
+
 Config = config.BaseConfig()
 
 

@@ -26,7 +26,6 @@ def indicator(name: str, default: list) -> callable:
         return wraped_function
     return decorator
 
-
 def angle(a: Point, b: Point, c: Point) -> float:
     """
     Calculates angle between sections AB, BC.

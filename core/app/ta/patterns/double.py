@@ -15,6 +15,16 @@ def double_bottom(universe):
     return make_double(universe, type_='bottom')
 
 
+@indicator('double_top', ['A', 'B', 'C'])
+def double_top(universe):
+    return make_double(universe, type_='top')
+
+
+@indicator('double_bottom', ['A', 'B', 'C'])
+def double_bottom(universe):
+    return make_double(universe, type_='bottom')
+
+
 def make_double(universe: Universe,
                 type_: str = 'top',
                 right_margin: int = 15,
