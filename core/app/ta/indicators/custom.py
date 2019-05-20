@@ -3,7 +3,7 @@ import talib  # pylint: skip-file
 import numpy as np
 import config
 
-from app.ta.helpers import indicator
+from app.ta.helpers import indicator, nan_to_null
 
 Config = config.BaseConfig()
 
@@ -14,7 +14,7 @@ def EWO(data, limit, fast=5, slow=35):
     start = Config.MAGIC_LIMIT
     close = data['close']
     real = talib.EMA(close, fast) - talib.EMA(close, slow)
-    return {'ewo': real.tolist()[-limit:], 'info': []}
+    return {'ewo': nan_to_null(real.tolist()[-limit:]), 'info': []}
 
 
 # Keltner channels:
@@ -33,9 +33,9 @@ def KC(data, limit):
     upperch = mid + (2 * talib.ATR(high, low, close, 10))
     lowerch = mid - (2 * talib.ATR(high, low, close, 10))
 
-    return {'middle_band': mid.tolist()[-limit:],
-            'upper_band': upperch.tolist()[-limit:],
-            'lower_band': lowerch.tolist()[-limit:],
+    return {'middle_band': nan_to_null(mid.tolist()[-limit:]),
+            'upper_band': nan_to_null(upperch.tolist()[-limit:]),
+            'lower_band': nan_to_null(lowerch.tolist()[-limit:]),
             'info': []}
 
 
@@ -100,7 +100,7 @@ def ICM(data, limit):
     elif width[-margin] <= p2:
         info.append('CLOUD_THIN')
 
-    return {'leading_span_a': leading_span_a.tolist(),
-            'leading_span_b': leading_span_b.tolist(),
-            'base_line': base_line.tolist()[-limit:],
+    return {'leading_span_a': nan_to_null(leading_span_a.tolist()),
+            'leading_span_b': nan_to_null(leading_span_b.tolist()),
+            'base_line': nan_to_null(base_line.tolist()[-limit:]),
             'info': info}

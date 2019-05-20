@@ -1,14 +1,15 @@
 import numpy as np
 import json
-from typing import Union
+from typing import Union, Iterable
 from collections import namedtuple
 from sqlalchemy import cast, String
 
 from app.api.database import Chart, db
-from .constructors import Point, Skew
+from app.ta.constructors import Point, Skew
+from app.ta.helpers import angle
 
 SkewPoint = Union[Point, Skew]
-Setup = namedtuple('Setup', ['up', 'down', 'params', 'score1', 'score2'])
+Setup = namedtuple('Setup', ['up', 'down', 'params', 'include_score', 'fit_score', 'all_score'])
 Universe = namedtuple('Universe', ['pair', 'timeframe', 'close', 'time', 'future_time'])
 
 
@@ -84,24 +85,34 @@ class BaseChart:
 
         db.session.commit()
 
-    def _cross_after_last_candle(self, a: SkewPoint, b: SkewPoint) -> bool:
-        """
-        This also asserts that triangle is getting narrower.
-        """
+    @staticmethod
+    def _cross_point(a: SkewPoint, b: SkewPoint) -> Union[None, Point]:
         assert isinstance(a, (Point, Skew))
         assert isinstance(b, (Point, Skew))
 
         try:
             if isinstance(a, Point) and isinstance(b, Skew):
-                cross = (a.y - b.coef) / b.slope
-            elif isinstance(b, Point) and isinstance(a, Skew):
-                cross = (b.y - a.coef) / a.slope
-            else:
-                cross = (b.coef - a.coef) / (a.slope - b.slope)
-            return cross >= self._last_point
+                c = (a.y - b.coef) / b.slope
+                return Point(c, a.y)
+
+            if isinstance(b, Point) and isinstance(a, Skew):
+                c = (b.y - a.coef) / a.slope
+                return Point(c, b.y)
+
+            c = (b.coef - a.coef) / (a.slope - b.slope)
+            return Point(c, a.slope * c + a.coef)
 
         except ZeroDivisionError:
+            return None
+
+    def _cross_after_last_candle(self, a: SkewPoint, b: SkewPoint) -> bool:
+        """
+        This also asserts that triangle is getting narrower.
+        """
+        cross = self._cross_point(a, b)
+        if not cross:
             return False
+        return cross.x >= self._last_point
 
     def _include_enough_points(self,
                                start: int,
@@ -134,11 +145,45 @@ class BaseChart:
             return float(score)
         return None
 
+    def _fits_to_all(self,
+                     up: np.ndarray,
+                     down: np.ndarray) -> Union[float, None]:
+
+        close, up, down = self._close, up, down
+        dist = (close - down) / (up - down)
+        score = np.mean(dist)
+        return float(score)
+
     @staticmethod
     def _is_triangle(up: np.ndarray,
                      down: np.ndarray) -> bool:
         width = up - down
         return width[-1] < 0.85 * width[0]
+
+    @staticmethod
+    def scale_to_unit(xs: Iterable) -> np.ndarray:
+        M, m = np.max(xs), np.min(xs)
+        return (xs - m) / (M - m)
+
+    def _is_pointy(self, a: SkewPoint, b: SkewPoint) -> bool:
+        cross = self._cross_point(a, b)
+        if not cross:
+            return False
+
+        if isinstance(a, Point) and isinstance(b, Skew):
+            points = [a, cross, b.start]
+        elif isinstance(b, Point) and isinstance(a, Skew):
+            points = [a.start, cross, b]
+        else:
+            points = [a.start, cross, b.start]
+
+        xs = self.scale_to_unit([p.x for p in points])
+        ys = self.scale_to_unit([p.y for p in points])
+
+        a, b, c = [Point(x, y) for x, y in zip(xs, ys)]
+        alpha = angle(a, b, c)
+
+        return alpha <= 65
 
     # @staticmethod
     def _is_horizontal(self, skew: Skew) -> bool:
@@ -157,11 +202,15 @@ class BaseChart:
     @staticmethod
     def _select_best_setup(setups: [Setup]) -> Setup:
         # Sort by number of included points
-        setups.sort(key=lambda s: s.score1, reverse=True)
+        setups.sort(key=lambda s: s.all_score, reverse=True)
+
+        # Sort by number of included points since pattern
+        top = setups[:8]
+        setups.sort(key=lambda s: s.include_score, reverse=True)
 
         # Sort by mean point position in setup
         top = setups[:4]
-        top.sort(key=lambda s: abs(0.5 - s.score1))
+        top.sort(key=lambda s: abs(0.5 - s.fit_score))
 
         return top[0]
 
@@ -178,8 +227,9 @@ class BaseChart:
             up=np.concatenate([self.setup.up, extension_up[:i]]),
             down=np.concatenate([self.setup.down, extension_down[:i]]),
             params=self.setup.params,
-            score1=self.setup.score1,
-            score2=self.setup.score2
+            include_score=self.setup.include_score,
+            fit_score=self.setup.fit_score,
+            all_score=self.setup.all_score
         )
 
     def _find(self, **kwargs) -> Union[Setup, None]:

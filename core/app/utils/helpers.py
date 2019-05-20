@@ -31,11 +31,11 @@ def get_candles(influx: InfluxDBClient, pair: str, timeframe: str, limit: int) -
     q = f"""
     SELECT * FROM (
         SELECT
-        mean(close) AS close, 
-        mean(high) AS high, 
-        mean(low) AS low, 
-        mean(open) AS open, 
-        mean(volume) AS volume
+        median(close) AS close, 
+        median(high) AS high, 
+        median(low) AS low, 
+        median(open) AS open, 
+        median(volume) AS volume
         FROM {measurement}
         WHERE ("exchange" = 'binance'
         OR "exchange" = 'bitfinex'

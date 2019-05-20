@@ -4,7 +4,7 @@ from influxdb import InfluxDBClient
 from numpy.random import normal
 
 from app.exchanges.helpers import insert_candles
-from app.ta.charting.constructors import Point
+from app.ta.constructors import Point
 from config import BaseConfig
 
 Sample = namedtuple('Sample', ['close', 'points'])

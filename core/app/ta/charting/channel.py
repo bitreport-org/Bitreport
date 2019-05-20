@@ -1,7 +1,7 @@
 from typing import Union, Tuple
 import numpy as np
 
-from .constructors import Skew
+from app.ta.constructors import Skew
 from .base import BaseChart, Setup
 
 
@@ -24,7 +24,7 @@ class Channel(BaseChart):
         else:
             down = band + shift
             up = band
-        self.setup = Setup(up, down, params, 1, 1)
+        self.setup = Setup(up, down, params, 1, 1, 1)
         self._extend()
 
     def _extend(self) -> None:
@@ -44,8 +44,9 @@ class Channel(BaseChart):
             up=np.concatenate([self.setup.up, extension_up[:i]]),
             down=np.concatenate([self.setup.down, extension_down[:i]]),
             params=self.setup.params,
-            score1=self.setup.score1,
-            score2=self.setup.score2
+            include_score=self.setup.include_score,
+            fit_score=self.setup.fit_score,
+            all_score=self.setup.all_score
         )
 
     def _make_bands(self, skew: Skew, shift: float) -> Tuple[np.ndarray, np.ndarray]:
@@ -80,15 +81,17 @@ class Channel(BaseChart):
                 up, down = self._make_bands(skew, shift)
 
                 start_index = skew.start.x
-                score1 = self._include_enough_points(start_index, up, down)
-                if not score1:
-                    continue
-                score2 = self._fits_enough(start_index, up, down)
-                if not score2:
+                include_score = self._include_enough_points(start_index, up, down)
+                if not include_score:
                     continue
 
+                fit_score = self._fits_enough(start_index, up, down)
+                if not fit_score:
+                    continue
+
+                all_score = self._fits_to_all(up, down)
                 params = self._params(skew, shift)
-                setups.append(Setup(up, down, params, score1, score2))
+                setups.append(Setup(up, down, params, include_score, fit_score, all_score))
         return setups
 
     def _find(self, ups: [Skew], downs: [Skew]) -> Union[Setup, None]:

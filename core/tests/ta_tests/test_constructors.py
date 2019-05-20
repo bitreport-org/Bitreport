@@ -1,6 +1,6 @@
 import numpy as np
 
-import app.ta.charting.constructors as cts
+import app.ta.constructors as cts
 
 
 class TestConstructors:

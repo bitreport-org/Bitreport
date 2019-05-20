@@ -1,9 +1,9 @@
 import numpy as np
 
 from app.ta.charting import (
-    constructors as cts,
     triangles as ts,
     channel as ch)
+from app.ta import constructors as cts
 
 from app.ta.charting.base import Setup, Universe
 from app.ta.charting import Charting

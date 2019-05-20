@@ -1,7 +1,7 @@
 import numpy as np
 from typing import List, Tuple, Union
 
-from .constructors import Point, Skew
+from app.ta.constructors import Point, Skew
 from .base import BaseChart, Setup
 
 
@@ -11,20 +11,26 @@ def _find(self, peaks: List[Point], skews: List[Skew]) -> Union[Setup, None]:
         for skew in skews:
             if not self._cross_after_last_candle(peak, skew):
                 continue
+
+            if not self._is_pointy(peak, skew):
+                continue
+
             up, down = self._make_bands(peak, skew)
 
             if not self._is_triangle(up, down):
                 continue
 
             start_index = min(peak.x, skew.start.x)
-            score1 = self._include_enough_points(start_index, up, down)
-            if not score1:
+            include_score = self._include_enough_points(start_index, up, down)
+            if not include_score:
                 continue
-            score2 = self._fits_enough(start_index, up, down)
-            if not score2:
+            fit_score = self._fits_enough(start_index, up, down)
+            if not fit_score:
                 continue
 
-            setups.append(_make_setup(peak, skew, up, down, score1, score2))
+            all_score = self._fits_to_all(up, down)
+
+            setups.append(_make_setup(peak, skew, up, down, include_score, fit_score, all_score))
 
     if not setups:
         return None
@@ -34,13 +40,13 @@ def _find(self, peaks: List[Point], skews: List[Skew]) -> Union[Setup, None]:
 
 def _make_setup(peak: Point, skew: Skew,
                 up: np.ndarray, down: np.ndarray,
-                score1: float, score2: float) -> Setup:
+                include_score: float, fit_score: float, all_score: float) -> Setup:
     params = {
         'hline': peak.y,
         'slope': skew.slope,
         'coef': skew.coef
     }
-    return Setup(up, down, params, score1, score2)
+    return Setup(up, down, params, include_score, fit_score, all_score)
 
 
 class AscTriangle(BaseChart):
@@ -55,7 +61,7 @@ class AscTriangle(BaseChart):
         up, slope, coef = params.values()
         down = slope * self._time + coef
         up = np.array([up] * down.size)
-        self.setup = Setup(up, down, params, 1, 1)
+        self.setup = Setup(up, down, params, 1, 1, 1)
         self._extend()
 
     def _make_bands(self, top: Point, skew: Skew) -> Tuple[np.ndarray, np.ndarray]:
@@ -85,8 +91,9 @@ class AscTriangle(BaseChart):
             up=np.concatenate([self.setup.up, extension_up[:i]]),
             down=np.concatenate([self.setup.down, extension_down[:i]]),
             params=self.setup.params,
-            score1=self.setup.score1,
-            score2=self.setup.score2
+            include_score=self.setup.include_score,
+            fit_score=self.setup.fit_score,
+            all_score=self.setup.all_score
         )
 
 
@@ -102,7 +109,7 @@ class DescTriangle(BaseChart):
         down, slope, coef = params.values()
         up = slope * self._time + coef
         down = np.array([down] * up.size)
-        self.setup = Setup(up, down, params, 1, 1)
+        self.setup = Setup(up, down, params, 1, 1, 1)
         self._extend()
 
     def _make_bands(self, bottom: Point, skew: Skew) -> Tuple[np.ndarray, np.ndarray]:
@@ -132,8 +139,9 @@ class DescTriangle(BaseChart):
             up=np.concatenate([self.setup.up, extension_up[:i]]),
             down=np.concatenate([self.setup.down, extension_down[:i]]),
             params=self.setup.params,
-            score1=self.setup.score1,
-            score2=self.setup.score2
+            include_score=self.setup.include_score,
+            fit_score=self.setup.fit_score,
+            all_score=self.setup.all_score
         )
 
 
@@ -151,7 +159,7 @@ class SymmetricalTriangle(BaseChart):
         (sup, cup), (sdown, cdown) = params.values()
         up = sup * self._time + cup
         down = sdown * self._time + cdown
-        self.setup = Setup(up, down, params, 1, 1)
+        self.setup = Setup(up, down, params, 1, 1, 1)
         self._extend()
 
     def _make_bands(self, skew_up: Skew, skew_down: Skew) -> Tuple[np.ndarray, np.ndarray]:
@@ -180,21 +188,27 @@ class SymmetricalTriangle(BaseChart):
 
                 if not self._cross_after_last_candle(up_skew, down_skew):
                     continue
+
+                if not self._is_pointy(up_skew, down_skew):
+                    continue
+
                 up, down = self._make_bands(up_skew, down_skew)
 
                 if not self._is_triangle(up, down):
                     continue
 
                 start_index = min(down_skew.start.x, up_skew.start.x)
-                score1 = self._include_enough_points(start_index, up, down)
-                if not score1:
-                    continue
-                score2 = self._fits_enough(start_index, up, down)
-                if not score2:
+                include_score = self._include_enough_points(start_index, up, down)
+                if not include_score:
                     continue
 
+                fit_score = self._fits_enough(start_index, up, down)
+                if not fit_score:
+                    continue
+
+                all_score = self._fits_to_all(up, down)
                 params = self._params(up_skew, down_skew)
-                setups.append(Setup(up, down, params, score1, score2))
+                setups.append(Setup(up, down, params, include_score, fit_score, all_score))
 
         if not setups:
             return None

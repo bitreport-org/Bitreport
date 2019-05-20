@@ -1,9 +1,9 @@
 import numpy as np
-from typing import List, Tuple, Union
+from typing import List, Union
 
 from app.api.database import Chart
 from app.ta.helpers import indicator
-from .constructors import tops, bottoms, skews
+from app.ta.constructors import tops, bottoms, skews
 from .base import Universe, Setup, BaseChart
 from .triangles import AscTriangle, DescTriangle, SymmetricalTriangle
 from .channel import Channel
@@ -16,7 +16,7 @@ class Charting:
     @staticmethod
     def select_best(xs: List[BaseChart]) -> Union[BaseChart, None]:
         bests = [x for x in xs if (x and x.setup)]
-        bests.sort(key=lambda x: x.setup.score1)
+        bests.sort(key=lambda x: x.setup.include_score)
         if bests:
             return bests[-1]
         return None
@@ -36,7 +36,7 @@ class Charting:
 
         creataion_map = {
             'ascending_triangle': AscTriangle,
-            'symmetrical_triangle': SymmetricalTriangle,
+            # 'symmetrical_triangle': SymmetricalTriangle,
             'descending_triangle': DescTriangle
         }
 
@@ -65,7 +65,7 @@ class Charting:
         charts = [
             AscTriangle(universe=self._universe, tops=tops_, skews=skews_down),
             DescTriangle(universe=self._universe, bottoms=bottoms_, skews=skews_up),
-            SymmetricalTriangle(universe=self._universe, ups=skews_up, downs=skews_down)
+            # SymmetricalTriangle(universe=self._universe, ups=skews_up, downs=skews_down)
         ]
 
         best = self.select_best(charts)
