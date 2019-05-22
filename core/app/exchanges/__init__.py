@@ -1,21 +1,17 @@
 # -*- coding: utf-8 -*-
-from functools import reduce
-from flask import Flask
+from functools import reduce, partial
 from multiprocessing.dummy import Pool as ThreadPool
 from influxdb import InfluxDBClient
 import logging
-import threading
 
 from .binance import Binance
 from .bitfinex import Bitfinex
 from .bittrex import Bittrex
 from .poloniex import Poloniex
+from .helpers import check_exchanges, downsample
 
-from app.ta.levels import generate_levels
 
-
-def fill_pair(app: Flask,
-              influx: InfluxDBClient,
+def fill_pair(app, influx: InfluxDBClient,
               pair: str) -> tuple:
     """
     Retrieves data for a given pair from Binance, Bitfinex, Bittrex and Poloniex
@@ -39,12 +35,20 @@ def fill_pair(app: Flask,
     tuple (message, code)
     """
 
+    if pair[:4] == 'TEST':
+        return None, None
+
+    exchanges = check_exchanges(influx, pair)
+
     fillers = dict(
         bitfinex=Bitfinex,
         bittrex=Bittrex,
         binance=Binance,
         poloniex=Poloniex
     )
+
+    if exchanges:
+        fillers = {k: v for k, v in fillers.items() if k in exchanges}
 
     pool = ThreadPool(4)
     results = pool.map(lambda filler: filler(influx).fill(pair), fillers.values())
@@ -54,15 +58,16 @@ def fill_pair(app: Flask,
     status = reduce(lambda x, y: x or y, results)
     exchanges_filled = [name for name, r in zip(fillers.keys(), results) if r]
 
+    downsample(influx, pair, from_tf='30m', to_tf='1h')
+    downsample(influx, pair, from_tf='1h', to_tf='2h')
+    downsample(influx, pair, from_tf='1h', to_tf='3h')
+    downsample(influx, pair, from_tf='1h', to_tf='4h')
+    downsample(influx, pair, from_tf='1h', to_tf='6h')
+    downsample(influx, pair, from_tf='1h', to_tf='12h')
+    downsample(influx, pair, from_tf='1h', to_tf='24h')
+
     if status:
         logging.info(f"{pair} filled from {', '.join(exchanges_filled)}")
-
-        # Generate levels based on last 500 candles
-        try:
-            t = threading.Thread(target=generate_levels, args=(app, influx, pair))
-            t.start()
-        except:
-            pass
 
         return f"{pair} filled from {', '.join(exchanges_filled)}", 200
     else:

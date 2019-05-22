@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import requests
 import logging
-from app.exchanges.helpers import insert_candles, downsample
+
+
+from app.exchanges.helpers import insert_candles
 
 
 class Bittrex:
@@ -10,17 +12,29 @@ class Bittrex:
         self.name = 'Bittrex'
 
     @staticmethod
-    def _pair_format(pair):
+    def _pair_format(pair: str) -> str:
         end_pair = pair[-3:]
         start_pair = pair[:-3]
         if end_pair == 'USD':
             end_pair = end_pair + 'T'
         return end_pair + '-' + start_pair
 
-    def _downsample(self, pair, from_tf, to_tf):
-        downsample(self.influx, pair=pair, from_tf=from_tf, to_tf=to_tf)
+    def json(self, measurement: str, row: dict) -> dict:
+        json_body = {
+            "measurement": measurement,
+            "tags": {'exchange': self.name.lower()},
+            "time": row['T'],
+            "fields": {
+                "open": float(row['O']),
+                "close": float(row['C']),
+                "high": float(row['H']),
+                "low": float(row['L']),
+                "volume": float(row['BV']),
+            }
+        }
+        return json_body
 
-    def fetch_candles(self, pair, timeframe):
+    def fetch_candles(self, pair, timeframe: str, session=None) -> bool:
         result = False
         measurement = pair + timeframe
         pair_formated = self._pair_format(pair)
@@ -33,6 +47,7 @@ class Bittrex:
             'marketName': pair_formated,
             'tickInterval': btf
         }
+
         request = requests.get(url, params=params)
         response = request.json()
 
@@ -42,30 +57,18 @@ class Bittrex:
             return False
 
         rows = response.get('result', False)
-        if rows:
-            points = []
-            for row in rows:
-                json_body = {
-                    "measurement": measurement,
-                    "tags": {'exchange' : self.name.lower()},
-                    "time": row['T'],
-                    "fields": {
-                        "open": float(row['O']),
-                        "close": float(row['C']),
-                        "high": float(row['H']),
-                        "low": float(row['L']),
-                        "volume": float(row['BV']),
-                    }
-                }
-                points.append(json_body)
-            result = insert_candles(self.influx, points, measurement, self.name, time_precision="s")
-            if timeframe == '1h':
-                for tf in ['2h', '3h', '6h', '12h']:
-                    self._downsample(pair, '1h', tf)
+
+        if not rows:
+            logging.info(f"FAILED {measurement} Bitrex empty response")
+            return False
+
+        points = [self.json(measurement, row) for row in rows]
+
+        result = insert_candles(self.influx, points, measurement, self.name, time_precision="s")
 
         return result
 
-    def fill(self, pair):
+    def fill(self, pair: str) -> bool:
         for tf in ['1h', '24h']:
             status = self.fetch_candles(pair, tf)
             if not status:

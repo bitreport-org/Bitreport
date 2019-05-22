@@ -7,6 +7,7 @@ from flask.logging import default_handler
 from logging.config import dictConfig
 from influxdb import InfluxDBClient
 
+
 from config import BaseConfig
 from .database import db
 from .admin import configure_admin

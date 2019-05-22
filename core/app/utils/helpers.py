@@ -1,8 +1,15 @@
 # -*- coding: utf-8 -*-
 import pandas as pd
 import numpy as np
+import re
 from influxdb import InfluxDBClient
 from config import BaseConfig
+
+
+def get_all_pairs(influx: InfluxDBClient) -> list:
+    pairs = influx.get_list_measurements()
+    pairs = [re.match('[A-Z]+', m['name'])[0] for m in pairs]
+    return list(set(pairs))
 
 
 def get_candles(influx: InfluxDBClient, pair: str, timeframe: str, limit: int) -> dict:
@@ -50,9 +57,9 @@ def get_candles(influx: InfluxDBClient, pair: str, timeframe: str, limit: int) -
     r = influx.query(q, epoch='s')
     df = pd.DataFrame(list(r.get_points(measurement=measurement)))
 
-    if df.shape[0] < BaseConfig.MAGIC_LIMIT + 5:
+    if df.shape[0] == 0:
         return dict(date=[], open=np.array([]), close=np.array([]),
-                    hight=np.array([]), low=np.array([]), volume=np.array([]))
+                    high=np.array([]), low=np.array([]), volume=np.array([]))
 
     candles_dict = {'date': df.time.values.tolist()[::-1],
                     'open': df.open.values[::-1],

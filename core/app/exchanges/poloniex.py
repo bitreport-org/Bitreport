@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import requests
 import logging
-from app.exchanges.helpers import insert_candles, check_last_tmstmp, downsample
+from app.exchanges.helpers import insert_candles, check_last_tmstmp
 
 
 class Poloniex:
@@ -10,17 +10,29 @@ class Poloniex:
         self.name = 'Poloniex'
 
     @staticmethod
-    def _pair_format(pair):
+    def _pair_format(pair: str) -> str:
         end_pair = pair[-3:]
         start_pair = pair[:-3]
         if end_pair == 'USD':
             end_pair = end_pair + 'T'
         return end_pair + '_' + start_pair
 
-    def _downsample(self, pair, from_tf, to_tf):
-        downsample(self.influx, pair=pair, from_tf=from_tf, to_tf=to_tf)
+    def json(self, measurement: str, row: dict) -> dict:
+        json_body = {
+            "measurement": measurement,
+            "tags": {'exchange': self.name.lower()},
+            "time": int(row['date']),
+            "fields": {
+                "open": float(row['open']),
+                "close": float(row['close']),
+                "high": float(row['high']),
+                "low": float(row['low']),
+                "volume": float(row['volume']),
+            }
+        }
+        return json_body
 
-    def fetch_candles(self, pair, timeframe):
+    def fetch_candles(self, pair: str, timeframe: str) -> bool:
         measurement = pair + timeframe
         pair_formatted = self._pair_format(pair)
 
@@ -31,9 +43,10 @@ class Poloniex:
         tf_map = {'30m': 1800, '2h': 7200, '24h': 86400}
         if timeframe not in tf_map.keys():
             if timeframe in ['1h', '3h']:
-                timeframe='30m'
+                timeframe = '30m'
             else:
                 timeframe = '2h'
+
         measurement = pair + timeframe
 
         url = f'https://poloniex.com/public'
@@ -44,6 +57,7 @@ class Poloniex:
             'start': start - 30,
             'period': tf_map[timeframe]
         }
+
         request = requests.get(url, params=params)
         response = request.json()
 
@@ -52,35 +66,13 @@ class Poloniex:
             logging.info(f"FAILED {measurement} Poloniex response: {response}")
             return False
 
-        points = []
-        for row in response:
-            json_body = {
-                "measurement": measurement,
-                "tags": {'exchange' : self.name.lower()},
-                "time": int(row['date']),
-                "fields": {
-                    "open": float(row['open']),
-                    "close": float(row['close']),
-                    "high": float(row['high']),
-                    "low": float(row['low']),
-                    "volume": float(row['volume']),
-                }
-            }
-            points.append(json_body)
+        points = [self.json(measurement, row) for row in response]
 
         result = insert_candles(self.influx, points, measurement, self.name, time_precision='s')
 
-        if timeframe == '30m':
-            for tf in ['1h', '3h']:
-                self._downsample(pair, '30m', tf)
-
-        if timeframe == '2h':
-            for tf in ['6h', '12h']:
-                self._downsample(pair, '2h', tf)
-
         return result
 
-    def fill(self, pair):
+    def fill(self, pair: str) -> bool:
         for tf in ['30m', '2h', '24h']:
             status = self.fetch_candles(pair, tf)
             if not status:
