@@ -2,12 +2,14 @@
 import time
 import requests
 import logging
-
+from multiprocessing.dummy import Pool as ThreadPool
 
 from app.exchanges.helpers import check_last_tmstmp, insert_candles, downsample
 
 
 class Bitfinex:
+    timeframes = ['1h', '3h', '6h', '12h', '24h']
+
     def __init__(self, influx_client):
         self.influx = influx_client
         self.name = 'Bitfinex'
@@ -68,8 +70,15 @@ class Bitfinex:
         return result
 
     def fill(self, pair: str) -> bool:
-        for tf in ['1h', '3h', '6h', '12h', '24h']:
-            status = self.fetch_candles(pair, tf)
-            if not status:
-                return False
+        pool = ThreadPool(5)
+        results = pool.map(lambda tf: self.fetch_candles(pair, tf), self.timeframes)
+        pool.close()
+        pool.join()
+
+        status = all(results)
+
+        # for tf in ['1h', '3h', '6h', '12h', '24h']:
+        #     status = self.fetch_candles(pair, tf)
+        #     if not status:
+        #         return False
         return status

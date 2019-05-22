@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-from functools import reduce, partial
+from functools import reduce
 from multiprocessing.dummy import Pool as ThreadPool
+import threading
 from influxdb import InfluxDBClient
 import logging
 
@@ -8,7 +9,7 @@ from .binance import Binance
 from .bitfinex import Bitfinex
 from .bittrex import Bittrex
 from .poloniex import Poloniex
-from .helpers import check_exchanges, downsample
+from .helpers import check_exchanges, downsample_all_timeframes
 
 
 def fill_pair(app, influx: InfluxDBClient,
@@ -58,13 +59,11 @@ def fill_pair(app, influx: InfluxDBClient,
     status = reduce(lambda x, y: x or y, results)
     exchanges_filled = [name for name, r in zip(fillers.keys(), results) if r]
 
-    downsample(influx, pair, from_tf='30m', to_tf='1h')
-    downsample(influx, pair, from_tf='1h', to_tf='2h')
-    downsample(influx, pair, from_tf='1h', to_tf='3h')
-    downsample(influx, pair, from_tf='1h', to_tf='4h')
-    downsample(influx, pair, from_tf='1h', to_tf='6h')
-    downsample(influx, pair, from_tf='1h', to_tf='12h')
-    downsample(influx, pair, from_tf='1h', to_tf='24h')
+    try:
+        t = threading.Thread(target=downsample_all_timeframes, args=(influx, pair))
+        t.start()
+    except:
+        pass
 
     if status:
         logging.info(f"{pair} filled from {', '.join(exchanges_filled)}")

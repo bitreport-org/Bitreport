@@ -1,14 +1,12 @@
 from celery import Celery
 import celeryconfig
 
-# TODO: setup config
-
 
 def make_celery(app):
     # create context tasks in celery
     celery = Celery(
         app.import_name,
-        broker='redis://redis:6379'
+        broker=app.config['BROKER']
     )
     celery.conf.update(app.config)
     celery.config_from_object(celeryconfig)

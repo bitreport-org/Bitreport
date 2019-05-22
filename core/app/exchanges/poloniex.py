@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 import requests
 import logging
+from multiprocessing.dummy import Pool as ThreadPool
+
 from app.exchanges.helpers import insert_candles, check_last_tmstmp
 
 
 class Poloniex:
+    timeframes = ['30m', '2h', '24h']
+
     def __init__(self, influx_client):
         self.influx = influx_client
         self.name = 'Poloniex'
@@ -73,8 +77,14 @@ class Poloniex:
         return result
 
     def fill(self, pair: str) -> bool:
-        for tf in ['30m', '2h', '24h']:
-            status = self.fetch_candles(pair, tf)
-            if not status:
-                return False
+        pool = ThreadPool(3)
+        results = pool.map(lambda tf: self.fetch_candles(pair, tf), self.timeframes)
+        pool.close()
+        pool.join()
+
+        status = all(results)
+        # for tf in ['30m', '2h', '24h']:
+        #     status = self.fetch_candles(pair, tf)
+        #     if not status:
+        #         return False
         return status

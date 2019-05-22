@@ -6,6 +6,9 @@ class BaseConfig(object):
     MAGIC_LIMIT = 79
     MARGIN = 26
 
+    # Celery
+    BROKER = 'redis://redis:6379'
+
     # Admin
     ADMIN_ENABLED = True
     SESSION_TYPE = 'filesystem'
@@ -69,7 +72,7 @@ class Test(BaseConfig):
     DEVELOPMENT = False
     DEBUG = False
     _INFLUX_HOST = os.environ.get('INFLUX_HOST', '0.0.0.0')
-    INFLUX = {'host': _INFLUX_HOST, 'database': 'test',}
+    INFLUX = {'host': _INFLUX_HOST, 'database': 'test'}
 
     POSTGRES_HOST = os.environ.get('POSTGRES_HOST', '0.0.0.0')
     _DB_NAME = 'test'

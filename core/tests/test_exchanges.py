@@ -57,7 +57,8 @@ class TestFillExchange:
     @pytest.mark.vcr(match_on=['host', 'path'], ignore_localhost=True)
     def test_bitfinex_fill(self, influx):
         pair = 'BTCUSD'
-        Bitfinex(influx).fill(pair), f'Failed to fill from Bitfinex'
+        result = Bitfinex(influx).fill(pair), f'Failed to fill from Bitfinex'
+        assert result
         self.check_candles_structure(influx, pair)
 
     @pytest.mark.vcr(match_on=['uri'], ignore_localhost=True)

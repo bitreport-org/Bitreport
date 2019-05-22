@@ -12,6 +12,6 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERYBEAT_SCHEDULE = {
     'test-celery': {
         'task': 'app.creator.tasks.fill_influx',
-        'schedule': crontab(minute="*"),
+        'schedule': crontab(minute=0, hour='*/1'),
     }
 }

@@ -85,3 +85,13 @@ def downsample(influx: InfluxDBClient,
         influx.query(query)
     except InfluxDBClientError:
         logging.error(f'FAILED {to_tf} downsample {pair} error: \n {traceback.format_exc()}')
+
+
+def downsample_all_timeframes(influx: InfluxDBClient, pair: str):
+    downsample(influx, pair, from_tf='30m', to_tf='1h')
+    downsample(influx, pair, from_tf='1h', to_tf='2h')
+    downsample(influx, pair, from_tf='1h', to_tf='3h')
+    downsample(influx, pair, from_tf='1h', to_tf='4h')
+    downsample(influx, pair, from_tf='1h', to_tf='6h')
+    downsample(influx, pair, from_tf='1h', to_tf='12h')
+    downsample(influx, pair, from_tf='1h', to_tf='24h')
