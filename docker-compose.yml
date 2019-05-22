@@ -5,11 +5,13 @@ volumes:
   influx-data:
   postgres-data:
   redis-data:
+  celery-beat-data:
 
 services:
   core:
     build: ./core
-    environment:
+    image: &img core
+    environment: &env
       - PYTHONUNBUFFERED=1
       - FLASK_ENV=development
       - FLASK_APP=core.py
@@ -24,6 +26,32 @@ services:
     volumes:
       - ./core:/app
 
+  celery:
+    build: ./core
+    image: *img
+    environment: *env
+    command: bash -c "celery worker -A core.celery --loglevel=INFO"
+    volumes:
+      - ./core:/app
+    depends_on:
+      - redis
+      - influx
+      - postgres
+      - core
+
+  celery-beat:
+    build: ./core
+    image: *img
+    environment: *env
+    command: bash -c "celery beat -A core.celery --schedule=tmp/celerybeat-schedule --loglevel=INFO --pidfile=tmp/celerybeat.pid"
+    volumes:
+      - ./core:/app
+    depends_on:
+      - redis
+      - influx
+      - postgres
+      - core
+
   influx:
     image: influxdb:1.5.2-alpine
     environment:
@@ -36,7 +64,7 @@ services:
   chronograf:
     image: chronograf:1.7-alpine
     environment:
-      - LOG_LEVEL=error
+      - LOG_LEVEL=debug
     ports:
       - 8080:8888
     depends_on:

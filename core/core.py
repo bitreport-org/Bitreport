@@ -5,6 +5,9 @@ from flask_migrate import Migrate
 from config import Development, Production
 from app.utils.sample_prices import init_samples
 
+from app.creator.creator import make_celery
+
+
 # Setup proper config
 environment = {'development': Development, 'production': Production}
 Config = environment[os.environ['FLASK_ENV']]
@@ -21,6 +24,10 @@ app = create_app(Config, influx)
 
 # Migrations
 migrate = Migrate(app, db)
+
+# celery
+celery = make_celery(app)
+app.app_context().push()
 
 
 @app.shell_context_processor
