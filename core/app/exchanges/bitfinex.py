@@ -76,9 +76,4 @@ class Bitfinex:
         pool.join()
 
         status = all(results)
-
-        # for tf in ['1h', '3h', '6h', '12h', '24h']:
-        #     status = self.fetch_candles(pair, tf)
-        #     if not status:
-        #         return False
         return status

@@ -83,8 +83,4 @@ class Poloniex:
         pool.join()
 
         status = all(results)
-        # for tf in ['30m', '2h', '24h']:
-        #     status = self.fetch_candles(pair, tf)
-        #     if not status:
-        #         return False
         return status

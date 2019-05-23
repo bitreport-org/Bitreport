@@ -3,6 +3,7 @@ import colors
 import time
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
+from sentry_sdk.integrations.celery import CeleryIntegration
 
 
 def sentry_init(app: Flask) -> bool:
@@ -20,7 +21,7 @@ def sentry_init(app: Flask) -> bool:
     if app.config.get('SENTRY'):
         sentry_sdk.init(
             dsn=app.config['SENTRY_URL'],
-            integrations=[FlaskIntegration()]
+            integrations=[FlaskIntegration(), CeleryIntegration()]
         )
         app.logger.info('Sentry is up and running.')
         return True

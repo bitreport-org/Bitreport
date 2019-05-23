@@ -19,6 +19,9 @@ class BaseConfig(object):
     SENTRY_URL = "https://000bf6ba6f0f41a6a1cbb8b74f494d4a@sentry.io/1359679"
     SENTRY = False
 
+    # Influx
+    INFLUX = {'host': 'influx', 'database': 'pairs'}
+
     # Flask
     SECRET_KEY = '#OKQ2DvC\xddpg\xcd\xc2E\x84'
     SQLALCHEMY_TRACK_MODIFICATIONS = False

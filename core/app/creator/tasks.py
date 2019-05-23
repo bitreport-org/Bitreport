@@ -1,6 +1,8 @@
 import celery
 import os
 from time import sleep
+import logging
+import traceback
 
 from config import Development, Production
 from app.api.database import connect_influx
@@ -9,7 +11,7 @@ from app.utils.helpers import get_all_pairs
 
 
 @celery.task()
-def fill_influx():
+def fill_influx() -> None:
     # Setup proper config
     environment = {'development': Development, 'production': Production}
     Config = environment[os.environ['FLASK_ENV']]
@@ -17,14 +19,14 @@ def fill_influx():
     influx = connect_influx(Config.INFLUX)
 
     pairs = get_all_pairs(influx)
-    pairs = [p for p in pairs if p[:4] != 'TEST']
 
     if not pairs:
         return None
 
-    # First pair
-    update_pair_data(influx, pairs[0])
-
-    for pair in pairs[1:]:
-        sleep(2)
-        update_pair_data(influx, pair)
+    for pair in pairs:
+        try:
+            update_pair_data(influx, pair)
+            sleep(2)
+        except:
+            logging.error(f'Fill task for {pair} has failed, traceback: \n {traceback.format_exc()}')
+            pass

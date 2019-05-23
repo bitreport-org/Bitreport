@@ -48,7 +48,6 @@ def app(request):
     @app.route('/test/bad/error')
     def error():
         raise KeyError
-        return 'Error 1/0', 200
 
     client = app.test_client()
     ctx = app.app_context()

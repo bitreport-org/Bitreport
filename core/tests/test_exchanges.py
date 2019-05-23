@@ -11,20 +11,20 @@ class TestFiller:
     def test_all_pairs(self, filled_influx):
         pairs = get_all_pairs(filled_influx)
         assert isinstance(pairs, list)
-        assert len(pairs) == 2
+        assert len(pairs) == 1
         pairs.sort()
-        assert pairs == ['BTCUSD', 'TEST']
+        assert pairs == ['BTCUSD']
 
     def test_check_exchanges(self, filled_influx):
-        exchanges = check_exchanges(filled_influx, 'BTCUSD')
+        exchanges = check_exchanges(filled_influx, 'BTCUSD', db_name='test')
         assert isinstance(exchanges, list)
-        assert len(exchanges) == 4
-        assert exchanges == ['binance', 'bitfinex', 'bittrex', 'poloniex']
+        assert len(exchanges) == 1
+        assert exchanges == ['bitfinex']
 
     def test_no_exchange(self, filled_influx):
-        exchanges = check_exchanges(filled_influx, 'TESTSMTH')
+        exchanges = check_exchanges(filled_influx, 'TESTSMTH', db_name='test')
         assert isinstance(exchanges, list)
-        assert len(exchanges) == 0
+        assert not exchanges
 
 
 class TestFillExchange:
@@ -37,7 +37,7 @@ class TestFillExchange:
         assert isinstance(candles, dict)
         assert 'date' in candles.keys()
         assert isinstance(candles['date'], list)
-        assert len(candles['date']) > 0
+        assert candles['date']
 
         for x in ['volume', 'close', 'open', 'high', 'low']:
             assert x in candles.keys()

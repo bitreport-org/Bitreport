@@ -3,13 +3,13 @@ import pandas as pd
 import numpy as np
 import re
 from influxdb import InfluxDBClient
-from config import BaseConfig
 
 
 def get_all_pairs(influx: InfluxDBClient) -> list:
     pairs = influx.get_list_measurements()
     pairs = [re.match('[A-Z]+', m['name'])[0] for m in pairs]
-    return list(set(pairs))
+    pairs = [p for p in set(pairs) if p[:4] != 'TEST']
+    return pairs
 
 
 def get_candles(influx: InfluxDBClient, pair: str, timeframe: str, limit: int) -> dict:

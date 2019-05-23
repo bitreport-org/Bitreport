@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from functools import reduce
 from multiprocessing.dummy import Pool as ThreadPool
 import threading
 from influxdb import InfluxDBClient
@@ -10,14 +9,15 @@ from .bitfinex import Bitfinex
 from .bittrex import Bittrex
 from .poloniex import Poloniex
 from .helpers import check_exchanges, downsample_all_timeframes
+from app.ta.levels import generate_levels
 
 
-def fill_pair(app, influx: InfluxDBClient,
+def fill_pair(app,
+              influx: InfluxDBClient,
               pair: str) -> tuple:
     """
     Retrieves data for a given pair from Binance, Bitfinex, Bittrex and Poloniex
-    and inserts it to influx database. If it's needed a downsampling is being
-    performed.
+    and inserts it to influx database.
 
     Timeframes for each exchange:
     - Bitfinex 1h, 3h, 6h, 12h, 24h
@@ -56,11 +56,20 @@ def fill_pair(app, influx: InfluxDBClient,
     pool.close()
     pool.join()
 
-    status = reduce(lambda x, y: x or y, results)
+    status = any(results)
     exchanges_filled = [name for name, r in zip(fillers.keys(), results) if r]
 
+    # Downsamples
     try:
         t = threading.Thread(target=downsample_all_timeframes, args=(influx, pair))
+        t.start()
+    except:
+        pass
+
+    # TODO: remove it when core will log data
+    # Generate levels based on last 500 candles
+    try:
+        t = threading.Thread(target=generate_levels, args=(app, influx, pair))
         t.start()
     except:
         pass

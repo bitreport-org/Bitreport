@@ -25,7 +25,7 @@ def update_pair_data(influx: InfluxDBClient, pair: str) -> None:
     fillers = dict(
         bitfinex=partial(Bitfinex(influx).fetch_candles, timeframe='1h'),
         bittrex=partial(Bittrex(influx).fetch_candles, timeframe='1h'),
-        binance=partial(Binance(influx).fetch_candles, timeframe='1h', limit=2),
+        binance=partial(Binance(influx).fetch_candles, timeframe='1h', limit=3),
         poloniex=partial(Poloniex(influx).fetch_candles, timeframe='30m')
     )
 
@@ -37,7 +37,7 @@ def update_pair_data(influx: InfluxDBClient, pair: str) -> None:
     pool.close()
     pool.join()
 
-    status = reduce(lambda x, y: x or y, results)
+    status = any(results)
     exchanges_filled = [name for name, r in zip(fillers.keys(), results) if r]
 
     try:

@@ -37,7 +37,6 @@ services:
       - redis
       - influx
       - postgres
-      - core
 
   celery-beat:
     build: ./core
@@ -50,7 +49,6 @@ services:
       - redis
       - influx
       - postgres
-      - core
 
   influx:
     image: influxdb:1.5.2-alpine

@@ -6,8 +6,8 @@ from influxdb.exceptions import InfluxDBClientError
 from datetime import datetime as dt
 
 
-def check_exchanges(influx: InfluxDBClient, pair: str) -> list:
-    q = f"SHOW TAG VALUES ON pairs FROM {pair}1h WITH KEY = exchange"
+def check_exchanges(influx: InfluxDBClient, pair: str, db_name: str = 'pairs') -> list:
+    q = f"SHOW TAG VALUES ON {db_name} FROM {pair}1h WITH KEY = exchange"
     result = influx.query(q)
     items = result.items()
     if not items:
@@ -60,9 +60,9 @@ def insert_candles(influx: InfluxDBClient, candles: list,
     """
     result = influx.write_points(candles, time_precision=time_precision)
     if result:
-        logging.info(f'SUCCEDED write {len(candles)} records for {measurement} from {exchange_name}')
+        logging.info(f'SUCCEDED {exchange_name} write {len(candles)} records for {measurement}')
     else:
-        logging.error(f'FAILED to write records for {measurement} from {exchange_name}')
+        logging.error(f'FAILED {exchange_name} to write records for {measurement}')
     return result
 
 
