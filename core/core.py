@@ -5,7 +5,7 @@ from flask_migrate import Migrate
 from config import Development, Production
 from app.utils.sample_prices import init_samples
 
-from app.creator.creator import make_celery
+from app.queue.worker import make_celery
 
 
 # Setup proper config

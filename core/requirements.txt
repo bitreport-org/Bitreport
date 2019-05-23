@@ -7,6 +7,7 @@ astroid==2.1.0
 async-timeout==3.0.1
 atomicwrites==1.2.1
 attrs==18.2.0
+Babel==2.6.0
 billiard==3.6.0.0
 blinker==1.4
 celery==4.3.0
@@ -19,6 +20,7 @@ Flask-Admin==1.5.3
 Flask-BasicAuth==0.2.0
 Flask-Migrate==2.4.0
 Flask-SQLAlchemy==2.3.2
+flower==0.9.3
 gast==0.2.0
 gevent==1.4.0
 greenlet==0.4.15
@@ -71,6 +73,7 @@ SQLAlchemy==1.2.15
 statsmodels==0.9.0
 TA-Lib==0.4.17
 termcolor==1.1.0
+tornado==5.1.1
 typed-ast==1.1.1
 urllib3==1.24.1
 vcrpy==2.0.1

@@ -10,7 +10,7 @@ from app.exchanges.filler import update_pair_data
 from app.utils.helpers import get_all_pairs
 
 
-@celery.task()
+@celery.task(name='app.queue.tasks.fill_influx')
 def fill_influx() -> None:
     # Setup proper config
     environment = {'development': Development, 'production': Production}

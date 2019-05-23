@@ -41,11 +41,23 @@ services:
     volumes:
       - core-migrations:/app/migrations/versions
 
+  flower:
+    build: ./core
+    image: *img
+    environment: *env
+    command: bash -c "flower -A core.celery --basic_auth=admin:magicPassword"
+    volumes:
+      - ./core:/app
+    expose:
+      - 5555
+    depends_on:
+      - celery
+
   celery:
     build: ./core
     image: *img
     environment: *env
-    command: bash -c "celery worker -A core.celery --loglevel=INFO"
+    command: bash -c "celery worker -A core.celery"
     volumes:
       - ./core:/app
     depends_on:
@@ -57,13 +69,11 @@ services:
     build: ./core
     image: *img
     environment: *env
-    command: bash -c "celery beat -A core.celery --schedule=tmp/celerybeat-schedule --loglevel=INFO --pidfile=tmp/celerybeat.pid"
+    command: bash -c "celery beat -A core.celery --schedule=tmp/celerybeat-schedule --pidfile=tmp/celerybeat.pid"
     volumes:
       - ./core:/app
     depends_on:
       - redis
-      - influx
-      - postgres
 
   influx:
     image: influxdb:1.5.2-alpine
