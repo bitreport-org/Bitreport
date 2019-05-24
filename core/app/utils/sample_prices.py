@@ -1,6 +1,5 @@
 import numpy as np
 from collections import namedtuple
-from influxdb import InfluxDBClient
 from numpy.random import normal
 
 from app.exchanges.helpers import insert_candles
@@ -108,14 +107,14 @@ def _sample_dict(measurement: str, i: int, x: float) -> dict:
     return json_body
 
 
-def save_sample(influx: InfluxDBClient, sample: Sample, name: str) -> bool:
+def save_sample(sample: Sample, name: str) -> bool:
     margin = np.array([sample.close[0]] * BaseConfig.MAGIC_LIMIT)
     points = np.concatenate([margin, sample.close])
     points = [_sample_dict(name, i, x) for i, x in enumerate(points)]
-    return insert_candles(influx, points, name, 'test', time_precision='s')
+    return insert_candles(points, name, 'test', time_precision='s')
 
 
-def init_samples(influx: InfluxDBClient) -> None:
+def init_samples() -> None:
     samples = [
         ('asc', asc_triangle()),
         ('desc', desc_triangle()),
@@ -126,4 +125,4 @@ def init_samples(influx: InfluxDBClient) -> None:
     ]
 
     for name, s in samples:
-        save_sample(influx, s, name)
+        save_sample(s, name)

@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
 import requests
 import logging
-from multiprocessing.dummy import Pool as ThreadPool
 
 from app.exchanges.helpers import insert_candles
+from .base import BaseExchange
 
-
-class Binance:
+class Binance(BaseExchange):
     timeframes = ['1h', '2h', '6h', '12h', '24h']
-
-    def __init__(self, influx_client):
-        self.influx = influx_client
-        self.name = 'Binance'
+    name = 'Binance'
+    pool = 5
 
     @staticmethod
     def _pair_format(pair: str) -> str:
@@ -65,16 +62,6 @@ class Binance:
         # Make candles
         points = [self.json(measurement, row) for row in response]
 
-        result = insert_candles(self.influx, points, measurement, self.name, time_precision='ms')
+        result = insert_candles(points, measurement, self.name, time_precision='ms')
 
         return result
-
-    def fill(self, pair: str) -> bool:
-        pool = ThreadPool(5)
-        results = pool.map(lambda tf: self.fetch_candles(pair, tf), self.timeframes)
-        pool.close()
-        pool.join()
-
-        status = all(results)
-
-        return status

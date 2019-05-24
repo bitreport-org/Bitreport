@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
 import requests
 import logging
-from multiprocessing.dummy import Pool as ThreadPool
 
 from app.exchanges.helpers import insert_candles, check_last_tmstmp
+from .base import BaseExchange
 
 
-class Poloniex:
+class Poloniex(BaseExchange):
     timeframes = ['30m', '2h', '24h']
-
-    def __init__(self, influx_client):
-        self.influx = influx_client
-        self.name = 'Poloniex'
+    name = 'Poloniex'
+    pool = 3
 
     @staticmethod
     def _pair_format(pair: str) -> str:
@@ -40,7 +38,7 @@ class Poloniex:
         measurement = pair + timeframe
         pair_formatted = self._pair_format(pair)
 
-        start = check_last_tmstmp(self.influx, measurement)
+        start = check_last_tmstmp(measurement)
 
         # Here we map our possible timeframes 1h, 2h, 3h, 6h, 12h to
         # format acceptable by Poloniex API
@@ -72,15 +70,7 @@ class Poloniex:
 
         points = [self.json(measurement, row) for row in response]
 
-        result = insert_candles(self.influx, points, measurement, self.name, time_precision='s')
+        result = insert_candles(points, measurement, self.name, time_precision='s')
 
         return result
 
-    def fill(self, pair: str) -> bool:
-        pool = ThreadPool(3)
-        results = pool.map(lambda tf: self.fetch_candles(pair, tf), self.timeframes)
-        pool.close()
-        pool.join()
-
-        status = all(results)
-        return status

@@ -21,6 +21,8 @@ class BaseConfig(object):
 
     # Influx
     INFLUX = {'host': 'influx', 'database': 'pairs'}
+    INFLUXDB_HOST = 'influx'
+    INFLUXDB_DATABASE = 'pairs'
 
     # Flask
     SECRET_KEY = '#OKQ2DvC\xddpg\xcd\xc2E\x84'
@@ -58,7 +60,11 @@ class Production(BaseConfig):
     DEBUG = False
     DEVELOPMENT = False
     ADMIN_ENABLED = False
+
     INFLUX = {'host': 'influx', 'database': 'pairs'}
+    INFLUXDB_HOST = 'influx'
+    INFLUXDB_DATABASE = 'pairs'
+
     SQLALCHEMY_DATABASE_URI = "postgresql://postgres@postgres"
     SENTRY = True
 
@@ -66,7 +72,11 @@ class Production(BaseConfig):
 class Development(BaseConfig):
     DEVELOPMENT = True
     DEBUG = True
+
     INFLUX = {'host': 'influx', 'database': 'pairs'}
+    INFLUXDB_HOST = 'influx'
+    INFLUXDB_DATABASE = 'pairs'
+
     SQLALCHEMY_DATABASE_URI = "postgresql://postgres@postgres"
 
 
@@ -74,8 +84,11 @@ class Test(BaseConfig):
     TESTING = True
     DEVELOPMENT = False
     DEBUG = False
+
     _INFLUX_HOST = os.environ.get('INFLUX_HOST', '0.0.0.0')
     INFLUX = {'host': _INFLUX_HOST, 'database': 'test'}
+    INFLUXDB_HOST = _INFLUX_HOST
+    INFLUXDB_DATABASE = 'test'
 
     POSTGRES_HOST = os.environ.get('POSTGRES_HOST', '0.0.0.0')
     _DB_NAME = 'test'

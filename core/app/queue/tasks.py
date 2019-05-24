@@ -1,18 +1,17 @@
 import celery
-import os
 from time import sleep
+from flask import current_app
 
-from config import Development, Production
-from app.api.database import influx
 from app.exchanges.filler import update_pair_data
 from app.utils.helpers import get_all_pairs
 
 
 
 @celery.task(name='app.queue.tasks.fill_pair')
-def fill_pair(conf: dict, pair: str) -> bool:
-    with influx(conf) as flux:
-        status = update_pair_data(flux, pair)
+def fill_pair(pair: str) -> bool:
+    ctx = current_app.app_context()
+
+    status = update_pair_data(pair)
 
     sleep(2)
     return status
@@ -20,12 +19,8 @@ def fill_pair(conf: dict, pair: str) -> bool:
 
 @celery.task(name='app.queue.tasks.fill_influx')
 def fill_influx() -> None:
-    # Setup proper config
-    environment = {'development': Development, 'production': Production}
-    conf = environment[os.environ['FLASK_ENV']]
 
-    with influx(conf.INFLUX) as flux:
-        pairs = get_all_pairs(flux)
+    pairs = get_all_pairs()
 
     for pair in pairs:
-        fill_pair.delay(conf.INFLUX, pair)
+        fill_pair.delay(pair)

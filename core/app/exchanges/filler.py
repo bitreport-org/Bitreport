@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from functools import partial
 from multiprocessing.dummy import Pool as ThreadPool
-from influxdb import InfluxDBClient
+from flask import current_app
+
 import logging
 import threading
 
@@ -12,28 +13,35 @@ from .poloniex import Poloniex
 from .helpers import check_exchanges, downsample_all_timeframes
 
 
-def update_pair_data(influx: InfluxDBClient, pair: str) -> bool:
+def update_pair_data(pair: str) -> bool:
     """
     1h or 30m timeframe data update
     """
 
     if pair[:4] == 'TEST':
-        return None
+        return False
 
-    exchanges = check_exchanges(influx, pair)
+    exchanges = check_exchanges(pair)
 
     fillers = dict(
-        bitfinex=partial(Bitfinex(influx).fetch_candles, timeframe='1h'),
-        bittrex=partial(Bittrex(influx).fetch_candles, timeframe='1h'),
-        binance=partial(Binance(influx).fetch_candles, timeframe='1h', limit=3),
-        poloniex=partial(Poloniex(influx).fetch_candles, timeframe='30m')
+        bitfinex=partial(Bitfinex().fetch_candles, timeframe='1h'),
+        bittrex=partial(Bittrex().fetch_candles, timeframe='1h'),
+        binance=partial(Binance().fetch_candles, timeframe='1h', limit=3),
+        poloniex=partial(Poloniex().fetch_candles, timeframe='30m')
     )
 
     if exchanges:
         fillers = {k: v for k, v in fillers.items() if k in exchanges}
 
+    ctx = current_app.app_context()
+
+    def ctx_filler(filler):
+        with ctx:
+            result = filler(pair)
+        return result
+
     pool = ThreadPool(4)
-    results = pool.map(lambda filler: filler(pair), fillers.values())
+    results = pool.map(lambda filler: ctx_filler(filler), fillers.values())
     pool.close()
     pool.join()
 
@@ -41,7 +49,7 @@ def update_pair_data(influx: InfluxDBClient, pair: str) -> bool:
     exchanges_filled = [name for name, r in zip(fillers.keys(), results) if r]
 
     try:
-        t = threading.Thread(target=downsample_all_timeframes, args=(influx, pair))
+        t = threading.Thread(target=downsample_all_timeframes, args=(ctx, pair))
         t.start()
     except:
         pass

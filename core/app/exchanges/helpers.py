@@ -1,14 +1,15 @@
 import pandas as pd
 import logging
 import traceback
-from influxdb import InfluxDBClient
+
 from influxdb.exceptions import InfluxDBClientError
 from datetime import datetime as dt
 
+from app.api.database import influx_db
 
-def check_exchanges(influx: InfluxDBClient, pair: str, db_name: str = 'pairs') -> list:
+def check_exchanges(pair: str, db_name: str = 'pairs') -> list:
     q = f"SHOW TAG VALUES ON {db_name} FROM {pair}1h WITH KEY = exchange"
-    result = influx.query(q)
+    result = influx_db.connection.query(q)
     items = result.items()
     if not items:
         return []
@@ -18,7 +19,7 @@ def check_exchanges(influx: InfluxDBClient, pair: str, db_name: str = 'pairs') -
     return result
 
 
-def check_last_tmstmp(influx: InfluxDBClient, measurement: str) -> int:
+def check_last_tmstmp(measurement: str) -> int:
     """
     Returns timestamp of last point in measurement.
 
@@ -31,7 +32,7 @@ def check_last_tmstmp(influx: InfluxDBClient, measurement: str) -> int:
     -------
     int: timestamp of last record
     """
-    r = influx.query(f'SELECT * FROM {measurement} ORDER BY time DESC LIMIT 1;', epoch='s')
+    r = influx_db.connection.query(f'SELECT * FROM {measurement} ORDER BY time DESC LIMIT 1;', epoch='s')
     df = pd.DataFrame(list(r.get_points(measurement=measurement)))
     if df.shape == (0, 0):
         # Return something old enough
@@ -40,8 +41,9 @@ def check_last_tmstmp(influx: InfluxDBClient, measurement: str) -> int:
     return int(df.time.values) - 10
 
 
-def insert_candles(influx: InfluxDBClient, candles: list,
-                   measurement: str, exchange_name: str,
+def insert_candles(candles: list,
+                   measurement: str,
+                   exchange_name: str,
                    time_precision: str = None) -> bool:
     """
     Inserts point into a given measurement.
@@ -58,7 +60,7 @@ def insert_candles(influx: InfluxDBClient, candles: list,
     -------
     bool: True if operation succeeded, otherwise False
     """
-    result = influx.write_points(candles, time_precision=time_precision)
+    result = influx_db.connection.write_points(candles, time_precision=time_precision)
     if result:
         logging.info(f'SUCCEDED {exchange_name} write {len(candles)} records for {measurement}')
     else:
@@ -66,8 +68,7 @@ def insert_candles(influx: InfluxDBClient, candles: list,
     return result
 
 
-def downsample(influx: InfluxDBClient,
-               pair: str,
+def downsample(pair: str,
                from_tf: str,
                to_tf: str) -> None:
     time_now = dt.now().strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -82,16 +83,17 @@ def downsample(influx: InfluxDBClient,
 
         """
     try:
-        influx.query(query)
+        influx_db.connection.query(query)
     except InfluxDBClientError:
         logging.error(f'FAILED {to_tf} downsample {pair} error: \n {traceback.format_exc()}')
 
 
-def downsample_all_timeframes(influx: InfluxDBClient, pair: str):
-    downsample(influx, pair, from_tf='30m', to_tf='1h')
-    downsample(influx, pair, from_tf='1h', to_tf='2h')
-    downsample(influx, pair, from_tf='1h', to_tf='3h')
-    downsample(influx, pair, from_tf='1h', to_tf='4h')
-    downsample(influx, pair, from_tf='1h', to_tf='6h')
-    downsample(influx, pair, from_tf='1h', to_tf='12h')
-    downsample(influx, pair, from_tf='1h', to_tf='24h')
+def downsample_all_timeframes(ctx, pair: str):
+    with ctx:
+        downsample(pair, from_tf='30m', to_tf='1h')
+        downsample(pair, from_tf='1h', to_tf='2h')
+        downsample(pair, from_tf='1h', to_tf='3h')
+        downsample(pair, from_tf='1h', to_tf='4h')
+        downsample(pair, from_tf='1h', to_tf='6h')
+        downsample(pair, from_tf='1h', to_tf='12h')
+        downsample(pair, from_tf='1h', to_tf='24h')

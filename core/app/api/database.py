@@ -1,54 +1,10 @@
 # -*- coding: utf-8 -*-
-import time
-import logging
-from influxdb import InfluxDBClient
 from flask_sqlalchemy import SQLAlchemy
-from contextlib import contextmanager
+from app.vendors.flask_influx import InfluxDB
 
 db = SQLAlchemy()
 
-
-def connect_influx(kwargs: dict, retries: int = 10) -> InfluxDBClient:
-    """
-    Using input params establishes connection to influxDB and creates a database.
-
-    Parameters
-    ----------
-    kwargs: influx.InfluxDBClient kwargs
-    retries: number of retries
-
-    Returns
-    -------
-    client: influx.InfluxDBClient
-    """
-    # Wait for a connection to InfluxDB
-    client = InfluxDBClient(**kwargs)
-    success = False
-
-    i = 0
-    while i < retries:
-        try:
-            client.create_database(kwargs['database'])
-            logging.info('Successfully connected to InfluxDB.')
-            success = True
-            break
-        except:
-            i += 1
-            logging.info('Waiting for InfluxDB...')
-            time.sleep(3)
-
-    if not success:
-        raise ValueError('Max retries exceeded, could not connect to InfluxDB!')
-
-    return client
-
-
-@contextmanager
-def influx(conf: dict):
-    flux = connect_influx(conf)
-    yield flux
-    flux.close()
-
+influx_db = InfluxDB()
 
 class Chart(db.Model):
     """

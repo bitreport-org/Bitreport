@@ -15,7 +15,7 @@ from app.ta.indicators import make_indicators
 
 
 class PairData:
-    def __init__(self, influx: InfluxDBClient, pair: str, timeframe: str, limit: int) -> None:
+    def __init__(self, pair: str, timeframe: str, limit: int) -> None:
         """
         To return data without NaN values indicators are calculated on period of
         length: limit + magic_limit, however data returned by prepare() has length = limit
@@ -27,7 +27,6 @@ class PairData:
         timeframe: timeframe ex. '1h'
         limit: number of candles to retrieve
         """
-        self.influx = influx
         self.magic_limit = config.BaseConfig.MAGIC_LIMIT
         self.margin = config.BaseConfig.MARGIN
 
@@ -48,7 +47,7 @@ class PairData:
         (response, code)
         """
         # Data request
-        self.data = get_candles(self.influx, self.pair, self.timeframe, self.limit + self.magic_limit)
+        self.data = get_candles(self.pair, self.timeframe, self.limit + self.magic_limit)
 
         # Handle empty measurement
         if not self.data.get('date'):

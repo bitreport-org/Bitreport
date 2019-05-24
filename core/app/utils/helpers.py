@@ -2,17 +2,16 @@
 import pandas as pd
 import numpy as np
 import re
-from influxdb import InfluxDBClient
+from app.api.database import influx_db
 
-
-def get_all_pairs(influx: InfluxDBClient) -> list:
-    pairs = influx.get_list_measurements()
+def get_all_pairs() -> list:
+    pairs = influx_db.connection.get_list_measurements()
     pairs = [re.match('[A-Z]+', m['name'])[0] for m in pairs]
     pairs = [p for p in set(pairs) if p[:4] != 'TEST']
     return pairs
 
 
-def get_candles(influx: InfluxDBClient, pair: str, timeframe: str, limit: int) -> dict:
+def get_candles(pair: str, timeframe: str, limit: int) -> dict:
     """
     Retrieves `limit` points for measurement `pair + timeframe`. Returns dictionary:
     `{'date': list,
@@ -54,7 +53,7 @@ def get_candles(influx: InfluxDBClient, pair: str, timeframe: str, limit: int) -
     LIMIT {limit}
     """
 
-    r = influx.query(q, epoch='s')
+    r = influx_db.connection.query(q, epoch='s')
     df = pd.DataFrame(list(r.get_points(measurement=measurement)))
 
     if df.shape[0] == 0:

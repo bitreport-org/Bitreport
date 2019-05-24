@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
 import requests
 import logging
-from multiprocessing.dummy import Pool as ThreadPool
 
 from app.exchanges.helpers import insert_candles
+from .base import BaseExchange
 
 
-class Bittrex:
+class Bittrex(BaseExchange):
     timeframes = ['1h', '24h']
-
-    def __init__(self, influx_client):
-        self.influx = influx_client
-        self.name = 'Bittrex'
+    name = 'Bittrex'
+    pool = 2
 
     @staticmethod
     def _pair_format(pair: str) -> str:
@@ -36,7 +34,7 @@ class Bittrex:
         }
         return json_body
 
-    def fetch_candles(self, pair, timeframe: str, session=None) -> bool:
+    def fetch_candles(self, pair, timeframe: str) -> bool:
         result = False
         measurement = pair + timeframe
         pair_formated = self._pair_format(pair)
@@ -66,15 +64,6 @@ class Bittrex:
 
         points = [self.json(measurement, row) for row in rows]
 
-        result = insert_candles(self.influx, points, measurement, self.name, time_precision="s")
+        result = insert_candles(points, measurement, self.name, time_precision="s")
 
         return result
-
-    def fill(self, pair: str) -> bool:
-        pool = ThreadPool(2)
-        results = pool.map(lambda tf: self.fetch_candles(pair, tf), self.timeframes)
-        pool.close()
-        pool.join()
-
-        status = all(results)
-        return status

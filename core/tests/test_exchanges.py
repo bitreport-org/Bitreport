@@ -8,30 +8,34 @@ from app.utils.helpers import get_all_pairs
 
 
 class TestFiller:
-    def test_all_pairs(self, filled_influx):
-        pairs = get_all_pairs(filled_influx)
+    def test_all_pairs(self, app, filled_influx):
+        with app.ctx:
+            pairs = get_all_pairs()
         assert isinstance(pairs, list)
         assert len(pairs) == 1
         pairs.sort()
         assert pairs == ['BTCUSD']
 
-    def test_check_exchanges(self, filled_influx):
-        exchanges = check_exchanges(filled_influx, 'BTCUSD', db_name='test')
+    def test_check_exchanges(self, app, filled_influx):
+        with app.ctx:
+            exchanges = check_exchanges('BTCUSD', db_name='test')
         assert isinstance(exchanges, list)
         assert len(exchanges) == 1
         assert exchanges == ['bitfinex']
 
-    def test_no_exchange(self, filled_influx):
-        exchanges = check_exchanges(filled_influx, 'TESTSMTH', db_name='test')
+    def test_no_exchange(self, app, filled_influx):
+        with app.ctx:
+            exchanges = check_exchanges('TESTSMTH', db_name='test')
         assert isinstance(exchanges, list)
         assert not exchanges
 
 
 class TestFillExchange:
     @staticmethod
-    def check_candles_structure(influx, pair, tf='1h'):
+    def check_candles_structure(pair, tf='1h'):
         limit = 100
-        candles = get_candles(influx, pair, tf, limit)
+
+        candles = get_candles(pair, tf, limit)
 
         # assert structure and types
         assert isinstance(candles, dict)
@@ -55,50 +59,65 @@ class TestFillExchange:
         assert candles['low'].size == limit
 
     @pytest.mark.vcr(match_on=['host', 'path'], ignore_localhost=True)
-    def test_bitfinex_fill(self, influx):
+    def test_bitfinex_fill(self, app, influx):
         pair = 'BTCUSD'
-        result = Bitfinex(influx).fill(pair), f'Failed to fill from Bitfinex'
+        result = Bitfinex().fill(app.ctx, pair), f'Failed to fill from Bitfinex'
         assert result
-        self.check_candles_structure(influx, pair)
+
+        with app.ctx:
+            self.check_candles_structure(pair)
 
     @pytest.mark.vcr(match_on=['uri'], ignore_localhost=True)
-    def test_binance_fill(self, influx):
+    def test_binance_fill(self, app, influx):
         pair = 'GASBTC'
-        Binance(influx).fill(pair), f'Failed to fill from Binance'
-        self.check_candles_structure(influx, pair)
+        result =Binance().fill(app.ctx, pair), f'Failed to fill from Binance'
+        assert result
+
+        with app.ctx:
+            self.check_candles_structure(pair)
 
     @pytest.mark.vcr(match_on=['uri'], ignore_localhost=True)
-    def test_bittrex_fill(self, influx):
+    def test_bittrex_fill(self, app, influx):
         pair = 'POLYBTC'
-        Bittrex(influx).fill(pair), f'Failed to fill from Bittrex'
-        self.check_candles_structure(influx, pair)
+        result =Bittrex().fill(app.ctx, pair), f'Failed to fill from Bittrex'
+        assert result
+
+        with app.ctx:
+            self.check_candles_structure(pair)
 
     @pytest.mark.vcr(match_on=['uri'], ignore_localhost=True)
-    def test_poloniex_fill(self, influx):
+    def test_poloniex_fill(self, app, influx):
         pair = 'SCBTC'
-        Poloniex(influx).fill(pair), f'Failed to fill from Poloniex'
-        downsample(influx, pair, '30m', '1h')
-        self.check_candles_structure(influx, pair)
+        result =Poloniex().fill(app.ctx, pair), f'Failed to fill from Poloniex'
+        assert  result
+
+        with app.ctx:
+            downsample(pair, '30m', '1h')
+            self.check_candles_structure(pair)
 
 
 class TestErrorExchange:
     @staticmethod
-    def raise_error(exchange, influx):
-        status = exchange(influx).fetch_candles('wefsdfwenown', '1h')
+    def raise_error(exchange):
+        status = exchange().fetch_candles('wefsdfwenown', '1h')
         assert not status
 
     @pytest.mark.vcr(match_on=['host', 'path'], ignore_localhost=True)
-    def test_bitfinex_error(self, influx):
-        self.raise_error(Bitfinex, influx)
+    def test_bitfinex_error(self, app, influx):
+        with app.ctx:
+            self.raise_error(Bitfinex)
 
     @pytest.mark.vcr(match_on=['host', 'path'], ignore_localhost=True)
-    def test_binance_error(self, influx):
-        self.raise_error(Binance, influx)
+    def test_binance_error(self, app):
+        with app.ctx:
+            self.raise_error(Binance)
 
     @pytest.mark.vcr(match_on=['host', 'path'], ignore_localhost=True)
-    def test_bittrex_error(self, influx):
-        self.raise_error(Bittrex, influx)
+    def test_bittrex_error(self, app):
+        with app.ctx:
+            self.raise_error(Bittrex)
 
     @pytest.mark.vcr(match_on=['host', 'path'], ignore_localhost=True)
-    def test_poloniex_error(self, influx):
-        self.raise_error(Poloniex, influx)
+    def test_poloniex_error(self, app, influx):
+        with app.ctx:
+            self.raise_error(Poloniex)
