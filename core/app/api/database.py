@@ -3,6 +3,7 @@ import time
 import logging
 from influxdb import InfluxDBClient
 from flask_sqlalchemy import SQLAlchemy
+from contextlib import contextmanager
 
 db = SQLAlchemy()
 
@@ -40,6 +41,13 @@ def connect_influx(kwargs: dict, retries: int = 10) -> InfluxDBClient:
         raise ValueError('Max retries exceeded, could not connect to InfluxDB!')
 
     return client
+
+
+@contextmanager
+def influx(conf: dict):
+    flux = connect_influx(conf)
+    yield flux
+    flux.close()
 
 
 class Chart(db.Model):

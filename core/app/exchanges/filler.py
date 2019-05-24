@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from functools import reduce, partial
+from functools import partial
 from multiprocessing.dummy import Pool as ThreadPool
 from influxdb import InfluxDBClient
 import logging
@@ -12,7 +12,7 @@ from .poloniex import Poloniex
 from .helpers import check_exchanges, downsample_all_timeframes
 
 
-def update_pair_data(influx: InfluxDBClient, pair: str) -> None:
+def update_pair_data(influx: InfluxDBClient, pair: str) -> bool:
     """
     1h or 30m timeframe data update
     """
@@ -48,5 +48,7 @@ def update_pair_data(influx: InfluxDBClient, pair: str) -> None:
 
     if status:
         logging.info(f"{pair} filled from {', '.join(exchanges_filled)}")
+        return True
     else:
         logging.error(f"{pair} failed to fill!")
+        return False
