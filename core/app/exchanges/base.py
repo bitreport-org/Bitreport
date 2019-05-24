@@ -14,7 +14,7 @@ class BaseExchange:
                 result = self.fetch_candles(pair, tf)
             return result
 
-        results = pool.map(lambda tf: worker(tf), self.timeframes)
+        results = pool.map(worker, self.timeframes)
         pool.close()
         pool.join()
 

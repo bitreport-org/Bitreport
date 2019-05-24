@@ -1,5 +1,5 @@
 import influxdb
-from flask import current_app, _app_ctx_stack
+from flask import current_app, _app_ctx_stack, Flask
 from flask.globals import _app_ctx_err_msg
 
 
@@ -8,7 +8,7 @@ class InfluxDB(object):
     """
     Taken from https://github.com/btashton/flask-influxdb
     """
-    def __init__(self, app=None):
+    def __init__(self, app: Flask = None) -> None:
         """
         Class constructor
         :param app: Flask Application object
@@ -17,13 +17,13 @@ class InfluxDB(object):
         if app is not None:
             self.init_app(app)
 
-    def init_app(self, app):
+    def init_app(self, app: Flask) -> None:
         """
         Initialize extension for application
         :param app: Flask Application object
         :return:
         """
-        app.config.setdefault('INFLUXDB_HOST', '0.0.0.0')
+        app.config.setdefault('INFLUXDB_HOST', 'localhost')
         app.config.setdefault('INFLUXDB_PORT', '8086')
         app.config.setdefault('INFLUXDB_USER', 'root')
         app.config.setdefault('INFLUXDB_PASSWORD', 'root')
@@ -39,7 +39,8 @@ class InfluxDB(object):
 
         app.teardown_appcontext(self.teardown)
 
-    def connect(self):
+    @staticmethod
+    def connect() -> influxdb.InfluxDBClient:
         """
         Connect to InfluxDB using configuration parameters
         :return: InfluxDBClient object
@@ -60,7 +61,7 @@ class InfluxDB(object):
             pool_size=current_app.config['INFLUXDB_POOL_SIZE']
         )
 
-    def teardown(self, exception):
+    def teardown(self, exception) -> None:
         """This is really a sub in case a influxdb input actually does need
         to be able to be torn down"""
         ctx = _app_ctx_stack.top
@@ -68,7 +69,7 @@ class InfluxDB(object):
             ctx.influxdb_db = None
 
     @property
-    def connection(self):
+    def connection(self) -> influxdb.InfluxDBClient:
         """
         InfluxDBClient object
         :return:

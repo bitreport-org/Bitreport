@@ -7,6 +7,7 @@ from datetime import datetime as dt
 
 from app.api.database import influx_db
 
+
 def check_exchanges(pair: str, db_name: str = 'pairs') -> list:
     q = f"SHOW TAG VALUES ON {db_name} FROM {pair}1h WITH KEY = exchange"
     result = influx_db.connection.query(q)
@@ -44,7 +45,8 @@ def check_last_tmstmp(measurement: str) -> int:
 def insert_candles(candles: list,
                    measurement: str,
                    exchange_name: str,
-                   time_precision: str = None) -> bool:
+                   time_precision: str = None,
+                   verbose: bool = True) -> bool:
     """
     Inserts point into a given measurement.
 
@@ -61,10 +63,11 @@ def insert_candles(candles: list,
     bool: True if operation succeeded, otherwise False
     """
     result = influx_db.connection.write_points(candles, time_precision=time_precision)
-    if result:
+    if result and verbose:
         logging.info(f'SUCCEDED {exchange_name} write {len(candles)} records for {measurement}')
-    else:
+    elif verbose:
         logging.error(f'FAILED {exchange_name} to write records for {measurement}')
+
     return result
 
 

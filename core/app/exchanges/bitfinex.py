@@ -66,4 +66,3 @@ class Bitfinex(BaseExchange):
         result = insert_candles(points, measurement, self.name, time_precision="ms")
 
         return result
-

@@ -1,6 +1,11 @@
 import os
 
 
+def resolve_config():
+    environment = {'development': Development, 'production': Production}
+    cfg = environment[os.environ['FLASK_ENV']]
+    return cfg
+
 class BaseConfig(object):
     # Core
     MAGIC_LIMIT = 79
@@ -23,6 +28,8 @@ class BaseConfig(object):
     INFLUX = {'host': 'influx', 'database': 'pairs'}
     INFLUXDB_HOST = 'influx'
     INFLUXDB_DATABASE = 'pairs'
+    INFLUXDB_POOL_SIZE = 20
+    INFLUXDB_RETRIES = 25
 
     # Flask
     SECRET_KEY = '#OKQ2DvC\xddpg\xcd\xc2E\x84'

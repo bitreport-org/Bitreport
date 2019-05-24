@@ -111,7 +111,7 @@ def save_sample(sample: Sample, name: str) -> bool:
     margin = np.array([sample.close[0]] * BaseConfig.MAGIC_LIMIT)
     points = np.concatenate([margin, sample.close])
     points = [_sample_dict(name, i, x) for i, x in enumerate(points)]
-    return insert_candles(points, name, 'test', time_precision='s')
+    return insert_candles(points, name, 'test', time_precision='s', verbose=False)
 
 
 def init_samples() -> None:

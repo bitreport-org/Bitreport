@@ -73,4 +73,3 @@ class Poloniex(BaseExchange):
         result = insert_candles(points, measurement, self.name, time_precision='s')
 
         return result
-

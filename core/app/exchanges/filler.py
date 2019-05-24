@@ -41,7 +41,7 @@ def update_pair_data(pair: str) -> bool:
         return result
 
     pool = ThreadPool(4)
-    results = pool.map(lambda filler: ctx_filler(filler), fillers.values())
+    results = pool.map(ctx_filler, fillers.values())
     pool.close()
     pool.join()
 
@@ -54,9 +54,10 @@ def update_pair_data(pair: str) -> bool:
     except:
         pass
 
-    if status:
-        logging.info(f"{pair} filled from {', '.join(exchanges_filled)}")
-        return True
-    else:
+    if not status:
         logging.error(f"{pair} failed to fill!")
         return False
+
+    logging.info(f"{pair} filled from {', '.join(exchanges_filled)}")
+    return True
+
