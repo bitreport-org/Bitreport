@@ -29,7 +29,7 @@ module Pairs
     def fill_successful
       return if fill
 
-      errors.add(:fill, :unsuccessful)
+      errors.add(:pair, :invalid)
     end
   end
 end

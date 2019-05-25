@@ -27,9 +27,11 @@ module Tweets
       Tweets::Publisher.new(twitter_post: twitter_post,
                             message: "Hi. Here is your report for #{pair.symbol}",
                             report: report).call
-    rescue Service::ValidationError => e # we should actually look what's inside :P
+    rescue Service::ValidationError => e
+      Tweets::Publisher.new(twitter_post: twitter_post, message: "We had some trouble with your request. #{e.message}").call
+    rescue StandardError => e
       Raven.capture_exception(e)
-      Tweets::Publisher.new(twitter_post: twitter_post, message: "We had some trouble with your request. Our developers will take a look at it. If you meet them ask them about issue #{Raven.last_event_id}").call
+      Tweets::Publisher.new(twitter_post: twitter_post, message: "Something is broken on our end. Our developers will take a look at it. If you meet them ask them about issue #{Raven.last_event_id}").call
     end
 
     def create_twitter_post
