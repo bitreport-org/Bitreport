@@ -2,9 +2,9 @@
 
 module Reports
   class DataPreparer < Service
-    validates :pair, presence: true
+    class ConnectionError < StandardError; end
 
-    before_execute :request_data_fill
+    validates :pair, presence: true
 
     def initialize(pair:, timeframe:)
       @pair = pair
@@ -19,20 +19,15 @@ module Reports
       Rails.cache.fetch(data_url, expires_in: 15.minutes) { fetch_data }
     end
 
-    def request_data_fill
-      return if pair.last_updated_at > timeframe.to_i.hours.ago
-
-      pair.fill
-    end
-
     def data_url
       "http://core:5001/#{pair.symbol}?timeframe=#{timeframe}h&limit=200"
     end
 
     def fetch_data
       response = HTTParty.get(data_url)
-      # TODO: Handle failures
       JSON.parse(response.body)
+    rescue SocketError
+      raise ConnectionError
     end
   end
 end

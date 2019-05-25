@@ -146,8 +146,10 @@ class Plotter
       indicator = indicators[name]
       next unless indicator
 
+      name = indicator['name'] || info[:name]
+
       @plots << "using 1:2:3 notitle with filledcurves linecolor '#{info[:colors][0]}'" <<
-        "using 1:2 title '#{info[:name]}' with lines linecolor '#{info[:colors][1]}' lw 1.5" <<
+        "using 1:2 title '#{name}' with lines linecolor '#{info[:colors][1]}' lw 1.5" <<
         "using 1:3 notitle with lines linecolor '#{info[:colors][1]}' lw 1.5"
       @data << timestamps.zip(indicator['upper_band'],
                               indicator['lower_band']).map { |candle| candle.join(' ') }.push('e') * 3

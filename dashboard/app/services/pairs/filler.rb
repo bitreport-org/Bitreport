@@ -22,10 +22,6 @@ module Pairs
       nil
     end
 
-    def run
-      pair.touch(:last_updated_at)
-    end
-
     def fill_successful
       return if fill
 

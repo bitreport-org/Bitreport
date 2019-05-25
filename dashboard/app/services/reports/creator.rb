@@ -50,6 +50,7 @@ module Reports
     def image
       @image ||= Reports::OverlayGenerator.new(pair: pair,
                                                plot: plot,
+                                               fill_date: chart_data['last'],
                                                timeframe: timeframe,
                                                comment: comment).call
     end
