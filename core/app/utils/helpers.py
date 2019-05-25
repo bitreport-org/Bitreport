@@ -53,7 +53,7 @@ def get_candles(pair: str, timeframe: str, limit: int) -> dict:
     LIMIT {limit}
     """
 
-    r = influx_db.connection.query(q, epoch='s')
+    r = influx_db.query(q, epoch='s')
     df = pd.DataFrame(list(r.get_points(measurement=measurement)))
 
     if df.shape[0] == 0:

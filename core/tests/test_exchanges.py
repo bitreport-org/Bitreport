@@ -18,14 +18,14 @@ class TestFiller:
 
     def test_check_exchanges(self, app, filled_influx):
         with app.ctx:
-            exchanges = check_exchanges('BTCUSD', db_name='test')
+            exchanges = check_exchanges('BTCUSD')
         assert isinstance(exchanges, list)
         assert len(exchanges) == 1
         assert exchanges == ['bitfinex']
 
     def test_no_exchange(self, app, filled_influx):
         with app.ctx:
-            exchanges = check_exchanges('TESTSMTH', db_name='test')
+            exchanges = check_exchanges('TESTSMTH')
         assert isinstance(exchanges, list)
         assert not exchanges
 
