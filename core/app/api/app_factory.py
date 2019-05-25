@@ -44,6 +44,7 @@ def create_app(config: Type[BaseConfig]) -> Flask:
     # Postgres and influx connections
     with app.app_context():
         influx_db.init_app(app)
+        influx_db.database.create(config.INFLUXDB_DATABASE)
 
         db.init_app(app)
         db.create_all()

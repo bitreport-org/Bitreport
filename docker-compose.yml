@@ -15,7 +15,7 @@ services:
       - PYTHONUNBUFFERED=1
       - FLASK_ENV=development
       - FLASK_APP=core.py
-    command: bash -c "flask db migrate && flask db upgrade && flask run --host=0.0.0.0 --port=5001"
+    command: bash -c "flask run --host=0.0.0.0 --port=5001"
     depends_on:
       - influx
       - postgres
