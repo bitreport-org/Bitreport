@@ -2,7 +2,6 @@ import numpy as np
 import logging
 import config
 from typing import List, Tuple
-from influxdb import InfluxDBClient
 from scipy.stats import linregress
 
 
@@ -51,7 +50,8 @@ class PairData:
 
         # Handle empty measurement
         if not self.data.get('date'):
-            message = dict(msg=f'No data for {self.pair+self.timeframe}')
+            message = dict(msg=f'No data for {self.pair+self.timeframe}',
+                           last=None)
             logging.error(message)
             return message, 204
 
@@ -64,6 +64,7 @@ class PairData:
                       info=self._volume_info(self.data['volume']))
 
         # Prepare dates
+        last = self.data['date'][-1]
         dates = generate_dates(self.data['date'], self.timeframe, self.margin)
         self.dates = dates[-(self.limit + self.margin):]
 
@@ -72,7 +73,7 @@ class PairData:
         indicators_dict.update(price=price)
         indicators_dict.update(volume=volume)
 
-        response = dict(dates=self.dates, indicators=indicators_dict)
+        response = dict(dates=self.dates, indicators=indicators_dict, last=last)
         return response, 200
 
     @staticmethod

@@ -149,6 +149,7 @@ class TestPair12:
         keys = response.keys()
         assert 'dates' in keys
         assert 'indicators' in keys
+        assert 'last' in keys
 
     def test_tstmps(self, app, filled_influx):
         response = app.client.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
