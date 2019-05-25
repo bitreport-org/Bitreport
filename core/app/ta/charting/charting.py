@@ -50,7 +50,7 @@ class Charting:
 
         return chart
 
-    @indicator('wedge', ['upper_band', 'lower_band'])
+    @indicator('wedge', ['upper_band', 'lower_band', 'name'])
     def __call__(self):
         chart = self.check_last_pattern()
         if chart:

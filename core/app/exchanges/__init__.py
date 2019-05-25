@@ -8,7 +8,7 @@ from .binance import Binance
 from .bitfinex import Bitfinex
 from .bittrex import Bittrex
 from .poloniex import Poloniex
-from .helpers import check_exchanges, downsample_all_timeframes
+from .helpers import check_exchanges, downsample_all_timeframes, check_last_tmstmp
 from app.ta.levels import generate_levels
 
 
@@ -76,8 +76,9 @@ def fill_pair(pair: str) -> tuple:
 
     if status:
         logging.info(f"{pair} filled from {', '.join(exchanges_filled)}")
+        last = check_last_tmstmp(f'{pair}1h')
 
-        return f"{pair} filled from {', '.join(exchanges_filled)}", 200
+        return f"{pair} filled from {', '.join(exchanges_filled)}", last, 200
     else:
         logging.error(f"{pair} failed to fill!")
-        return f"{pair} failed to fill!", 202
+        return f"{pair} failed to fill!", None, 202

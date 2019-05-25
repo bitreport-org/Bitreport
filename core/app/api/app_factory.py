@@ -99,8 +99,8 @@ def create_app(config: Type[BaseConfig]) -> Flask:
         if not pair:
             return jsonify(msg='Pair not provided'), 400
 
-        msg, code = fill_pair(pair)
-        return jsonify(msg=msg), code
+        msg, last, code = fill_pair(pair)
+        return jsonify(msg=msg, last=last), code
 
     @app.route("/")
     def hello():

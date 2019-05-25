@@ -9,6 +9,9 @@ from app.ta.constructors import Point
 def empty(keys: list) -> dict:
     d = {k: [] for k in keys}
     d['info'] = []
+    if 'name' in keys:
+        d['name'] = None
+
     return d
 
 

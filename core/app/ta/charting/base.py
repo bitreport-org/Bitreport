@@ -57,6 +57,7 @@ class BaseChart:
 
         return dict(upper_band=self.setup.up.tolist(),
                     lower_band=self.setup.down.tolist(),
+                    name=self.__name__,
                     info=self._info_json())
 
     def _info_json(self) -> dict:
