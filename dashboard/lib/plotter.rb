@@ -125,10 +125,12 @@ class Plotter
 
       type = value > closes.last ? 'resistance' : 'support'
       formatted_value = value >= 100 ? value.round : value >= 1 ? value.round(2) : value
+      level_beginning = [level['first_occurrence'], timestamps.first].max
+      offset = type == 'resistance' ? '-0.95,0.45' : '-0.95,-0.45'
 
       out << <<~TXT
-        set arrow from #{level['first_occurrence']},#{value} to #{timestamps.last},#{value} nohead lc rgb "#70#{YELLOW}" lw 1.5 dt 2
-        set label at #{timestamps.last}, #{value} "#{type} #{formatted_value}" right font ',13' front textcolor '#70#{YELLOW}' offset -0.9,0.5
+        set arrow from #{level_beginning},#{value} to #{timestamps.last},#{value} nohead lc rgb "#70#{WHITE}" lw 1.5 dt 2
+        set label at #{timestamps.last}, #{value} "#{type} #{formatted_value}" right font ',13' front textcolor '#00#{WHITE}' offset #{offset}
       TXT
     end
     out
