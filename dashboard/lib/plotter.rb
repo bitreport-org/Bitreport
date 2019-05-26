@@ -146,7 +146,7 @@ class Plotter
       indicator = indicators[name]
       next unless indicator
 
-      name = indicator['name'] || info[:name]
+      name = (indicator['name'] || info[:name]).titleize
 
       @plots << "using 1:2:3 notitle with filledcurves linecolor '#{info[:colors][0]}'" <<
         "using 1:2 title '#{name}' with lines linecolor '#{info[:colors][1]}' lw 1.5" <<

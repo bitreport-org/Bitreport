@@ -110,3 +110,6 @@ venv.bak/
 *.logs
 /migrations/versions/*
 !/migrations/versions/.keep
+
+tmp/*
+!tmp/.keep
