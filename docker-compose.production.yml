@@ -17,6 +17,7 @@ services:
     build: ./web
     depends_on:
       - dashboard
+      - flower
     ports:
       - 80:80
       - 443:443
@@ -45,7 +46,7 @@ services:
     build: ./core
     image: *img
     environment: *env
-    command: bash -c "flower -A core.celery --basic_auth=admin:magicPassword"
+    command: bash -c "flower -A core.celery --basic_auth=admin:magicPassword --url_prefix=core/tasks"
     volumes:
       - ./core:/app
     expose:
