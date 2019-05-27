@@ -60,4 +60,3 @@ def update_pair_data(pair: str) -> bool:
 
     logging.info(f"{pair} filled from {', '.join(exchanges_filled)}")
     return True
-
