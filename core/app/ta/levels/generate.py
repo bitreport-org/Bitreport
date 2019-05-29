@@ -1,7 +1,7 @@
 import logging
 import numpy as np
 
-from app.utils.helpers import get_candles
+from app.database.helpers import get_candles
 from .levels import Levels
 from app.ta.charting.base import Universe
 

@@ -1,10 +1,9 @@
 from app.exchanges import Bitfinex, Bittrex, Binance, Poloniex
-from app.utils import get_candles
 import pytest
 import numpy as np
 
 from app.exchanges.helpers import check_exchanges, downsample
-from app.utils.helpers import get_all_pairs
+from app.database.helpers import get_all_pairs, get_candles
 
 
 class TestFiller:

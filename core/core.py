@@ -1,8 +1,8 @@
 from flask_migrate import Migrate
 
 from config import resolve_config
-from app.api import create_app, db
-from app.api.database import Chart, Level
+from app.api import create_app
+from app.database import db, Level, Chart
 from app.utils.sample_prices import init_samples
 from app.queue.worker import make_celery
 

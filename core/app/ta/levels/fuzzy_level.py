@@ -1,4 +1,4 @@
-from app.api.database import Level
+from app.database.models import Level
 
 
 class FuzzyLevel:

@@ -5,7 +5,7 @@ import traceback
 from influxdb.exceptions import InfluxDBClientError
 from datetime import datetime as dt
 
-from app.api.database import influx_db
+from app.database.models import influx_db
 
 
 def check_exchanges(pair: str) -> list:

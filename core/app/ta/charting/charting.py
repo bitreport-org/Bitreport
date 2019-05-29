@@ -1,7 +1,7 @@
 import numpy as np
 from typing import List, Union
 
-from app.api.database import Chart
+from app.database.models import Chart
 from app.ta.helpers import indicator
 from app.ta.constructors import tops, bottoms, skews
 from .base import Universe, Setup, BaseChart

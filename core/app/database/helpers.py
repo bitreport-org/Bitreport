@@ -1,8 +1,9 @@
-# -*- coding: utf-8 -*-
+from .models import influx_db
+
 import pandas as pd
 import numpy as np
 import re
-from app.api.database import influx_db
+
 
 def get_all_pairs() -> list:
     pairs = influx_db.connection.get_list_measurements()
@@ -69,24 +70,3 @@ def get_candles(pair: str, timeframe: str, limit: int) -> dict:
                     }
 
     return candles_dict
-
-
-def generate_dates(date: list, timeframe: str, n: int) -> list:
-    """
-    Generates next n timestamps in interval of a given timeframe
-
-    Parameters
-    ----------
-    date: list of timestamps
-    timeframe: name of the timeframe in hours, minutes, weeks ex. '1h', '30m', '1W'
-    n: number of future timestamps to generate
-
-    Returns
-    -------
-    date: the input list with new points appended
-    """
-    _map = {'m': 60, 'h': 3600, 'W': 648000}
-    dt = _map[timeframe[-1]] * int(timeframe[:-1])
-    date = date + [date[-1] + (i+1)*dt for i, x in enumerate(range(n))]
-
-    return date

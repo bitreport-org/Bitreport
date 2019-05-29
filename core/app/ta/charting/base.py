@@ -4,7 +4,7 @@ from typing import Union, Iterable
 from collections import namedtuple
 from sqlalchemy import cast, String
 
-from app.api.database import Chart, db
+from app.database.models import Chart, db
 from app.ta.constructors import Point, Skew
 from app.ta.helpers import angle
 

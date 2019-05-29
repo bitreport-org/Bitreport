@@ -1,5 +1,5 @@
-from app.api.database import influx_db
-from app.utils.helpers import get_candles
+from app.database.models import influx_db
+from app.database.helpers import get_candles
 
 class TestInflux:
     def test(self, app):

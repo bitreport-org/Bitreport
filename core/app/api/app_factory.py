@@ -7,7 +7,7 @@ from flask.logging import default_handler
 from logging.config import dictConfig
 
 from config import BaseConfig
-from .database import db, influx_db
+from app.database.models import db, influx_db
 from .admin import configure_admin
 from .logger import create_msg, sentry_init
 
@@ -26,7 +26,7 @@ def create_app(config: Type[BaseConfig]) -> Flask:
     app: flask.Flask app
     """
 
-    from app.utils import data_factory
+    from app.ta import data_factory
     from app.exchanges import fill_pair
 
     # Configure app

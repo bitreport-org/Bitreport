@@ -8,7 +8,8 @@ from collections import namedtuple
 
 import config
 from app.ta.indicators import INDICATORS
-from app.api import create_app, database
+from app.api import create_app
+from app.database import models
 from app.exchanges.helpers import insert_candles
 
 
@@ -58,7 +59,7 @@ def app(request):
 
     # Cleanup
     with ctx:
-        database.db.engine.dispose()
+        models.db.engine.dispose()
     drop_test_db()
 
 

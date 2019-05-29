@@ -7,7 +7,7 @@ from app.ta import constructors as cts
 
 from app.ta.charting.base import Setup, Universe
 from app.ta.charting import Charting
-from app.api.database import Chart
+from app.database.models import Chart
 from app.utils.sample_prices import asc_triangle, desc_triangle, symm_triangle, channel
 
 

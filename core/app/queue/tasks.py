@@ -3,9 +3,8 @@ from time import sleep
 from flask import current_app
 
 from app.exchanges.filler import update_pair_data
-from app.utils.helpers import get_all_pairs
 from app.exchanges.helpers import downsample_all_timeframes
-
+from app.database.helpers import get_all_pairs
 
 @celery.task(name='app.queue.tasks.fill_pair', time_limit=10)
 def fill_pair(pair: str) -> bool:
