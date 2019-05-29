@@ -2,7 +2,6 @@ version: '3'
 
 volumes:
   certs:
-  certs-data:
   core-migrations:
   dashboard-public:
   dashboard-settings:
@@ -22,8 +21,7 @@ services:
       - 80:80
       - 443:443
     volumes:
-      - certs:/etc/letsencrypt
-      - certs-data:/data/letsencrypt
+      - certs:/etc/nginx/ssl
       - dashboard-public:/usr/src/app/public
 
   core:

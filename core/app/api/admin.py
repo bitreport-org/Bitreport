@@ -57,9 +57,7 @@ def configure_admin(app: Flask, active: bool = False) -> Admin:
         admin = Admin(app,
                       name='Core',
                       template_mode='bootstrap3',
-                      index_view=CustomAdmin(),
-                      url='/core/admin'
-                      )
+                      index_view=CustomAdmin(url='/core/admin'))
         admin.add_view(InactiveAdmin(basic_auth, Level, db.session))
         admin.add_view(InactiveAdmin(basic_auth, Chart, db.session))
 
