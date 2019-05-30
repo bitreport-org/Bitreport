@@ -2,7 +2,7 @@ from app.database.models import Level
 
 
 class FuzzyLevel:
-    def __init__(self, lvl: Level, last_price: float, eps: float=0.005) -> None:
+    def __init__(self, lvl: Level, last_price: float, eps: float=0.02) -> None:
         self.lvl = lvl
         self.lower = lvl.value * (1 - eps)
         self.upper = lvl.value * (1 + eps)

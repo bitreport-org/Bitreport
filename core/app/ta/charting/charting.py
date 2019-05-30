@@ -36,8 +36,8 @@ class Charting:
 
         creataion_map = {
             'ascending_triangle': AscTriangle,
+            'descending_triangle': DescTriangle,
             # 'symmetrical_triangle': SymmetricalTriangle,
-            'descending_triangle': DescTriangle
         }
 
         chart = creataion_map.get(last.type)

@@ -104,7 +104,7 @@ class Levels(object):
             check = lambda x: x.score == support[-1].score
             if output:
                 res_value = output[0].lvl.value
-                check = lambda x: (x.score == support[-1].score) and (x.lvl.value != res_value)
+                check = lambda x: (x.score == support[-1].score) and (abs(x.lvl.value / res_value - 1) > 0.04)
 
             support = list(filter(lambda x: check(x), support))
             support.sort(key=lambda x: x.dist, reverse=True)

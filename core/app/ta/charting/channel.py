@@ -70,7 +70,8 @@ class Channel(BaseChart):
     def _params(skew: Skew, shift: float) -> dict:
         params = {
             'band': (skew.slope, skew.coef),
-            'shift': shift
+            'shift': shift,
+            'start': float(skew.start.x)
         }
         return params
 
@@ -107,3 +108,24 @@ class Channel(BaseChart):
         self.events = [None]
         self.sentiment = "None"
         self.signal = (None, None)
+
+    @staticmethod
+    def _select_best_setup(setups: [Setup]) -> Setup:
+        # Sort by number of included points
+        setups.sort(key=lambda s: s.all_score, reverse=True)
+
+        # Sort by number of included points since pattern
+        top = setups[:8]
+        top.sort(key=lambda s: s.include_score, reverse=True)
+
+        # Sort by mean point position in setup
+        top = setups[:4]
+        top.sort(key=lambda s: abs(0.5 - s.fit_score))
+
+        m = abs(0.5 - top[0].fit_score)
+        top = [t for t in top if abs(0.5 - t.fit_score) == m]
+
+        # Select channel with minimal width
+        top.sort(key=lambda s: s.params['shift'])
+
+        return top[0]

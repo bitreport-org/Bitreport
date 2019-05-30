@@ -229,6 +229,39 @@ class TestCharting(Samples):
         assert triangle2['upper_band'] == json['upper_band']
         assert triangle2['lower_band'] == json['lower_band']
 
+    def test_desc(self, app):
+        pair = 'test_descending3'
+        close = self.desc_triangle
+        uni = Universe(
+            pair=pair,
+            timeframe=self.tf,
+            close=close,
+            time=self.time,
+            future_time=np.array([])
+        )
+
+        bottoms = cts.bottoms(close, self.time)
+        tops = cts.tops(close, self.time)
+        skews = cts.skews(tops)
+
+        with app.ctx:
+            triangle1 = ts.DescTriangle(universe=uni,
+                                       bottoms=bottoms,
+                                       skews=skews
+                                       )
+            triangle2 = Charting(universe=uni)()['wedge']
+
+        assert triangle1.setup
+        assert isinstance(triangle2, dict)
+
+        assert isinstance(triangle2['upper_band'], list)
+        assert isinstance(triangle2['lower_band'], list)
+
+        json = triangle1.json()
+        assert triangle2['info'] == json['info']
+        assert triangle2['upper_band'] == json['upper_band']
+        assert triangle2['lower_band'] == json['lower_band']
+
 
 class TestChannels(Samples):
     def test_channel(self, app):

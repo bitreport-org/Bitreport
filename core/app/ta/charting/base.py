@@ -55,6 +55,13 @@ class BaseChart:
         if not self.setup:
             return None
 
+        # Remove bands before starting point
+        # self._erase_band()
+        # return dict(upper_band=nan_to_null(self.setup.up),
+        #             lower_band=nan_to_null(self.setup.down),
+        #             name=self.__name__,
+        #             info=self._info_json())
+
         return dict(upper_band=self.setup.up.tolist(),
                     lower_band=self.setup.down.tolist(),
                     name=self.__name__,
@@ -134,17 +141,17 @@ class BaseChart:
     def _fits_enough(self,
                      start: int,
                      up: np.ndarray,
-                     down: np.ndarray,
-                     threshold_down: float = 0.47,
-                     threshold_up: float = 0.55) -> Union[float, None]:
+                     down: np.ndarray) -> Union[float, None]:
 
         idx = np.where(self._time == start)[0][0]
         close, up, down = self._close[idx:], up[idx:], down[idx:]
-        dist = (close - down) / (up - down)
-        score = np.mean(dist)
-        if threshold_down <= score <= threshold_up:
-            return float(score)
-        return None
+
+        # Look at this as an integral
+        sum_up_spaces = np.sum(up - close)
+        sum_down_spaces = np.sum(close - down)
+
+        total = sum_down_spaces + sum_up_spaces
+        return total
 
     def _fits_to_all(self,
                      up: np.ndarray,
@@ -206,12 +213,12 @@ class BaseChart:
         setups.sort(key=lambda s: s.all_score, reverse=True)
 
         # Sort by number of included points since pattern
-        top = setups[:8]
+        top = setups[:20]
         setups.sort(key=lambda s: s.include_score, reverse=True)
 
         # Sort by mean point position in setup
-        top = setups[:4]
-        top.sort(key=lambda s: abs(0.5 - s.fit_score))
+        top = setups[:10]
+        top.sort(key=lambda s: abs(s.fit_score))
 
         return top[0]
 
@@ -233,6 +240,26 @@ class BaseChart:
             all_score=self.setup.all_score
         )
 
+    def _erase_band(self):
+        start = self.setup.params['start']
+        up = self.setup.up
+        down = self.setup.down
+        for i, t in enumerate(self._time):
+            if t < start - 10:
+                up[i] = None
+                down[i] = None
+
+
+        self.setup = Setup(
+            up=up,
+            down=down,
+            params=self.setup.params,
+            include_score=self.setup.include_score,
+            fit_score=self.setup.fit_score,
+            all_score=self.setup.all_score
+        )
+
+
     def _find(self, **kwargs) -> Union[Setup, None]:
         NotImplemented()
         return None
@@ -244,3 +271,7 @@ class BaseChart:
     def _remake(self, **kwargs) -> None:
         NotImplemented()
         return None
+
+
+def nan_to_null(xs: list) -> list:
+    return list(map(lambda x: None if np.isnan(x) else x, xs))

@@ -24,6 +24,7 @@ def _find(self, peaks: List[Point], skews: List[Skew]) -> Union[Setup, None]:
             include_score = self._include_enough_points(start_index, up, down)
             if not include_score:
                 continue
+
             fit_score = self._fits_enough(start_index, up, down)
             if not fit_score:
                 continue
@@ -44,7 +45,9 @@ def _make_setup(peak: Point, skew: Skew,
     params = {
         'hline': peak.y,
         'slope': skew.slope,
-        'coef': skew.coef
+        'coef': skew.coef,
+        'start': float(min(peak.x, skew.start.x))
+
     }
     return Setup(up, down, params, include_score, fit_score, all_score)
 
