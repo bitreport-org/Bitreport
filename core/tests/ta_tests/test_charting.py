@@ -35,9 +35,11 @@ class TestTriangles(Samples):
         bottoms = cts.bottoms(close, self.time)
         tops = cts.tops(close, self.time)
         skews = cts.skews(tops)
+        peaks = (tops, bottoms)
 
         with app.ctx:
             triangle = ts.DescTriangle(universe=uni,
+                                       peaks=peaks,
                                        bottoms=bottoms,
                                        skews=skews
                                        )
@@ -64,6 +66,11 @@ class TestTriangles(Samples):
         assert results[0].timeframe == self.tf
         assert results[0].params == params
 
+        with app.ctx:
+            last = Charting(universe=uni).check_last_pattern()
+
+        assert last is not None
+
     def test_desc_no_setup(self):
         pair = 'test_descending2'
         close = self.asc_triangle
@@ -78,8 +85,10 @@ class TestTriangles(Samples):
         bottoms = cts.bottoms(close, self.time)
         tops = cts.tops(close, self.time)
         skews = cts.skews(tops)
+        peaks = (tops, bottoms)
 
         triangle = ts.DescTriangle(universe=uni,
+                                   peaks=peaks,
                                    bottoms=bottoms,
                                    skews=skews
                                    )
@@ -100,9 +109,11 @@ class TestTriangles(Samples):
         bottoms = cts.bottoms(close, self.time)
         tops = cts.tops(close, self.time)
         skews = cts.skews(bottoms)
+        peaks = (tops, bottoms)
 
         with app.ctx:
             triangle = ts.AscTriangle(universe=uni,
+                                      peaks=peaks,
                                       tops=tops,
                                       skews=skews
                                       )
@@ -129,6 +140,11 @@ class TestTriangles(Samples):
         assert results[0].timeframe == self.tf
         assert results[0].params == params
 
+        with app.ctx:
+            last = Charting(universe=uni).check_last_pattern()
+
+        assert last is not None
+
     def test_asc_no_setup(self):
         pair = 'test_ascending1'
         close = self.desc_triangle
@@ -141,9 +157,12 @@ class TestTriangles(Samples):
         )
 
         tops = cts.tops(close, self.time)
+        bottoms = cts.bottoms(close, self.time)
         skews = cts.skews(tops)
+        peaks = (tops, bottoms)
 
         triangle = ts.AscTriangle(universe=uni,
+                                  peaks=peaks,
                                   tops=tops,
                                   skews=skews
                                   )
@@ -165,9 +184,11 @@ class TestTriangles(Samples):
         tops = cts.tops(close, self.time)
         downs = cts.skews(bottoms)
         ups = cts.skews(tops)
+        peaks = (tops, bottoms)
 
         with app.ctx:
             triangle = ts.SymmetricalTriangle(universe=uni,
+                                              peaks=peaks,
                                               ups=ups,
                                               downs=downs
                                               )
@@ -210,9 +231,11 @@ class TestCharting(Samples):
         bottoms = cts.bottoms(close, self.time)
         tops = cts.tops(close, self.time)
         skews = cts.skews(bottoms)
+        peaks = (tops, bottoms)
 
         with app.ctx:
             triangle1 = ts.AscTriangle(universe=uni,
+                                       peaks=peaks,
                                        tops=tops,
                                        skews=skews
                                        )
@@ -243,9 +266,11 @@ class TestCharting(Samples):
         bottoms = cts.bottoms(close, self.time)
         tops = cts.tops(close, self.time)
         skews = cts.skews(tops)
+        peaks = (tops, bottoms)
 
         with app.ctx:
             triangle1 = ts.DescTriangle(universe=uni,
+                                        peaks=peaks,
                                        bottoms=bottoms,
                                        skews=skews
                                        )
@@ -279,9 +304,11 @@ class TestChannels(Samples):
         tops = cts.tops(close, self.time)
         ups = cts.skews(tops)
         downs = cts.skews(bottoms)
+        peaks = (tops, bottoms)
 
         with app.ctx:
             channel = ch.Channel(universe=uni,
+                                 peaks=peaks,
                                  ups=ups,
                                  downs=downs
                                  )
@@ -311,3 +338,8 @@ class TestChannels(Samples):
         assert results[0].timeframe == self.tf
         assert results[0].params['band'] == list(params['band'])
         assert results[0].params['shift'] == params['shift']
+
+        with app.ctx:
+            last = Charting(universe=uni).check_last_pattern()
+
+        assert last is not None

@@ -1,6 +1,6 @@
 import numpy as np
 import json
-from typing import Union, Iterable
+from typing import Union, Iterable, List
 from collections import namedtuple
 from sqlalchemy import cast, String
 
@@ -9,8 +9,25 @@ from app.ta.constructors import Point, Skew
 from app.ta.helpers import angle
 
 SkewPoint = Union[Point, Skew]
-Setup = namedtuple('Setup', ['up', 'down', 'params', 'include_score', 'fit_score', 'all_score'])
 Universe = namedtuple('Universe', ['pair', 'timeframe', 'close', 'time', 'future_time'])
+
+class Setup:
+    def __init__(self,
+                 up: np.ndarray,
+                 down: np.ndarray,
+                 params: dict,
+                 peaks_fit_value: float,
+                 empty_field_value: float,
+                 length: int,
+                 points_between: float
+                 ):
+        self.down = down
+        self.up = up
+        self.params = params
+        self.peaks_fit_value = peaks_fit_value
+        self.empty_field_value = empty_field_value
+        self.length = length
+        self.points_between = points_between
 
 
 class BaseChart:
@@ -30,6 +47,7 @@ class BaseChart:
 
     def __init__(self,
                  universe: Universe,
+                 peaks: tuple = None,
                  remake: bool = False,
                  **kwargs) -> None:
 
@@ -46,6 +64,7 @@ class BaseChart:
         if remake:
             self._remake(**kwargs)
         else:
+            self._tops, self._bottoms = tuple(map(self._remove_outliers, peaks))
             self.setup = self._find(**kwargs)
             if self.setup:
                 self._extend()
@@ -138,10 +157,10 @@ class BaseChart:
             return score
         return None
 
-    def _fits_enough(self,
-                     start: int,
-                     up: np.ndarray,
-                     down: np.ndarray) -> Union[float, None]:
+    def _empty_field_score(self,
+                           start: int,
+                           up: np.ndarray,
+                           down: np.ndarray) -> Union[float, None]:
 
         idx = np.where(self._time == start)[0][0]
         close, up, down = self._close[idx:], up[idx:], down[idx:]
@@ -153,14 +172,25 @@ class BaseChart:
         total = sum_down_spaces + sum_up_spaces
         return total
 
-    def _fits_to_all(self,
+    def _peaks_fit_value(self,
                      up: np.ndarray,
                      down: np.ndarray) -> Union[float, None]:
 
-        close, up, down = self._close, up, down
-        dist = (close - down) / (up - down)
-        score = np.mean(dist)
-        return float(score)
+        up_series = {int(t): v for t,v in zip(self._time, up)}
+        down_series = {int(t): v for t, v in zip(self._time, down)}
+
+        tops_fit = [abs(p.y - up_series[int(p.x)]) for p in self._tops]
+        bottoms_fit = [abs(p.y - down_series[int(p.x)]) for p in self._bottoms]
+
+        fit = sum(tops_fit + bottoms_fit)
+
+        return fit
+
+    def _length(self, start: int, a: SkewPoint, b: SkewPoint) -> float:
+        cross = self._cross_point(a, b)
+        if cross is None:
+            return 0.0
+        return int(cross.x - start)
 
     @staticmethod
     def _is_triangle(up: np.ndarray,
@@ -193,34 +223,28 @@ class BaseChart:
 
         return alpha <= 65
 
-    # @staticmethod
-    def _is_horizontal(self, skew: Skew) -> bool:
-        # x1, x2 = self._time[0], self._time[-1]
-        # y1 = skew.slope * x1 + skew.coef
-        # y2 = skew.slope * x2 + skew.coef
-        #
-        # M, m = np.max([y1, y2]), np.min([y1, y2])
-        # y1, y2 = (y1 - m) / (M - m), (y2 - m) / (M - m)
-        #
-        # speed = abs(y2-y1 / self._close.size)
-        # print(skew.slope, speed)
-        # return speed < 0.01
+    @staticmethod
+    def _is_horizontal(skew: Skew) -> bool:
         return skew.slope == 0.0
 
     @staticmethod
     def _select_best_setup(setups: [Setup]) -> Setup:
-        # Sort by number of included points
-        setups.sort(key=lambda s: s.all_score, reverse=True)
+        # Sort by number of points between bands
+        setups.sort(key=lambda s: s.points_between, reverse=True)
+        setups = setups[:20]
 
-        # Sort by number of included points since pattern
-        top = setups[:20]
-        setups.sort(key=lambda s: s.include_score, reverse=True)
+        # Sort by fit to peaks
+        setups.sort(key=lambda s: s.peaks_fit_value)
+        setups = setups[:4]
 
-        # Sort by mean point position in setup
-        top = setups[:10]
-        top.sort(key=lambda s: abs(s.fit_score))
+        # Sort by empty value
+        setups.sort(key=lambda s: s.empty_field_value)
+        setups = setups[:2]
 
-        return top[0]
+        # Sort by length
+        setups.sort(key=lambda s: s.length)
+
+        return setups[-1]
 
     def _extend(self):
         ua, ub = self.setup.params['up']
@@ -231,14 +255,8 @@ class BaseChart:
         # till crossing
         i = sum(1 for u, d in zip(extension_up, extension_down) if u >= d)
 
-        self.setup = Setup(
-            up=np.concatenate([self.setup.up, extension_up[:i]]),
-            down=np.concatenate([self.setup.down, extension_down[:i]]),
-            params=self.setup.params,
-            include_score=self.setup.include_score,
-            fit_score=self.setup.fit_score,
-            all_score=self.setup.all_score
-        )
+        self.setup.close = np.concatenate([self.setup.up, extension_up[:i]])
+        self.setup.down = np.concatenate([self.setup.down, extension_down[:i]])
 
     def _erase_band(self):
         start = self.setup.params['start']
@@ -249,16 +267,15 @@ class BaseChart:
                 up[i] = None
                 down[i] = None
 
+        self.setup.down = down
+        self.setup.up = up
 
-        self.setup = Setup(
-            up=up,
-            down=down,
-            params=self.setup.params,
-            include_score=self.setup.include_score,
-            fit_score=self.setup.fit_score,
-            all_score=self.setup.all_score
-        )
-
+    @staticmethod
+    def _remove_outliers(peaks: List[Point]) -> List[Point]:
+        peaks.sort(key=lambda p: p.x)
+        if not peaks:
+            return []
+        return peaks[-4:]
 
     def _find(self, **kwargs) -> Union[Setup, None]:
         NotImplemented()

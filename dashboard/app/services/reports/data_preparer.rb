@@ -16,7 +16,7 @@ module Reports
     attr_reader :pair, :timeframe
 
     def run
-      Rails.cache.fetch(data_url, expires_in: 15.minutes) { fetch_data }
+      Rails.cache.fetch(data_url, expires_in: 0.minutes) { fetch_data }
     end
 
     def data_url
