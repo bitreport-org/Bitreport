@@ -22,7 +22,8 @@ If nothing died in the process your app should now be running in the latest vers
 Also don't forget to run any migrations:
 ```sh
 $ docker-compose -f docker-compose.production.yml run --rm dashboard bundle exec rake db:migrate:with_data
-$ docker-compose -f docker-compose.production.yml run --rm core flask db migrate && flask db upgrade
+$ docker-compose -f docker-compose.production.yml run --rm core flask db migrate
+$ docker-compose -f docker-compose.production.yml run --rm core flask db upgrade
 ```
 
 Now it's time to close the terminal session in order not to mess up anything :flushed: 

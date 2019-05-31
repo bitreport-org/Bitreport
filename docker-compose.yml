@@ -28,7 +28,6 @@ services:
 
   flower:
     build: ./core
-    image: *img
     environment: *env
     command: bash -c "flower -A core.celery --basic_auth=admin:magicPassword"
     volumes:
@@ -42,7 +41,6 @@ services:
 
   celery:
     build: ./core
-    image: *img
     environment: *env
     command: >
       bash -c "celery worker -A core.celery -l=INFO -n johnny@%h"
@@ -55,7 +53,6 @@ services:
 
   celery-beat:
     build: ./core
-    image: *img
     environment: *env
     command: bash -c "celery beat -A core.celery --schedule=tmp/celerybeat-schedule -l=INFO --pidfile=tmp/celerybeat.pid"
     volumes:

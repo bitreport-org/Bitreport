@@ -4,7 +4,7 @@ from typing import List, Union
 from app.database.models import Chart
 from app.ta.helpers import indicator
 from app.ta.constructors import tops, bottoms, skews
-from .base import Universe, BaseChart
+from .base import Universe, BaseChart, Setup
 from .triangles import AscTriangle, DescTriangle, SymmetricalTriangle
 from .channel import Channel
 
@@ -15,9 +15,27 @@ class Charting:
     def __init__(self, universe: Universe) -> None:
         self._universe = universe
 
-    @staticmethod
-    def select_best(xs: List[BaseChart]) -> Union[BaseChart, None]:
-        bests = [x for x in xs if (x and x.setup)]
+        # Universe information
+        self.max = np.max(self._universe.close)
+        self.min = np.min(self._universe.close)
+        self.field = (self.max - self.min) * self._universe.close.size
+
+    def _not_empty_pattern(self, setup: Setup) -> Union[float, None]:
+        margin = self._universe.close.size
+        close, up, down = self._universe.close, setup.up[:margin], setup.down[:margin]
+        # Look at this as an integral
+        sum_up = up - close
+        sum_down = close - down
+        sum_up = sum(x for x in sum_up if x >= 0)
+        sum_down = sum(x for x in sum_down if x >= 0)
+        s = sum_up + sum_down
+        condition = s < 0.8 * self.field
+        return condition
+
+    def select_best(self, xs: List[BaseChart]) -> Union[BaseChart, None]:
+        bests = [x for x in xs if (x and x.setup)
+                 if self._not_empty_pattern(x.setup)]
+
         bests.sort(key=lambda x: x.setup.peaks_fit_value)
         if bests:
             return bests[0]
@@ -83,7 +101,8 @@ class Charting:
         channel = Channel(universe=self._universe, peaks=peaks, ups=skews_up, downs=skews_down)
 
         # No triangle but channel
-        if best.setup is None and channel.setup is not None:
+        if best is None and channel.setup is not None:
+            channel.save()
             return channel.json()
 
         # No triangle, no channel

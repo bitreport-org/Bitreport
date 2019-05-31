@@ -27,7 +27,7 @@ services:
 
   core:
     build: ./core
-    image: &img core
+    image: core
     environment: &env
       - PYTHONUNBUFFERED=1
       - FLASK_ENV=production
@@ -43,11 +43,8 @@ services:
 
   flower:
     build: ./core
-    image: *img
     environment: *env
     command: bash -c "flower -A core.celery --basic_auth=admin:magicPassword --url_prefix=core/tasks"
-    volumes:
-      - ./core:/app
     expose:
       - 5555
     depends_on:
@@ -55,11 +52,8 @@ services:
 
   celery:
     build: ./core
-    image: *img
     environment: *env
-    command: bash -c "celery worker -A core.celery"
-    volumes:
-      - ./core:/app
+    command: bash -c "celery worker -A core.celery -n johnny@%h"
     depends_on:
       - redis
       - influx
@@ -67,11 +61,8 @@ services:
 
   celery-beat:
     build: ./core
-    image: *img
     environment: *env
     command: bash -c "celery beat -A core.celery --schedule=tmp/celerybeat-schedule --pidfile=tmp/celerybeat.pid"
-    volumes:
-      - ./core:/app
     depends_on:
       - redis
 
