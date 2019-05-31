@@ -1,10 +1,18 @@
 import os
 
 
+def resolve_config():
+    environment = {'development': Development, 'production': Production}
+    cfg = environment[os.environ['FLASK_ENV']]
+    return cfg
+
 class BaseConfig(object):
     # Core
     MAGIC_LIMIT = 79
     MARGIN = 26
+
+    # Celery
+    BROKER = 'redis://redis:6379'
 
     # Admin
     ADMIN_ENABLED = True
@@ -15,6 +23,13 @@ class BaseConfig(object):
     # Sentry
     SENTRY_URL = "https://000bf6ba6f0f41a6a1cbb8b74f494d4a@sentry.io/1359679"
     SENTRY = False
+
+    # Influx
+    INFLUX = {'host': 'influx', 'database': 'pairs'}
+    INFLUXDB_HOST = 'influx'
+    INFLUXDB_DATABASE = 'pairs'
+    INFLUXDB_POOL_SIZE = 20
+    INFLUXDB_RETRIES = 25
 
     # Flask
     SECRET_KEY = '#OKQ2DvC\xddpg\xcd\xc2E\x84'
@@ -52,7 +67,11 @@ class Production(BaseConfig):
     DEBUG = False
     DEVELOPMENT = False
     ADMIN_ENABLED = False
+
     INFLUX = {'host': 'influx', 'database': 'pairs'}
+    INFLUXDB_HOST = 'influx'
+    INFLUXDB_DATABASE = 'pairs'
+
     SQLALCHEMY_DATABASE_URI = "postgresql://postgres@postgres"
     SENTRY = True
 
@@ -60,7 +79,11 @@ class Production(BaseConfig):
 class Development(BaseConfig):
     DEVELOPMENT = True
     DEBUG = True
+
     INFLUX = {'host': 'influx', 'database': 'pairs'}
+    INFLUXDB_HOST = 'influx'
+    INFLUXDB_DATABASE = 'pairs'
+
     SQLALCHEMY_DATABASE_URI = "postgresql://postgres@postgres"
 
 
@@ -68,8 +91,11 @@ class Test(BaseConfig):
     TESTING = True
     DEVELOPMENT = False
     DEBUG = False
+
     _INFLUX_HOST = os.environ.get('INFLUX_HOST', '0.0.0.0')
-    INFLUX = {'host': _INFLUX_HOST, 'database': 'test',}
+    INFLUX = {'host': _INFLUX_HOST, 'database': 'test'}
+    INFLUXDB_HOST = _INFLUX_HOST
+    INFLUXDB_DATABASE = 'test'
 
     POSTGRES_HOST = os.environ.get('POSTGRES_HOST', '0.0.0.0')
     _DB_NAME = 'test'

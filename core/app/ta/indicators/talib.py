@@ -4,7 +4,7 @@ import numpy as np
 
 from scipy import stats
 
-from app.ta.helpers import indicator
+from app.ta.helpers import indicator, nan_to_null
 
 
 @indicator('BB', ['upper_band', 'middle_band', 'lower_band'])
@@ -43,18 +43,18 @@ def BB(data, limit, timeperiod=20):
     middleband = middleband / m
     lowerband = lowerband / m
 
-    return {'upper_band': upperband.tolist()[-limit:],
-            'middle_band': middleband.tolist()[-limit:],
-            'lower_band': lowerband.tolist()[-limit:],
+    return {'upper_band': nan_to_null(upperband.tolist()[-limit:]),
+            'middle_band': nan_to_null(middleband.tolist()[-limit:]),
+            'lower_band': nan_to_null(lowerband.tolist()[-limit:]),
             'info': info}
 
 
 @indicator('MACD', ['macd', 'signal', 'histogram'])
 def MACD(data, limit, fastperiod=12, slowperiod=26, signalperiod=9):
     macd, signal, hist = talib.MACD(data['close'], fastperiod, slowperiod, signalperiod)
-    return {'macd': macd.tolist()[-limit:],
-            'signal': signal.tolist()[-limit:],
-            'histogram': hist.tolist()[-limit:],
+    return {'macd': nan_to_null(macd.tolist()[-limit:]),
+            'signal': nan_to_null(signal.tolist()[-limit:]),
+            'histogram': nan_to_null(hist.tolist()[-limit:]),
             'info': []}
 
 
@@ -79,7 +79,7 @@ def RSI(data, limit, timeperiod=14):
     elif dir_rsi * dir_price < -0.01:
         info.append('DIV_NEGATIVE')
 
-    return {'rsi': real.tolist()[-limit:], 'info': info}
+    return {'rsi': nan_to_null(real.tolist()[-limit:]), 'info': info}
 
 
 @indicator('STOCH', ['k', 'd'])
@@ -94,20 +94,22 @@ def STOCH(data, limit, fastk_period=14, slowk_period=14, slowk_matype=3, slowd_p
     elif slowk[-1] <= 20:
         info.append('OSCILLATOR_OVERSOLD')
 
-    return {'k': slowk.tolist()[-limit:], 'd': slowd.tolist()[-limit:], 'info': info}
+    return {'k': nan_to_null(slowk.tolist()[-limit:]),
+            'd': nan_to_null(slowd.tolist()[-limit:]), 'info': info}
 
 
 @indicator('STOCHRSI', ['k', 'd'])
 def STOCHRSI(data, limit, timeperiod=14, fastk_period=14, fastd_period=14, fastd_matype=3):
     m = 10000000
     fastk, fastd = talib.STOCHRSI(m * data['close'], timeperiod, fastk_period, fastd_period, fastd_matype)
-    return {'k': fastk.tolist()[-limit:], 'd': fastd.tolist()[-limit:], 'info': []}
+    return {'k': nan_to_null(fastk.tolist()[-limit:]),
+            'd': nan_to_null(fastd.tolist()[-limit:]), 'info': []}
 
 
 @indicator('MOM', ['mom'])
 def MOM(data, limit, timeperiod=10):
     real = talib.MOM(data['close'], timeperiod)
-    return {'mom': real.tolist()[-limit:], 'info': []}
+    return {'mom': nan_to_null(real.tolist()[-limit:]), 'info': []}
 
 
 @indicator('SMA', ['fast', 'medium', 'slow'])
@@ -120,7 +122,7 @@ def SMA(data, limit):
 
     for name, p in zip(names, periods):
         real = talib.SMA(close, p)
-        dic[name] = real.tolist()[-limit:]
+        dic[name] = nan_to_null(real.tolist()[-limit:])
         # TOKENS
         if close[-1] > real[-1]:
             info.append('POSITION_UP_{}'.format(name.upper()))
@@ -148,7 +150,7 @@ def SMA(data, limit):
 @indicator('OBV', ['obv'])
 def OBV(data, limit):
     real = talib.OBV(data['close'], data['volume'])
-    return {'obv': real.tolist()[-limit:], 'info': []}
+    return {'obv': nan_to_null(real.tolist()[-limit:]), 'info': []}
 
 
 @indicator('EMA', ['fast', 'medium', 'slow'])
@@ -161,7 +163,7 @@ def EMA(data, limit):
 
     for name, p in zip(names, periods):
         real = talib.EMA(close, p)
-        dic[name] = real.tolist()[-limit:]
+        dic[name] = nan_to_null(real.tolist()[-limit:])
         # TOKENS
         if close[-1] > real[-1]:
             info.append('POSITION_UP_{}'.format(name.upper()))

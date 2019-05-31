@@ -8,7 +8,8 @@ from collections import namedtuple
 
 import config
 from app.ta.indicators import INDICATORS
-from app.api import create_app, database
+from app.api import create_app
+from app.database import models
 from app.exchanges.helpers import insert_candles
 
 
@@ -39,16 +40,15 @@ def drop_test_db():
 @pytest.fixture(scope="session")
 def app(request):
     """Session-wide test application."""
-    influx_conn = database.connect_influx(config.Test.INFLUX)
+    # influx_conn = database.connect_influx(config.Test.INFLUX)
     create_test_db()
 
     # Create app and add 500 error endpoint
-    app = create_app(config.Test, influx_conn)
+    app = create_app(config.Test)
 
     @app.route('/test/bad/error')
     def error():
         raise KeyError
-        return 'Error 1/0', 200
 
     client = app.test_client()
     ctx = app.app_context()
@@ -59,7 +59,7 @@ def app(request):
 
     # Cleanup
     with ctx:
-        database.db.engine.dispose()
+        models.db.engine.dispose()
     drop_test_db()
 
 
@@ -80,7 +80,7 @@ def influx():
     client.drop_database(dbname)
 
 
-def fill_database(influx):
+def fill_database():
     rel_dir = os.path.dirname(__file__)
     pair = 'BTCUSD'
 
@@ -89,7 +89,7 @@ def fill_database(influx):
         path = os.path.join(rel_dir, f'test_data/{measurement}.json')
         with open(path) as data_file:
             points = json.load(data_file)
-            insert_candles(influx, points, measurement, 'Bitfinex', time_precision='ms')
+            insert_candles(points, measurement, 'Bitfinex', time_precision='ms')
 
         # Add fake pair
         points = points[:120]
@@ -97,17 +97,18 @@ def fill_database(influx):
         for x in points:
             x['measurement'] = measurement
 
-        insert_candles(influx, points, measurement, 'Bitfinex', time_precision='ms')
+        insert_candles(points, measurement, 'Bitfinex', time_precision='ms')
 
 
-@pytest.fixture(scope='module')
-def filled_influx():
+@pytest.fixture()
+def filled_influx(app):
     client = InfluxDBClient(**config.Test.INFLUX)
     dbname = config.Test.INFLUX.get('database', 'test')
     client.create_database(dbname)
 
     # Add some test points
-    fill_database(client)
+    with app.ctx:
+        fill_database()
 
     yield client
 

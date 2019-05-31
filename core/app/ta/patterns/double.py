@@ -1,30 +1,18 @@
 import numpy as np
 
-from app.ta.helpers import indicator
-from app.ta.charting.constructors import Point
+from app.ta.helpers import indicator, angle
+from app.ta.constructors import Point
 from app.ta.charting.base import Universe
 
 
-def _angle(a: Point, b: Point, c: Point) -> float:
-    """
-    Calculates angle between sections AB, BC.
+@indicator('double_top', ['A', 'B', 'C'])
+def double_top(universe):
+    return make_double(universe, type_='top')
 
-    Returns
-    -------
-    alpha: the angle in degrees
-    """
-    A = [a.x - b.x, a.y - b.y]
-    B = [c.x - b.x, c.y - b.y]
-    C = [c.x - a.x, c.y - a.y]
 
-    lA = np.sqrt(A[0] ** 2 + A[1] ** 2)
-    lB = np.sqrt(B[0] ** 2 + B[1] ** 2)
-    lC = np.sqrt(C[0] ** 2 + C[1] ** 2)
-
-    d = (lC ** 2 - lA ** 2 - lB ** 2) / (-2 * lA * lB)
-
-    alpha = np.degrees(np.arccos(d))
-    return float(alpha)
+@indicator('double_bottom', ['A', 'B', 'C'])
+def double_bottom(universe):
+    return make_double(universe, type_='bottom')
 
 
 @indicator('double_top', ['A', 'B', 'C'])
@@ -92,7 +80,7 @@ def make_double(universe: Universe,
 
     # Select second top
     tmp = A.x + 1 + np.arange(scaled_y.size)
-    slopes = [(x, s) for x, s in zip(tmp[threshold + 1:], slopes) if abs(s) < 20]
+    slopes = [(x, s) for x, s in zip(tmp[threshold + 1:], slopes) if abs(s) < 2]
 
     # Select only points that are dist points from A
     if not slopes:
@@ -128,7 +116,7 @@ def make_double(universe: Universe,
 
     # The rocket must be pointy!
     scaled_a, scaled_b, scaled_c = [Point(x, y) for x, y in zip(scaled_x, scaled_y)]
-    alpha = _angle(scaled_a, scaled_b, scaled_c)
+    alpha = angle(scaled_a, scaled_b, scaled_c)
     if alpha > 95:
         return DEAFULT
 

@@ -5,15 +5,17 @@ volumes:
   influx-data:
   postgres-data:
   redis-data:
+  celery-beat-data:
 
 services:
   core:
     build: ./core
-    environment:
+    image: &img core
+    environment: &env
       - PYTHONUNBUFFERED=1
       - FLASK_ENV=development
       - FLASK_APP=core.py
-    command: bash -c "flask db migrate && flask db upgrade && flask run --host=0.0.0.0 --port=5001"
+    command: bash -c "flask run --host=0.0.0.0 --port=5001"
     depends_on:
       - influx
       - postgres
@@ -23,6 +25,43 @@ services:
       - 5001:5001
     volumes:
       - ./core:/app
+
+  flower:
+    build: ./core
+    image: *img
+    environment: *env
+    command: bash -c "flower -A core.celery --basic_auth=admin:magicPassword"
+    volumes:
+      - ./core:/app
+    expose:
+      - 5555
+    ports:
+      - 5555:5555
+    depends_on:
+      - celery
+
+  celery:
+    build: ./core
+    image: *img
+    environment: *env
+    command: >
+      bash -c "celery worker -A core.celery -l=INFO -n johnny@%h"
+    volumes:
+      - ./core:/app
+    depends_on:
+      - redis
+      - influx
+      - postgres
+
+  celery-beat:
+    build: ./core
+    image: *img
+    environment: *env
+    command: bash -c "celery beat -A core.celery --schedule=tmp/celerybeat-schedule -l=INFO --pidfile=tmp/celerybeat.pid"
+    volumes:
+      - ./core:/app
+    depends_on:
+      - redis
 
   influx:
     image: influxdb:1.5.2-alpine
@@ -36,7 +75,7 @@ services:
   chronograf:
     image: chronograf:1.7-alpine
     environment:
-      - LOG_LEVEL=error
+      - LOG_LEVEL=debug
     ports:
       - 8080:8888
     depends_on:

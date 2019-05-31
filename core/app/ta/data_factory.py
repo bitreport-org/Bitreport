@@ -2,7 +2,6 @@ import numpy as np
 import logging
 import config
 from typing import List, Tuple
-from influxdb import InfluxDBClient
 from scipy.stats import linregress
 
 
@@ -10,12 +9,12 @@ import app.ta.charting as charting
 import app.ta.patterns as patterns
 from app.ta.levels import Levels
 from app.ta.charting.base import Universe
-from app.utils import get_candles, generate_dates
 from app.ta.indicators import make_indicators
+from app.database.helpers import get_candles
 
 
 class PairData:
-    def __init__(self, influx: InfluxDBClient, pair: str, timeframe: str, limit: int) -> None:
+    def __init__(self, pair: str, timeframe: str, limit: int) -> None:
         """
         To return data without NaN values indicators are calculated on period of
         length: limit + magic_limit, however data returned by prepare() has length = limit
@@ -27,7 +26,6 @@ class PairData:
         timeframe: timeframe ex. '1h'
         limit: number of candles to retrieve
         """
-        self.influx = influx
         self.magic_limit = config.BaseConfig.MAGIC_LIMIT
         self.margin = config.BaseConfig.MARGIN
 
@@ -48,11 +46,12 @@ class PairData:
         (response, code)
         """
         # Data request
-        self.data = get_candles(self.influx, self.pair, self.timeframe, self.limit + self.magic_limit)
+        self.data = get_candles(self.pair, self.timeframe, self.limit + self.magic_limit)
 
         # Handle empty measurement
         if not self.data.get('date'):
-            message = dict(msg=f'No data for {self.pair+self.timeframe}')
+            message = dict(msg=f'No data for {self.pair+self.timeframe}',
+                           last=None)
             logging.error(message)
             return message, 204
 
@@ -65,6 +64,7 @@ class PairData:
                       info=self._volume_info(self.data['volume']))
 
         # Prepare dates
+        last = self.data['date'][-1]
         dates = generate_dates(self.data['date'], self.timeframe, self.margin)
         self.dates = dates[-(self.limit + self.margin):]
 
@@ -73,7 +73,7 @@ class PairData:
         indicators_dict.update(price=price)
         indicators_dict.update(volume=volume)
 
-        response = dict(dates=self.dates, indicators=indicators_dict)
+        response = dict(dates=self.dates, indicators=indicators_dict, last=last)
         return response, 200
 
     @staticmethod
@@ -129,3 +129,24 @@ class PairData:
         indicators_values.update(lvl())
 
         return indicators_values
+
+
+def generate_dates(date: list, timeframe: str, n: int) -> list:
+    """
+    Generates next n timestamps in interval of a given timeframe
+
+    Parameters
+    ----------
+    date: list of timestamps
+    timeframe: name of the timeframe in hours, minutes, weeks ex. '1h', '30m', '1W'
+    n: number of future timestamps to generate
+
+    Returns
+    -------
+    date: the input list with new points appended
+    """
+    _map = {'m': 60, 'h': 3600, 'W': 648000}
+    dt = _map[timeframe[-1]] * int(timeframe[:-1])
+    date = date + [date[-1] + (i+1)*dt for i, x in enumerate(range(n))]
+
+    return date

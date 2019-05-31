@@ -1,7 +1,7 @@
 import numpy as np
 from typing import List, Tuple, Union
 
-from .constructors import Point, Skew
+from app.ta.constructors import Point, Skew
 from .base import BaseChart, Setup
 
 
@@ -11,20 +11,31 @@ def _find(self, peaks: List[Point], skews: List[Skew]) -> Union[Setup, None]:
         for skew in skews:
             if not self._cross_after_last_candle(peak, skew):
                 continue
+
+            if not self._is_pointy(peak, skew):
+                continue
+
             up, down = self._make_bands(peak, skew)
 
             if not self._is_triangle(up, down):
                 continue
 
             start_index = min(peak.x, skew.start.x)
-            score1 = self._include_enough_points(start_index, up, down)
-            if not score1:
-                continue
-            score2 = self._fits_enough(start_index, up, down)
-            if not score2:
+            include_score = self._include_enough_points(start_index, up, down)
+            if not include_score:
                 continue
 
-            setups.append(_make_setup(peak, skew, up, down, score1, score2))
+            fit_score = self._empty_field_score(start_index, up, down)
+            length = self._length(start_index, peak, skew)
+            peaks_fit = self._peaks_fit_value(up, down)
+
+            params = _params(peak, skew)
+
+            setups.append(Setup(up, down, params,
+                                peaks_fit_value=peaks_fit,
+                                empty_field_value=fit_score,
+                                length=length,
+                                points_between=include_score))
 
     if not setups:
         return None
@@ -32,15 +43,15 @@ def _find(self, peaks: List[Point], skews: List[Skew]) -> Union[Setup, None]:
     return self._select_best_setup(setups)
 
 
-def _make_setup(peak: Point, skew: Skew,
-                up: np.ndarray, down: np.ndarray,
-                score1: float, score2: float) -> Setup:
+def _params(peak: Point, skew: Skew) -> dict:
     params = {
         'hline': peak.y,
         'slope': skew.slope,
-        'coef': skew.coef
+        'coef': skew.coef,
+        'start': float(min(peak.x, skew.start.x))
+
     }
-    return Setup(up, down, params, score1, score2)
+    return params
 
 
 class AscTriangle(BaseChart):
@@ -52,10 +63,10 @@ class AscTriangle(BaseChart):
     __name__ = "ascending_triangle"
 
     def _remake(self, params: dict) -> None:
-        up, slope, coef = params.values()
+        up, slope, coef, start = params.values()
         down = slope * self._time + coef
         up = np.array([up] * down.size)
-        self.setup = Setup(up, down, params, 1, 1)
+        self.setup = Setup(up, down, params, 1, 1, 1, 1)
         self._extend()
 
     def _make_bands(self, top: Point, skew: Skew) -> Tuple[np.ndarray, np.ndarray]:
@@ -81,13 +92,8 @@ class AscTriangle(BaseChart):
         # till crossing
         i = sum(1 for u, d in zip(extension_up, extension_down) if u >= d)
 
-        self.setup = Setup(
-            up=np.concatenate([self.setup.up, extension_up[:i]]),
-            down=np.concatenate([self.setup.down, extension_down[:i]]),
-            params=self.setup.params,
-            score1=self.setup.score1,
-            score2=self.setup.score2
-        )
+        self.setup.up = np.concatenate([self.setup.up, extension_up[:i]])
+        self.setup.down=np.concatenate([self.setup.down, extension_down[:i]])
 
 
 class DescTriangle(BaseChart):
@@ -99,10 +105,10 @@ class DescTriangle(BaseChart):
     __name__ = "descending_triangle"
 
     def _remake(self, params: dict) -> None:
-        down, slope, coef = params.values()
+        down, slope, coef, start = params.values()
         up = slope * self._time + coef
         down = np.array([down] * up.size)
-        self.setup = Setup(up, down, params, 1, 1)
+        self.setup = Setup(up, down, params, 1, 1, 1, 1)
         self._extend()
 
     def _make_bands(self, bottom: Point, skew: Skew) -> Tuple[np.ndarray, np.ndarray]:
@@ -128,13 +134,8 @@ class DescTriangle(BaseChart):
         # till crossing
         i = sum(1 for u, d in zip(extension_up, extension_down) if u >= d)
 
-        self.setup = Setup(
-            up=np.concatenate([self.setup.up, extension_up[:i]]),
-            down=np.concatenate([self.setup.down, extension_down[:i]]),
-            params=self.setup.params,
-            score1=self.setup.score1,
-            score2=self.setup.score2
-        )
+        self.setup.up = np.concatenate([self.setup.up, extension_up[:i]])
+        self.setup.down = np.concatenate([self.setup.down, extension_down[:i]])
 
 
 class SymmetricalTriangle(BaseChart):
@@ -148,10 +149,10 @@ class SymmetricalTriangle(BaseChart):
     __name__ = "symmetrical_triangle"
 
     def _remake(self, params: dict) -> None:
-        (sup, cup), (sdown, cdown) = params.values()
+        (sup, cup), (sdown, cdown), start = params.values()
         up = sup * self._time + cup
         down = sdown * self._time + cdown
-        self.setup = Setup(up, down, params, 1, 1)
+        self.setup = Setup(up, down, params, 1, 1, 1, 1)
         self._extend()
 
     def _make_bands(self, skew_up: Skew, skew_down: Skew) -> Tuple[np.ndarray, np.ndarray]:
@@ -180,21 +181,31 @@ class SymmetricalTriangle(BaseChart):
 
                 if not self._cross_after_last_candle(up_skew, down_skew):
                     continue
+
+                if not self._is_pointy(up_skew, down_skew):
+                    continue
+
                 up, down = self._make_bands(up_skew, down_skew)
 
                 if not self._is_triangle(up, down):
                     continue
 
                 start_index = min(down_skew.start.x, up_skew.start.x)
-                score1 = self._include_enough_points(start_index, up, down)
-                if not score1:
-                    continue
-                score2 = self._fits_enough(start_index, up, down)
-                if not score2:
+                include_score = self._include_enough_points(start_index, up, down)
+                if not include_score:
                     continue
 
+
+                fit_score = self._empty_field_score(start_index, up, down)
+                length = self._length(start_index, up_skew, down_skew)
+                peaks_fit = self._peaks_fit_value(up, down)
+
                 params = self._params(up_skew, down_skew)
-                setups.append(Setup(up, down, params, score1, score2))
+                setups.append(Setup(up, down, params,
+                                    peaks_fit_value=peaks_fit,
+                                    empty_field_value=fit_score,
+                                    length=length,
+                                    points_between=include_score))
 
         if not setups:
             return None

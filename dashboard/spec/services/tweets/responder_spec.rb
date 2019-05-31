@@ -42,6 +42,42 @@ RSpec.describe Tweets::Responder do
           expect(twitter_stub).not_to have_been_requested
         end
       end
+
+      context 'when Reports::Creator raises error' do
+        context 'when it raises validation error' do
+          before do
+            reports_creator_stub = instance_double(Reports::Creator)
+            allow(Reports::Creator).to receive(:new).and_return(reports_creator_stub)
+            allow(reports_creator_stub).to receive(:call).and_raise(Service::ValidationError)
+          end
+
+          it 'creates new TwitterPost' do
+            expect { service.call }.to change(TwitterPost, :count).from(0).to(1)
+          end
+
+          it 'creates a post on Twitter' do
+            service.call
+            expect(twitter_stub).to have_been_requested
+          end
+        end
+
+        context 'when it raises different error' do
+          before do
+            reports_creator_stub = instance_double(Reports::Creator)
+            allow(Reports::Creator).to receive(:new).and_return(reports_creator_stub)
+            allow(reports_creator_stub).to receive(:call).and_raise(StandardError)
+          end
+
+          it 'creates new TwitterPost' do
+            expect { service.call }.to change(TwitterPost, :count).from(0).to(1)
+          end
+
+          it 'creates a post on Twitter' do
+            service.call
+            expect(twitter_stub).to have_been_requested
+          end
+        end
+      end
     end
 
     context 'when pair does not exist' do

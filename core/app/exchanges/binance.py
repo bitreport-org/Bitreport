@@ -1,27 +1,39 @@
 # -*- coding: utf-8 -*-
 import requests
 import logging
-from app.exchanges.helpers import insert_candles, downsample
 
+from app.exchanges.helpers import insert_candles
+from .base import BaseExchange
 
-class Binance:
-    def __init__(self, influx_client):
-        self.influx = influx_client
-        self.name = 'Binance'
+class Binance(BaseExchange):
+    timeframes = ['1h', '2h', '6h', '12h', '24h']
+    name = 'Binance'
+    pool = 5
 
     @staticmethod
-    def _pair_format(pair):
+    def _pair_format(pair: str) -> str:
         end_pair = pair[-3:]
         start_pair = pair[:-3]
         if end_pair == 'USD':
             end_pair = end_pair + 'T'
         return start_pair + end_pair
 
-    def _downsample_3h(self, pair):
-        downsample(self.influx, from_tf='1h', to_tf='3h', pair=pair)
+    def json(self, measurement: str, row: list) -> dict:
+        json_body = {
+            "measurement": measurement,
+            "tags": {'exchange': self.name.lower()},
+            "time": int(row[0]),
+            "fields": {
+                "open": float(row[1]),
+                "close": float(row[4]),
+                "high": float(row[2]),
+                "low": float(row[3]),
+                "volume": float(row[5]),
+            }
+        }
+        return json_body
 
-
-    def fetch_candles(self, pair, timeframe):
+    def fetch_candles(self, pair: str, timeframe: str, limit: int = 500) -> bool:
         measurement = pair + timeframe
         pair_formated = self._pair_format(pair)
 
@@ -37,8 +49,9 @@ class Binance:
         params = {
             'symbol': pair_formated,
             'interval': timeframeR,
-            'limit': 500
+            'limit': limit
         }
+
         request = requests.get(url, params=params)
         response = request.json()
 
@@ -47,32 +60,8 @@ class Binance:
             return False
 
         # Make candles
-        points = []
-        for row in response:
-            json_body = {
-                "measurement": measurement,
-                "tags": {'exchange' : self.name.lower()},
-                "time": int(row[0]),
-                "fields": {
-                    "open": float(row[1]),
-                    "close": float(row[4]),
-                    "high": float(row[2]),
-                    "low": float(row[3]),
-                    "volume": float(row[5]),
-                }
-            }
-            points.append(json_body)
+        points = [self.json(measurement, row) for row in response]
 
-        result = insert_candles(self.influx, points, measurement, self.name, time_precision='ms')
-
-        if timeframe == '1h':
-            self._downsample_3h(pair)
+        result = insert_candles(points, measurement, self.name, time_precision='ms')
 
         return result
-
-    def fill(self, pair):
-        for tf in ['1h', '2h', '6h', '12h', '24h']:
-            status = self.fetch_candles(pair, tf)
-            if not status:
-                return False
-        return status

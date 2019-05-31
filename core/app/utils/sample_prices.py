@@ -1,10 +1,9 @@
 import numpy as np
 from collections import namedtuple
-from influxdb import InfluxDBClient
 from numpy.random import normal
 
 from app.exchanges.helpers import insert_candles
-from app.ta.charting.constructors import Point
+from app.ta.constructors import Point
 from config import BaseConfig
 
 Sample = namedtuple('Sample', ['close', 'points'])
@@ -72,22 +71,51 @@ def channel() -> Sample:
 
 # ==== HELPERS === =#
 
+def prepend_new(s: Sample, ys: np.ndarray) -> Sample:
+    d = s.points[-1].x - s.points[-2].x
+    points = s.points + [Point((- i -  1) * d, y) for i, y in enumerate(ys)]
+
+    close = np.concatenate([ys, s.close])[:s.close.size]
+    points = points[:s.close.size]
+    return Sample(close=close, points=points)
+
+
 def append_new(s: Sample, ys: np.ndarray) -> Sample:
     d = s.points[-1].x - s.points[-2].x
     points = s.points + [Point((i + 1) * d, y) for i, y in enumerate(ys)]
-    return Sample(close=np.concatenate([s.close, ys]), points=points)
+    close = np.concatenate([s.close, ys])[-s.close.size:]
+    points = points[-s.close.size:]
+    return Sample(close=close, points=points)
 
 
 def break_up(s: Sample) -> Sample:
     last = s.close[-1]
-    ys = np.linspace(last, 2 * last, 5)
+    growth = [1.02] * 12 + [0.99] * 7 + [1.02] * 8
+    growth = np.cumproduct(growth)
+    ys = growth * last
     return append_new(s, ys)
 
 
 def break_down(s: Sample) -> Sample:
-    last = s.close[-1]
-    ys = np.linspace(last, last / 2, 5)
-    return append_new(s, ys)
+    last = float(s.close[-1])
+    if last == 0.0:
+        last = -10
+    ys = [last * (1 - i * 0.1) for i in range(30)]
+    ys = ys + ys[-10:][::-1]
+    return append_new(s, ys[::-1])
+
+def start_slope_down(s: Sample) -> Sample:
+    last = float(s.close[0])
+    ys = [last * (1 + i * 0.1) for i in range(30)]
+    ys = ys + ys[-10:][::-1]
+    return prepend_new(s, ys[::-1])
+
+
+def start_slope_up(s: Sample) -> Sample:
+    last = float(s.close[0])
+    ys = [last * (1 - i * 0.1) for i in range(30)]
+    ys = ys + ys[-10:][::-1]
+    return prepend_new(s, ys[::-1])
 
 
 def _sample_dict(measurement: str, i: int, x: float) -> dict:
@@ -108,17 +136,25 @@ def _sample_dict(measurement: str, i: int, x: float) -> dict:
     return json_body
 
 
-def save_sample(influx: InfluxDBClient, sample: Sample, name: str) -> bool:
+def save_sample(sample: Sample, name: str) -> bool:
     margin = np.array([sample.close[0]] * BaseConfig.MAGIC_LIMIT)
     points = np.concatenate([margin, sample.close])
     points = [_sample_dict(name, i, x) for i, x in enumerate(points)]
-    return insert_candles(influx, points, name, 'test', time_precision='s')
+    return insert_candles(points, name, 'test', time_precision='s', verbose=False)
 
 
-def init_samples(influx: InfluxDBClient) -> None:
+def init_samples() -> None:
     samples = [
         ('asc', asc_triangle()),
+        ('ascbreak', break_up(asc_triangle())),
+        ('ascslopedown', start_slope_down(asc_triangle())),
+        ('ascslopeup', start_slope_up(asc_triangle())),
+
         ('desc', desc_triangle()),
+        ('descbreak', break_down(desc_triangle())),
+        ('descslopedown', start_slope_down(desc_triangle())),
+        ('descslopeup', start_slope_up(desc_triangle())),
+
         ('symm', symm_triangle()),
         ('dt', double_top()),
         ('db', double_bottom()),
@@ -126,4 +162,4 @@ def init_samples(influx: InfluxDBClient) -> None:
     ]
 
     for name, s in samples:
-        save_sample(influx, s, name)
+        save_sample(s, name)

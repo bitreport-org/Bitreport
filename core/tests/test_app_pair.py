@@ -21,8 +21,8 @@ class TestPairExceptions:
         assert isinstance(response.get_json(), dict)
         assert 'msg' in response.get_json().keys()
 
-    def test_no_data(self, app):
-        response = app.client.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')
+    def test_no_data(self, app, influx):
+        response = app.client.get(f'/ETHUSD?timeframe={self.timeframe}&limit={self.limit}')
         assert response.status_code == 204, 'Server faliure!'
 
     def test_not_enough_data1h(self, app, filled_influx):
@@ -149,6 +149,7 @@ class TestPair12:
         keys = response.keys()
         assert 'dates' in keys
         assert 'indicators' in keys
+        assert 'last' in keys
 
     def test_tstmps(self, app, filled_influx):
         response = app.client.get(f'/{self.pair}?timeframe={self.timeframe}&limit={self.limit}')

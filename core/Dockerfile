@@ -12,7 +12,11 @@ RUN curl -s -L http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz
 # Install requirements
 RUN pip install --upgrade pip
 RUN pip install -U pyopenssl
-RUN pip install numpy
+
+# To cache TA-lib build
+RUN pip install numpy==1.16.3
+RUN pip install TA-Lib==0.4.17
+
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 

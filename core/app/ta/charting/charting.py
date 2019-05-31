@@ -1,24 +1,26 @@
 import numpy as np
-from typing import List, Tuple, Union
+from typing import List, Union
 
-from app.api.database import Chart
+from app.database.models import Chart
 from app.ta.helpers import indicator
-from .constructors import tops, bottoms, skews
-from .base import Universe, Setup, BaseChart
+from app.ta.constructors import tops, bottoms, skews
+from .base import Universe, BaseChart
 from .triangles import AscTriangle, DescTriangle, SymmetricalTriangle
 from .channel import Channel
 
 
 class Charting:
+    DEFAULT = dict(upper_band=[], lower_band=[], info=[])
+
     def __init__(self, universe: Universe) -> None:
         self._universe = universe
 
     @staticmethod
     def select_best(xs: List[BaseChart]) -> Union[BaseChart, None]:
         bests = [x for x in xs if (x and x.setup)]
-        bests.sort(key=lambda x: x.setup.score1)
+        bests.sort(key=lambda x: x.setup.peaks_fit_value)
         if bests:
-            return bests[-1]
+            return bests[0]
         return None
 
     def is_actual(self, up: np.ndarray, down: np.ndarray, threshold: float = 0.6) -> bool:
@@ -36,8 +38,9 @@ class Charting:
 
         creataion_map = {
             'ascending_triangle': AscTriangle,
-            'symmetrical_triangle': SymmetricalTriangle,
-            'descending_triangle': DescTriangle
+            'descending_triangle': DescTriangle,
+            'channel': Channel
+            # 'symmetrical_triangle': SymmetricalTriangle,
         }
 
         chart = creataion_map.get(last.type)
@@ -50,9 +53,10 @@ class Charting:
 
         return chart
 
-    @indicator('wedge', ['upper_band', 'lower_band'])
+    @indicator('wedge', ['upper_band', 'lower_band', 'name'])
     def __call__(self):
         chart = self.check_last_pattern()
+
         if chart:
             # TODO: generate actual info
             return chart.json()
@@ -62,26 +66,35 @@ class Charting:
         skews_up = skews(tops_)
         skews_down = skews(bottoms_)
 
+        peaks = (tops_, bottoms_)
+
         charts = [
-            AscTriangle(universe=self._universe, tops=tops_, skews=skews_down),
-            DescTriangle(universe=self._universe, bottoms=bottoms_, skews=skews_up),
-            SymmetricalTriangle(universe=self._universe, ups=skews_up, downs=skews_down)
+            AscTriangle(universe=self._universe, peaks=peaks, tops=tops_, skews=skews_down),
+            DescTriangle(universe=self._universe, peaks=peaks, bottoms=bottoms_, skews=skews_up),
+            # SymmetricalTriangle(universe=self._universe, ups=skews_up, downs=skews_down)
         ]
+
+        for c in charts:
+            if c.setup:
+                print(c.__name__, c.setup.peaks_fit_value)
 
         best = self.select_best(charts)
 
-        if best and isinstance(best.setup, Setup):
-            best.save()
-            return best.json()
+        channel = Channel(universe=self._universe, peaks=peaks, ups=skews_up, downs=skews_down)
 
-        # If no triangle, the check if there is channel
+        # No triangle but channel
+        if best.setup is None and channel.setup is not None:
+            return channel.json()
 
-        best = Channel(universe=self._universe, ups=skews_up, downs=skews_down)
+        # No triangle, no channel
+        if channel.setup is None:
+            return self.DEFAULT
 
-        if best and isinstance(best.setup, Setup):
-            best.save()
-            return best.json()
+        # Triangle or channel
+        if channel.setup is not None:
+            score = channel.setup.peaks_fit_value / best.setup.peaks_fit_value
+            if score < 0.85:
+                best = channel
 
-        return dict(upper_band=[],
-                    lower_band=[],
-                    info=[])
+        best.save()
+        return best.json()

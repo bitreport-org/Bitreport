@@ -1,11 +1,18 @@
-# -*- coding: utf-8 -*-
+from .models import influx_db
+
 import pandas as pd
 import numpy as np
-from influxdb import InfluxDBClient
-from config import BaseConfig
+import re
 
 
-def get_candles(influx: InfluxDBClient, pair: str, timeframe: str, limit: int) -> dict:
+def get_all_pairs() -> list:
+    pairs = influx_db.connection.get_list_measurements()
+    pairs = [re.match('[A-Z]+', m['name'])[0] for m in pairs]
+    pairs = [p for p in set(pairs) if p[:4] != 'TEST']
+    return pairs
+
+
+def get_candles(pair: str, timeframe: str, limit: int) -> dict:
     """
     Retrieves `limit` points for measurement `pair + timeframe`. Returns dictionary:
     `{'date': list,
@@ -31,11 +38,11 @@ def get_candles(influx: InfluxDBClient, pair: str, timeframe: str, limit: int) -
     q = f"""
     SELECT * FROM (
         SELECT
-        mean(close) AS close, 
-        mean(high) AS high, 
-        mean(low) AS low, 
-        mean(open) AS open, 
-        mean(volume) AS volume
+        median(close) AS close, 
+        median(high) AS high, 
+        median(low) AS low, 
+        median(open) AS open, 
+        median(volume) AS volume
         FROM {measurement}
         WHERE ("exchange" = 'binance'
         OR "exchange" = 'bitfinex'
@@ -47,12 +54,12 @@ def get_candles(influx: InfluxDBClient, pair: str, timeframe: str, limit: int) -
     LIMIT {limit}
     """
 
-    r = influx.query(q, epoch='s')
+    r = influx_db.query(q, epoch='s')
     df = pd.DataFrame(list(r.get_points(measurement=measurement)))
 
-    if df.shape[0] < BaseConfig.MAGIC_LIMIT + 5:
+    if df.shape[0] == 0:
         return dict(date=[], open=np.array([]), close=np.array([]),
-                    hight=np.array([]), low=np.array([]), volume=np.array([]))
+                    high=np.array([]), low=np.array([]), volume=np.array([]))
 
     candles_dict = {'date': df.time.values.tolist()[::-1],
                     'open': df.open.values[::-1],
@@ -63,24 +70,3 @@ def get_candles(influx: InfluxDBClient, pair: str, timeframe: str, limit: int) -
                     }
 
     return candles_dict
-
-
-def generate_dates(date: list, timeframe: str, n: int) -> list:
-    """
-    Generates next n timestamps in interval of a given timeframe
-
-    Parameters
-    ----------
-    date: list of timestamps
-    timeframe: name of the timeframe in hours, minutes, weeks ex. '1h', '30m', '1W'
-    n: number of future timestamps to generate
-
-    Returns
-    -------
-    date: the input list with new points appended
-    """
-    _map = {'m': 60, 'h': 3600, 'W': 648000}
-    dt = _map[timeframe[-1]] * int(timeframe[:-1])
-    date = date + [date[-1] + (i+1)*dt for i, x in enumerate(range(n))]
-
-    return date

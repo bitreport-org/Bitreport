@@ -3,7 +3,7 @@ import random
 import string
 
 from app.ta.levels import Levels
-from app.api.database import Level
+from app.database.models import Level
 from app.ta.charting.base import Universe
 
 

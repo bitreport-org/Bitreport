@@ -5,15 +5,14 @@ from typing import Type
 from flask import Flask, request, jsonify, g
 from flask.logging import default_handler
 from logging.config import dictConfig
-from influxdb import InfluxDBClient
 
 from config import BaseConfig
-from .database import db
+from app.database.models import db, influx_db
 from .admin import configure_admin
 from .logger import create_msg, sentry_init
 
 
-def create_app(config: Type[BaseConfig], influx: InfluxDBClient) -> Flask:
+def create_app(config: Type[BaseConfig]) -> Flask:
     """
     Creates BitReport core flask app.
 
@@ -27,7 +26,7 @@ def create_app(config: Type[BaseConfig], influx: InfluxDBClient) -> Flask:
     app: flask.Flask app
     """
 
-    from app.utils import data_factory
+    from app.ta import data_factory
     from app.exchanges import fill_pair
 
     # Configure app
@@ -44,8 +43,12 @@ def create_app(config: Type[BaseConfig], influx: InfluxDBClient) -> Flask:
 
     # Postgres and influx connections
     with app.app_context():
+        influx_db.init_app(app)
+        influx_db.database.create(config.INFLUXDB_DATABASE)
+
         db.init_app(app)
         db.create_all()
+
 
     # API
     @app.before_request
@@ -76,7 +79,7 @@ def create_app(config: Type[BaseConfig], influx: InfluxDBClient) -> Flask:
         if timeframe not in ['1h', '2h', '3h', '6h', '12h', '24h']:
             return jsonify(msg='Wrong timeframe.'), 400
 
-        data = data_factory.PairData(influx, pair, timeframe, limit)
+        data = data_factory.PairData(pair, timeframe, limit)
         output, code = data.prepare()
 
         return jsonify(output), code
@@ -97,7 +100,7 @@ def create_app(config: Type[BaseConfig], influx: InfluxDBClient) -> Flask:
         if not pair:
             return jsonify(msg='Pair not provided'), 400
 
-        msg, code = fill_pair(app, influx, pair)
+        msg, code = fill_pair(pair)
         return jsonify(msg=msg), code
 
     @app.route("/")

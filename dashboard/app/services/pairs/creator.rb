@@ -20,7 +20,7 @@ module Pairs
       @pair = Pair.create!(symbol: full_symbol,
                            name: name,
                            tags: Array.wrap(tags).uniq.join(' ').split)
-      pair.fill
+      Pairs::Filler.new(pair: pair).call unless pair.symbol.start_with?('TEST')
       pair
     end
 

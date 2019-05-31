@@ -13,20 +13,4 @@ class Pair < ApplicationRecord
   def tags=(val)
     val.is_a?(Array) ? super : super(val&.split)
   end
-
-  def fill
-    return if testing?
-
-    Pairs::Filler.new(pair: self).call
-  end
-
-  def last_updated_at
-    testing? ? Time.zone.now : super
-  end
-
-  private
-
-  def testing?
-    symbol.start_with?('TEST')
-  end
 end

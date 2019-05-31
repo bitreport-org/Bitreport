@@ -1,26 +1,29 @@
-import os
-from app.api import create_app, db
-from app.api.database import Chart, Level, connect_influx
 from flask_migrate import Migrate
-from config import Development, Production
+
+from config import resolve_config
+from app.api import create_app
+from app.database import db, Level, Chart
 from app.utils.sample_prices import init_samples
+from app.queue.worker import make_celery
+
 
 # Setup proper config
-environment = {'development': Development, 'production': Production}
-Config = environment[os.environ['FLASK_ENV']]
+Config = resolve_config()
 
-# Create influx connection
-influx = connect_influx(Config.INFLUX)
+# Create app
+app = create_app(Config)
 
 # Sample data
 if Config.DEVELOPMENT or Config.TESTING:
-    init_samples(influx)
-
-# Create app
-app = create_app(Config, influx)
+    with app.app_context():
+        init_samples()
 
 # Migrations
 migrate = Migrate(app, db)
+
+# celery
+celery = make_celery(app)
+app.app_context().push()
 
 
 @app.shell_context_processor

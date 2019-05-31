@@ -2,7 +2,6 @@ version: '3'
 
 volumes:
   certs:
-  certs-data:
   core-migrations:
   dashboard-public:
   dashboard-settings:
@@ -10,27 +9,29 @@ volumes:
   influx-data:
   postgres-data:
   redis-data:
+  celery-beat-data:
 
 services:
   web:
     build: ./web
     depends_on:
       - dashboard
+      - flower
     ports:
       - 80:80
       - 443:443
     volumes:
-      - certs:/etc/letsencrypt
-      - certs-data:/data/letsencrypt
+      - certs:/etc/nginx/ssl
       - dashboard-public:/usr/src/app/public
 
   core:
     build: ./core
-    environment:
+    image: &img core
+    environment: &env
       - PYTHONUNBUFFERED=1
       - FLASK_ENV=production
       - FLASK_APP=core.py
-    command: bash -c "flask db migrate && flask db upgrade && gunicorn -b 0.0.0.0:5001 -w 1 core:app"
+    command: bash -c "gunicorn -b 0.0.0.0:5001 -w 1 core:app"
     expose:
       - 5001
     depends_on:
@@ -38,6 +39,40 @@ services:
       - postgres
     volumes:
       - core-migrations:/app/migrations/versions
+
+  flower:
+    build: ./core
+    image: *img
+    environment: *env
+    command: bash -c "flower -A core.celery --basic_auth=admin:magicPassword --url_prefix=core/tasks"
+    volumes:
+      - ./core:/app
+    expose:
+      - 5555
+    depends_on:
+      - celery
+
+  celery:
+    build: ./core
+    image: *img
+    environment: *env
+    command: bash -c "celery worker -A core.celery"
+    volumes:
+      - ./core:/app
+    depends_on:
+      - redis
+      - influx
+      - postgres
+
+  celery-beat:
+    build: ./core
+    image: *img
+    environment: *env
+    command: bash -c "celery beat -A core.celery --schedule=tmp/celerybeat-schedule --pidfile=tmp/celerybeat.pid"
+    volumes:
+      - ./core:/app
+    depends_on:
+      - redis
 
   influx:
     image: influxdb:1.5.2-alpine

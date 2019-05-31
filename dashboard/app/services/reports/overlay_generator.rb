@@ -4,18 +4,19 @@ require 'image_processing/vips'
 
 module Reports
   class OverlayGenerator < Service
-    validates :pair, :timeframe, :comment, presence: true
+    validates :pair, :fill_date, :timeframe, :comment, presence: true
 
-    def initialize(pair:, plot:, timeframe:, comment:)
+    def initialize(pair:, plot:, fill_date:, timeframe:, comment:)
       @pair = pair
-      @timeframe = timeframe
       @plot = Vips::Image.new_from_buffer(plot, '', access: :sequential)
+      @fill_date = fill_date
+      @timeframe = timeframe
       @comment = comment
     end
 
     private
 
-    attr_reader :pair, :plot, :timeframe, :comment
+    attr_reader :pair, :plot, :fill_date, :timeframe, :comment
 
     def run
       image = Tempfile.new(%w[plot .png], encoding: 'ascii-8bit')
@@ -41,7 +42,7 @@ module Reports
     end
 
     def timestamp
-      timestamp = Vips::Image.text(pair.last_updated_at.strftime('%Y-%m-%d %H:%M UTC'), font: 'PT Sans Bold 32', align: :centre)
+      timestamp = Vips::Image.text(Time.at(fill_date).strftime('%Y-%m-%d %H:%M UTC'), font: 'PT Sans Bold 32', align: :centre)
       timestamp.embed(1810 - timestamp.width / 2, 200 - timestamp.height, 2048, 1024)
     end
 

@@ -1,12 +1,10 @@
 import numpy as np
-from app.api.database import Level
-from app.api import db
+from app.database.models import Level, db
 from app.ta.helpers import indicator
 from app.ta.levels.checker import is_level
 from app.ta.levels.fuzzy_level import FuzzyLevel
 from app.ta.charting.base import Universe
 
-from functools import reduce
 
 class Levels(object):
     def __init__(self, universe: Universe) -> None:
@@ -106,7 +104,7 @@ class Levels(object):
             check = lambda x: x.score == support[-1].score
             if output:
                 res_value = output[0].lvl.value
-                check = lambda x: (x.score == support[-1].score) and (x.lvl.value != res_value)
+                check = lambda x: (x.score == support[-1].score) and (abs(x.lvl.value / res_value - 1) > 0.04)
 
             support = list(filter(lambda x: check(x), support))
             support.sort(key=lambda x: x.dist, reverse=True)

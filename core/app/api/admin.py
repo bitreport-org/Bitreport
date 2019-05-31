@@ -5,7 +5,7 @@ from werkzeug.wrappers import Response
 from flask import Flask, redirect
 from flask_basicauth import BasicAuth
 
-from .database import db, Level, Chart
+from app.database import db, Level, Chart
 
 
 class CustomAdmin(AdminIndexView):
@@ -39,19 +39,25 @@ class AuthAdmin(ModelView):
 
 class InactiveAdmin(AuthAdmin):
     can_edit = False
-    can_delete = False
+    can_delete = True
     can_create = False
 
 
 def configure_admin(app: Flask, active: bool = False) -> Admin:
-    admin = Admin(app, name='Core', template_mode='bootstrap3', index_view=CustomAdmin())
     basic_auth = BasicAuth(app)
 
     if active:
+        admin = Admin(app,
+                      name='Core',
+                      template_mode='bootstrap3',
+                      index_view=CustomAdmin())
         admin.add_view(AuthAdmin(basic_auth, Level, db.session))
         admin.add_view(AuthAdmin(basic_auth, Chart, db.session))
-
     else:
+        admin = Admin(app,
+                      name='Core',
+                      template_mode='bootstrap3',
+                      index_view=CustomAdmin(url='/core/admin'))
         admin.add_view(InactiveAdmin(basic_auth, Level, db.session))
         admin.add_view(InactiveAdmin(basic_auth, Chart, db.session))
 
