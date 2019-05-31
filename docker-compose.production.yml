@@ -23,6 +23,7 @@ services:
     volumes:
       - certs:/etc/nginx/ssl
       - dashboard-public:/usr/src/app/public
+      - dashboard-logs:/usr/src/app/log
 
   core:
     build: ./core

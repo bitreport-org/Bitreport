@@ -4,12 +4,6 @@ FROM nginx:1.15.3-alpine
 # establish where Nginx should look for files
 ENV RAILS_ROOT /usr/src/app
 
-# Set our working directory inside the image
-WORKDIR $RAILS_ROOT
-
-# create log directory
-RUN mkdir log
-
 # Copy Nginx config template
 COPY nginx.conf /tmp/docker.nginx
 
