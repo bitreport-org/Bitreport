@@ -1,8 +1,7 @@
 import numpy as np
 import logging
 import config
-from typing import List, Tuple
-from scipy.stats import linregress
+from typing import Tuple
 
 
 import app.ta.charting as charting
@@ -57,11 +56,11 @@ class PairData:
 
         # Price data and information
         price = {k: self.data[k].tolist()[-self.limit:] for k in ['open', 'high', 'close', 'low']}
-        price.update(info=self._price_info(price['close']))
+        price.update(info=[])
 
         # Volume data and information
         volume = dict(volume=self.data['volume'].tolist()[-self.limit:],
-                      info=self._volume_info(self.data['volume']))
+                      info=[])
 
         # Prepare dates
         last = self._last_filling()
@@ -80,28 +79,6 @@ class PairData:
     def _last_filling(self):
         last = check_last_timestamp(f'{self.pair.upper()}1h', minus=0)
         return last
-
-    @staticmethod
-    def _price_info(close: np.ndarray) -> List[str]:
-        info_price = []
-        return info_price
-
-    def _volume_info(self, volume: np.array) -> List[str]:
-        info_volume = []
-        check_period = int(0.35 * self.limit)
-
-        # Volume tokens
-        threshold = np.percentile(volume, 80)
-        if volume[-2] > threshold or volume[-1] > threshold:
-            info_volume.append('VOLUME_SPIKE')
-        
-        slope = linregress(np.arange(volume[check_period:].size), volume[check_period:]).slope
-        if slope < -0.05:
-            info_volume.append('VOLUME_DIRECTION_DOWN')
-        elif slope > 0.05:
-            info_volume.append('VOLUME_DIRECTION_UP')
-
-        return info_volume
 
     def _make_indicators(self) -> dict:
         indicators_values = dict()
