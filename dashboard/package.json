@@ -2,7 +2,5 @@
   "name": "dashboard",
   "private": true,
   "dependencies": {
-    "jquery-dateformat": "^1.0.3",
-    "qrcode": "^0.9.0"
   }
 }
