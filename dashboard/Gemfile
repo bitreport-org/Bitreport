@@ -39,9 +39,6 @@ gem 'redis'
 # For getting rid of erb
 gem 'slim-rails'
 
-# To make generating BTC wallets easy
-gem 'money-tree'
-
 # Easiest way to add multi-environment yaml settings to Rails
 gem 'config'
 

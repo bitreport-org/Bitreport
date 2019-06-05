@@ -1,29 +1,3 @@
-/! Donation Modal
-.ui.small.donation.modal
-  i.black.close.icon
-  .ui.icon.header Join Early Access
-  .content.center.aligned
-    p The first private Beta is almost ready. Support the project and be the first to get access to all features. No minimum amount, buy us a coffee and we're good to go!
-    .ui.left.action.right.labeled.fluid.input
-      a.ui.yellow.labeled.icon.button href="bitcoin:#{@address}"
-        i.bitcoin.icon
-        | Pay with BTC
-      input type="text" value=@address readonly="readonly" autofocus="true" title="wallet address"
-      .ui.button.qr.label data-position="top right"
-        i.qrcode.large.black.icon
-      .ui.popup
-        canvas#address.ui.fluid.image style='border: 0;' data-address=@address
-    .ui.horizontal.divider Note
-    p
-      small Keep above address for later, as it will become your unique Early Access code. Follow us on Facebook and Twitter to be notified when the Early Access begins.
-  .actions
-    a.ui.tiny.compact.basic.disabled.button
-      | Find us on:
-    a.ui.tiny.compact.twitter.icon.button href="https://twitter.com/Bitreport_org" target="_blank"
-      i.twitter.icon
-    a.ui.tiny.compact.facebook.icon.button href="https://www.facebook.com/bitreport.org/" target="_blank"
-      i.facebook.icon
-
 /! Following Menu
 .ui.secondary.pointing.top.fixed.hidden.main.menu
   .ui.text.container
@@ -51,8 +25,8 @@
         .one.wide.iphone.column.no.mobile
         .seven.wide.iphone.column.no.mobile
           .ui.instant.fade.reveal.image
-            = image_tag 'iphone_screen1', class: 'visible content'
-            = image_tag 'iphone_screen2', class: 'hidden content'
+            / = image_tag 'iphone_screen1', class: 'visible content'
+            / = image_tag 'iphone_screen2', class: 'hidden content'
 
   .ui.vertical.stripe.description.segment
     .ui.center.aligned.text.container

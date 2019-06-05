@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_05_25_113124) do
+ActiveRecord::Schema.define(version: 2019_06_05_192513) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -59,12 +59,6 @@ ActiveRecord::Schema.define(version: 2019_05_25_113124) do
     t.string "original_message"
     t.index ["in_reply_to"], name: "index_twitter_posts_on_in_reply_to"
     t.index ["report_id"], name: "index_twitter_posts_on_report_id"
-  end
-
-  create_table "wallets", force: :cascade do |t|
-    t.boolean "used", default: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
   end
 
   add_foreign_key "reports", "pairs"
