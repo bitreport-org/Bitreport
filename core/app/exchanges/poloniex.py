@@ -2,7 +2,8 @@
 import requests
 import logging
 
-from app.exchanges.helpers import insert_candles, check_last_tmstmp
+from app.exchanges.helpers import insert_candles
+from app.database.helpers import check_last_timestamp
 from .base import BaseExchange
 
 
@@ -38,7 +39,7 @@ class Poloniex(BaseExchange):
         measurement = pair + timeframe
         pair_formatted = self._pair_format(pair)
 
-        start = check_last_tmstmp(measurement)
+        start = check_last_timestamp(measurement)
 
         # Here we map our possible timeframes 1h, 2h, 3h, 6h, 12h to
         # format acceptable by Poloniex API

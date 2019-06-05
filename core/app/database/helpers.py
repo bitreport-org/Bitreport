@@ -24,7 +24,6 @@ def get_candles(pair: str, timeframe: str, limit: int) -> dict:
 
     Parameters
     ----------
-    influx: influx client
     pair: pair name ex. 'BTCUSD'
     timeframe: timeframe ex. '1h'
     limit: number of candles to retrieve
@@ -70,3 +69,25 @@ def get_candles(pair: str, timeframe: str, limit: int) -> dict:
                     }
 
     return candles_dict
+
+
+def check_last_timestamp(measurement: str, minus: int = 10) -> int:
+    """
+    Returns timestamp of last point in measurement.
+
+    Parameters
+    ----------
+    measurement: name of the measurement
+    minus: small shift in time
+
+    Returns
+    -------
+    int: timestamp of last record
+    """
+    r = influx_db.query(f'SELECT * FROM {measurement} ORDER BY time DESC LIMIT 1;', epoch='s')
+    df = pd.DataFrame(list(r.get_points(measurement=measurement)))
+    if df.shape == (0, 0):
+        # Return something old enough
+        return 1518176375
+
+    return int(df.time.values) - minus

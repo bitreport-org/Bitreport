@@ -25,8 +25,8 @@ def update_pair_data(pair: str) -> bool:
 
     fillers = dict(
         bitfinex=partial(Bitfinex().fetch_candles, timeframe='1h'),
-        bittrex=partial(Bittrex().fetch_candles, timeframe='1h'),
-        binance=partial(Binance().fetch_candles, timeframe='1h', limit=3),
+        bittrex=partial(Bittrex().fetch_candles, timeframe='1h', limit=10),
+        binance=partial(Binance().fetch_candles, timeframe='1h', limit=10),
         poloniex=partial(Poloniex().fetch_candles, timeframe='30m')
     )
 

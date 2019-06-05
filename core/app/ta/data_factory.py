@@ -10,7 +10,7 @@ import app.ta.patterns as patterns
 from app.ta.levels import Levels
 from app.ta.charting.base import Universe
 from app.ta.indicators import make_indicators
-from app.database.helpers import get_candles
+from app.database.helpers import get_candles, check_last_timestamp
 
 
 class PairData:
@@ -64,7 +64,8 @@ class PairData:
                       info=self._volume_info(self.data['volume']))
 
         # Prepare dates
-        last = self.data['date'][-1]
+        last = self._last_filling()
+
         dates = generate_dates(self.data['date'], self.timeframe, self.margin)
         self.dates = dates[-(self.limit + self.margin):]
 
@@ -75,6 +76,10 @@ class PairData:
 
         response = dict(dates=self.dates, indicators=indicators_dict, last=last)
         return response, 200
+
+    def _last_filling(self):
+        last = check_last_timestamp(f'{self.pair.upper()}1h', minus=0)
+        return last
 
     @staticmethod
     def _price_info(close: np.ndarray) -> List[str]:
