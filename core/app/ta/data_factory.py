@@ -8,8 +8,10 @@ import app.ta.charting as charting
 import app.ta.patterns as patterns
 from app.ta.levels import Levels
 from app.ta.charting.base import Universe
+
+from app.ta.eventer.triangle import simple_wedge
 from app.ta.indicators import make_indicators
-from app.database.helpers import get_candles, check_last_timestamp
+from app.database.helpers import get_candles, check_last_timestamp, EmptyCandles
 
 
 class PairData:
@@ -33,7 +35,7 @@ class PairData:
         self.limit = max(limit, 20)
 
         self.dates = []
-        self.data = dict()
+        self.data = EmptyCandles
         self.output = dict()
 
     def prepare(self) -> Tuple[dict, int]:
@@ -48,24 +50,25 @@ class PairData:
         self.data = get_candles(self.pair, self.timeframe, self.limit + self.magic_limit)
 
         # Handle empty measurement
-        if not self.data.get('date'):
+        if not np.any(self.data.date):
             message = dict(msg=f'No data for {self.pair+self.timeframe}',
                            last=None)
             logging.error(message)
             return message, 204
 
         # Price data and information
-        price = {k: self.data[k].tolist()[-self.limit:] for k in ['open', 'high', 'close', 'low']}
+        price = {k: getattr(self.data, k).tolist()[-self.limit:]
+                 for k in ['open', 'high', 'close', 'low']}
+
         price.update(info=[])
 
         # Volume data and information
-        volume = dict(volume=self.data['volume'].tolist()[-self.limit:],
-                      info=[])
+        volume = dict(volume=self.data.volume.tolist()[-self.limit:], info=[])
 
         # Prepare dates
         last = self._last_filling()
 
-        dates = generate_dates(self.data['date'], self.timeframe, self.margin)
+        dates = generate_dates(self.data.date, self.timeframe, self.margin)
         self.dates = dates[-(self.limit + self.margin):]
 
         indicators_dict = self._make_indicators()
@@ -87,7 +90,7 @@ class PairData:
         indicators_values.update(make_indicators(self.data, self.limit))
 
         # Setup universe for charting
-        close: np.ndarray = self.data.get('close')
+        close: np.ndarray = self.data.close
         dates = np.array(self.dates)
 
         universe = Universe(
@@ -98,17 +101,19 @@ class PairData:
             future_time=dates[-self.margin:]
         )
 
+        indicators_values.update(simple_wedge(uni=universe))
+
         # Wedges
-        wg = charting.Charting(universe)
-        indicators_values.update(wg())
+        # wg = charting.Charting(universe)
+        # indicators_values.update(wg())
 
         # Patterns
-        indicators_values.update(patterns.double_top(universe))
-        indicators_values.update(patterns.double_bottom(universe))
+        # indicators_values.update(patterns.double_top(universe))
+        # indicators_values.update(patterns.double_bottom(universe))
 
         # Levels
-        lvl = Levels(universe)
-        indicators_values.update(lvl())
+        # lvl = Levels(universe)
+        # indicators_values.update(lvl())
 
         return indicators_values
 
@@ -129,6 +134,9 @@ def generate_dates(date: list, timeframe: str, n: int) -> list:
     """
     _map = {'m': 60, 'h': 3600, 'W': 648000}
     dt = _map[timeframe[-1]] * int(timeframe[:-1])
+    if isinstance(date, np.ndarray):
+        date = date.tolist()
+
     date = date + [date[-1] + (i+1)*dt for i, x in enumerate(range(n))]
 
     return date

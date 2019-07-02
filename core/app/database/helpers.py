@@ -1,8 +1,14 @@
 from .models import influx_db
 
+from collections import namedtuple
 import pandas as pd
 import numpy as np
 import re
+
+Candles = namedtuple('Candles', ['date', 'open', 'close', 'high', 'low', 'volume'])
+
+EmptyCandles = Candles(date=np.array([]), open=np.array([]), close=np.array([]),
+                    high=np.array([]), low=np.array([]), volume=np.array([]))
 
 
 def get_all_pairs() -> list:
@@ -12,7 +18,7 @@ def get_all_pairs() -> list:
     return pairs
 
 
-def get_candles(pair: str, timeframe: str, limit: int) -> dict:
+def get_candles(pair: str, timeframe: str, limit: int) -> Candles:
     """
     Retrieves `limit` points for measurement `pair + timeframe`. Returns dictionary:
     `{'date': list,
@@ -57,18 +63,18 @@ def get_candles(pair: str, timeframe: str, limit: int) -> dict:
     df = pd.DataFrame(list(r.get_points(measurement=measurement)))
 
     if df.shape[0] == 0:
-        return dict(date=[], open=np.array([]), close=np.array([]),
-                    high=np.array([]), low=np.array([]), volume=np.array([]))
+        return EmptyCandles
 
-    candles_dict = {'date': df.time.values.tolist()[::-1],
-                    'open': df.open.values[::-1],
-                    'close': df.close.values[::-1],
-                    'high': df.high.values[::-1],
-                    'low': df.low.values[::-1],
-                    'volume': df.volume.values[::-1]
-                    }
+    candles = Candles(
+        date=df.time.values[::-1],
+        open=df.open.values[::-1],
+        close=df.close.values[::-1],
+        high=df.high.values[::-1],
+        low=df.low.values[::-1],
+        volume=df.volume.values[::-1]
+    )
 
-    return candles_dict
+    return candles
 
 
 def check_last_timestamp(measurement: str, minus: int = 10) -> int:

@@ -48,3 +48,15 @@ class Level(db.Model):
     type = db.Column(db.String)
     strength = db.Column(db.Integer)
     value = db.Column(db.Float, index=True)
+
+
+class Event(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    creation_time = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+    pair = db.Column(db.String)
+    timeframe = db.Column(db.String)
+    time = db.Column(db.Integer)
+    value = db.Column(db.Float)
+
+    name = db.Column(db.String)

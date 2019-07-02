@@ -10,7 +10,7 @@ from app.ta.helpers import indicator, nan_to_null
 @indicator('BB', ['upper_band', 'middle_band', 'lower_band'])
 def BB(data, limit, timeperiod=20):
     m = 1000000
-    close = m * data['close']
+    close = m * data.close
     upperband, middleband, lowerband = talib.BBANDS(close, timeperiod, 2, 2, matype=0)
 
     # TOKENS
@@ -51,7 +51,7 @@ def BB(data, limit, timeperiod=20):
 
 @indicator('MACD', ['macd', 'signal', 'histogram'])
 def MACD(data, limit, fastperiod=12, slowperiod=26, signalperiod=9):
-    macd, signal, hist = talib.MACD(data['close'], fastperiod, slowperiod, signalperiod)
+    macd, signal, hist = talib.MACD(data.close, fastperiod, slowperiod, signalperiod)
     return {'macd': nan_to_null(macd.tolist()[-limit:]),
             'signal': nan_to_null(signal.tolist()[-limit:]),
             'histogram': nan_to_null(hist.tolist()[-limit:]),
@@ -60,7 +60,7 @@ def MACD(data, limit, fastperiod=12, slowperiod=26, signalperiod=9):
 
 @indicator('RSI', ['rsi'])
 def RSI(data, limit, timeperiod=14):
-    close = data['close']
+    close = data.close
     m = 10000000
     real = talib.RSI(m * close, timeperiod)
 
@@ -84,7 +84,7 @@ def RSI(data, limit, timeperiod=14):
 
 @indicator('STOCH', ['k', 'd'])
 def STOCH(data, limit, fastk_period=14, slowk_period=14, slowk_matype=3, slowd_period=14, slowd_matype=3):
-    slowk, slowd = talib.STOCH(data['high'], data['low'], data['close'],
+    slowk, slowd = talib.STOCH(data.high, data.low, data.close,
                                fastk_period, slowk_period, slowk_matype, slowd_period, slowd_matype)
 
     # TOKENS
@@ -101,20 +101,20 @@ def STOCH(data, limit, fastk_period=14, slowk_period=14, slowk_matype=3, slowd_p
 @indicator('STOCHRSI', ['k', 'd'])
 def STOCHRSI(data, limit, timeperiod=14, fastk_period=14, fastd_period=14, fastd_matype=3):
     m = 10000000
-    fastk, fastd = talib.STOCHRSI(m * data['close'], timeperiod, fastk_period, fastd_period, fastd_matype)
+    fastk, fastd = talib.STOCHRSI(m * data.close, timeperiod, fastk_period, fastd_period, fastd_matype)
     return {'k': nan_to_null(fastk.tolist()[-limit:]),
             'd': nan_to_null(fastd.tolist()[-limit:]), 'info': []}
 
 
 @indicator('MOM', ['mom'])
 def MOM(data, limit, timeperiod=10):
-    real = talib.MOM(data['close'], timeperiod)
+    real = talib.MOM(data.close, timeperiod)
     return {'mom': nan_to_null(real.tolist()[-limit:]), 'info': []}
 
 
 @indicator('SMA', ['fast', 'medium', 'slow'])
 def SMA(data, limit):
-    close = data['close']
+    close = data.close
     periods = [10, 20, 50]
     names = ['fast', 'medium', 'slow']
     dic = {}
@@ -149,13 +149,13 @@ def SMA(data, limit):
 
 @indicator('OBV', ['obv'])
 def OBV(data, limit):
-    real = talib.OBV(data['close'], data['volume'])
+    real = talib.OBV(data.close, data.volume)
     return {'obv': nan_to_null(real.tolist()[-limit:]), 'info': []}
 
 
 @indicator('EMA', ['fast', 'medium', 'slow'])
 def EMA(data, limit):
-    close = data['close']
+    close = data.close
     periods = [10, 20, 50]
     names = ['fast', 'medium', 'slow']
     dic = {}

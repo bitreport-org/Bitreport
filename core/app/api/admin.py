@@ -5,7 +5,7 @@ from werkzeug.wrappers import Response
 from flask import Flask, redirect
 from flask_basicauth import BasicAuth
 
-from app.database import db, Level, Chart
+from app.database import db, Level, Chart, Event
 
 
 class CustomAdmin(AdminIndexView):
@@ -53,6 +53,7 @@ def configure_admin(app: Flask, active: bool = False) -> Admin:
                       index_view=CustomAdmin())
         admin.add_view(AuthAdmin(basic_auth, Level, db.session))
         admin.add_view(AuthAdmin(basic_auth, Chart, db.session))
+        admin.add_view(AuthAdmin(basic_auth, Event, db.session))
     else:
         admin = Admin(app,
                       name='Core',
@@ -60,5 +61,6 @@ def configure_admin(app: Flask, active: bool = False) -> Admin:
                       index_view=CustomAdmin(url='/core/admin'))
         admin.add_view(InactiveAdmin(basic_auth, Level, db.session))
         admin.add_view(InactiveAdmin(basic_auth, Chart, db.session))
+        admin.add_view(InactiveAdmin(basic_auth, Event, db.session))
 
     return admin
