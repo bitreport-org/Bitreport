@@ -92,9 +92,43 @@ jobs:
           working_directory: dashboard
       - store_test_results:
           path: test_results
+  build:
+    machine:
+      enabled: true
+    steps:
+      - run:
+          name: Build containers
+          command: |
+            docker-compose -f docker-compose.production.yml build
+  deploy:
+    machine:
+      enabled: true
+    steps:
+      - checkout
+      - run:
+          name: Push images
+          command: |
+            TAG="latest"
+            docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
+            docker push utimmi/bitreport:$TAG 
+      - run:
+          name: Deploy over SSH
+          command: .scripts/deploy.sh 
 workflows:
   version: 2
   tests:
     jobs:
       - core
       - dashboard
+  build-and-deploy:
+    jobs:
+      - build:  
+          filters:
+            branches:
+              only: master
+      - deploy:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master

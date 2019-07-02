@@ -10,7 +10,6 @@ volumes:
 services:
   core:
     build: ./core
-    image: &img core
     environment: &env
       - PYTHONUNBUFFERED=1
       - FLASK_ENV=development
