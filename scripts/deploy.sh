@@ -7,6 +7,6 @@
     docker-compose pull
     docker-compose stop
     docker-compose rm -f
-    ddocker-compose -f docker-compose.production.yml up -d
+    docker-compose -f docker-compose.production.yml up -d
 EOF
 )
