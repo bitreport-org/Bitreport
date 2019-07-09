@@ -9,7 +9,7 @@ from collections import namedtuple
 import config
 from app.ta.indicators import INDICATORS
 from app.api import create_app
-from app.database import models
+from app import models
 from app.exchanges.helpers import insert_candles
 
 
@@ -122,8 +122,8 @@ def indicators_names():
 
 @pytest.fixture
 def charting_names():
-    return ['wedge', 'levels', 'double_top', 'double_bottom']
-
+    # return ['wedge', 'levels', 'double_top', 'double_bottom']
+    return []
 
 @pytest.fixture
 def required_indicators(indicators_names, charting_names):

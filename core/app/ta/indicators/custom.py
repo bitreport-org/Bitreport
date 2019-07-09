@@ -25,7 +25,6 @@ def KC(data, limit):
     # Middle Line: 20-day exponential moving average
     # Upper Channel Line: 20-day EMA + (2 x ATR(10))
     # Lower Channel Line: 20-day EMA - (2 x ATR(10))
-    start = Config.MAGIC_LIMIT
     close = data.close
     high = data.high
     low = data.low

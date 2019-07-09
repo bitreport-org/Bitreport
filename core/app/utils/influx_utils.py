@@ -1,14 +1,7 @@
-from .models import influx_db
-
-from collections import namedtuple
-import pandas as pd
-import numpy as np
 import re
+import pandas as pd
 
-Candles = namedtuple('Candles', ['date', 'open', 'close', 'high', 'low', 'volume'])
-
-EmptyCandles = Candles(date=np.array([]), open=np.array([]), close=np.array([]),
-                    high=np.array([]), low=np.array([]), volume=np.array([]))
+from app.models import influx_db, Series
 
 
 def get_all_pairs() -> list:
@@ -18,26 +11,7 @@ def get_all_pairs() -> list:
     return pairs
 
 
-def get_candles(pair: str, timeframe: str, limit: int) -> Candles:
-    """
-    Retrieves `limit` points for measurement `pair + timeframe`. Returns dictionary:
-    `{'date': list,
-    'open': numpy.ndarray,
-    'close': numpy.ndarray,
-    'high': numpy.ndarray,
-    'low': numpy.ndarray,
-    'volume': numpy.ndarray}`
-
-    Parameters
-    ----------
-    pair: pair name ex. 'BTCUSD'
-    timeframe: timeframe ex. '1h'
-    limit: number of candles to retrieve
-
-    Returns
-    -------
-    candle_dict: dict
-    """
+def get_candles(pair: str, timeframe: str, limit: int) -> Series:
     measurement = pair + timeframe
 
     q = f"""
@@ -63,10 +37,12 @@ def get_candles(pair: str, timeframe: str, limit: int) -> Candles:
     df = pd.DataFrame(list(r.get_points(measurement=measurement)))
 
     if df.shape[0] == 0:
-        return EmptyCandles
+        return Series(pair=pair, timeframe=timeframe)
 
-    candles = Candles(
-        date=df.time.values[::-1],
+    candles = Series(
+        pair=pair,
+        timeframe=timeframe,
+        time=df.time.values[::-1],
         open=df.open.values[::-1],
         close=df.close.values[::-1],
         high=df.high.values[::-1],

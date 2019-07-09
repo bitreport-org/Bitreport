@@ -1,4 +1,4 @@
-from app.database import Event, db
+from app.models import Event, db
 
 
 def add_event(params: dict) -> Event:

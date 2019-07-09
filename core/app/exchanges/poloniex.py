@@ -3,7 +3,7 @@ import requests
 import logging
 
 from app.exchanges.helpers import insert_candles
-from app.database.helpers import check_last_timestamp
+from app.utils.influx_utils import check_last_timestamp
 from .base import BaseExchange
 
 

@@ -3,7 +3,8 @@ import pytest
 import numpy as np
 
 from app.exchanges.helpers import check_exchanges, downsample
-from app.database.helpers import get_all_pairs, get_candles
+from app.utils.influx_utils import get_all_pairs, get_candles
+from app.models import Series
 
 
 class TestFiller:
@@ -34,28 +35,25 @@ class TestFillExchange:
     def check_candles_structure(pair, tf='1h'):
         limit = 100
 
-        candles = get_candles(pair, tf, limit)
+        candles: Series = get_candles(pair, tf, limit)
 
         # assert structure and types
-        assert isinstance(candles, dict)
-        assert 'date' in candles.keys()
-        assert isinstance(candles['date'], list)
-        assert candles['date']
+        assert isinstance(candles, Series)
 
-        for x in ['volume', 'close', 'open', 'high', 'low']:
-            assert x in candles.keys()
-            assert isinstance(candles[x], np.ndarray)
+        for x in ['date', 'volume', 'close', 'open', 'high', 'low']:
+            assert hasattr(candles, x)
+            assert isinstance(getattr(candles, x), np.ndarray)
 
         # assert candles order
-        assert candles['date'][-1] - candles['date'][-2] == int(tf[:-1]) * 3600
+        assert candles.time[-1] - candles.time[-2] == int(tf[:-1]) * 3600
 
         # assert result size
-        assert len(candles['date']) == limit
-        assert candles['volume'].size == limit
-        assert candles['close'].size == limit
-        assert candles['open'].size == limit
-        assert candles['high'].size == limit
-        assert candles['low'].size == limit
+        assert candles.time.size == limit
+        assert candles.volume.size == limit
+        assert candles.close.size == limit
+        assert candles.open.size == limit
+        assert candles.high.size == limit
+        assert candles.low.size == limit
 
     @pytest.mark.vcr(match_on=['host', 'path'], ignore_localhost=True)
     def test_bitfinex_fill(self, app, influx):

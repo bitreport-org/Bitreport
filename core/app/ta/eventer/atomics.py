@@ -1,13 +1,12 @@
-from app.ta.constructors import Point
-from app.ta.charting.base import Universe
+from app.models import Series, Point
 from .helpers import add_event
 
 
 class Atomics:
-    def __init__(self, uni: Universe):
-        self._pair = uni.pair
-        self._timeframe = uni.timeframe
-        self.points = [Point(x, y) for x, y in zip(uni.time, uni.close)]
+    def __init__(self, series: Series):
+        self._pair = series.pair
+        self._timeframe = series.timeframe
+        self.points = list(series.values(key="close"))
 
     def detect_top(self, peak: Point, neighbours):
         if not neighbours:

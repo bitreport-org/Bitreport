@@ -4,7 +4,7 @@ from celery.exceptions import SoftTimeLimitExceeded
 
 from app.exchanges.filler import update_pair_data
 from app.exchanges.helpers import downsample_all_timeframes
-from app.database.helpers import get_all_pairs
+from app.utils.influx_utils import get_all_pairs
 
 
 @celery.task(name='app.queue.tasks.fill_pair',

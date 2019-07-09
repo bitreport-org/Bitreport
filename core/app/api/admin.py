@@ -5,7 +5,7 @@ from werkzeug.wrappers import Response
 from flask import Flask, redirect
 from flask_basicauth import BasicAuth
 
-from app.database import db, Level, Chart, Event
+from app.models import db, Level, Chart, Event
 
 
 class CustomAdmin(AdminIndexView):

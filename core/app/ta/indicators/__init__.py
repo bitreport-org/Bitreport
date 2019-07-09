@@ -1,3 +1,5 @@
+from app.models import Series
+
 from .custom import *
 from .talib import *
 
@@ -18,7 +20,7 @@ INDICATORS = {
 }
 
 
-def make_indicators(data: dict, limit: int):
+def make_indicators(data: Series, limit: int):
     output = dict()
     for name, f in INDICATORS.items():
         output.update(f(data=data, limit=limit))

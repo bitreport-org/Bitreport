@@ -4,14 +4,11 @@ import config
 from typing import Tuple
 
 
-import app.ta.charting as charting
-import app.ta.patterns as patterns
-from app.ta.levels import Levels
-from app.ta.charting.base import Universe
+from app.models import Series
 
 from app.ta.eventer.triangle import simple_wedge
 from app.ta.indicators import make_indicators
-from app.database.helpers import get_candles, check_last_timestamp, EmptyCandles
+from app.utils.influx_utils import get_candles, check_last_timestamp
 
 
 class PairData:
@@ -35,7 +32,7 @@ class PairData:
         self.limit = max(limit, 20)
 
         self.dates = []
-        self.data = EmptyCandles
+        self.data = Series(self.pair, self.timeframe)
         self.output = dict()
 
     def prepare(self) -> Tuple[dict, int]:
@@ -47,7 +44,7 @@ class PairData:
         (response, code)
         """
         # Data request
-        self.data = get_candles(self.pair, self.timeframe, self.limit + self.magic_limit)
+        self.data: Series = get_candles(self.pair, self.timeframe, self.limit + self.magic_limit)
 
         # Handle empty measurement
         if not np.any(self.data.date):
@@ -89,19 +86,7 @@ class PairData:
         # Indicators
         indicators_values.update(make_indicators(self.data, self.limit))
 
-        # Setup universe for charting
-        close: np.ndarray = self.data.close
-        dates = np.array(self.dates)
-
-        universe = Universe(
-            pair=self.pair,
-            timeframe=self.timeframe,
-            close=close[-self.limit:],
-            time=dates[:-self.margin],
-            future_time=dates[-self.margin:]
-        )
-
-        indicators_values.update(simple_wedge(uni=universe))
+        indicators_values.update(simple_wedge(series=self.data))
 
         # Wedges
         # wg = charting.Charting(universe)

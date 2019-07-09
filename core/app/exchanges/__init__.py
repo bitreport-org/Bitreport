@@ -9,7 +9,6 @@ from .bitfinex import Bitfinex
 from .bittrex import Bittrex
 from .poloniex import Poloniex
 from .helpers import check_exchanges, downsample_all_timeframes
-from app.ta.levels import generate_levels
 
 
 def fill_pair(pair: str) -> tuple:
@@ -62,14 +61,6 @@ def fill_pair(pair: str) -> tuple:
 
     try:
         t = threading.Thread(target=downsample_all_timeframes, args=(ctx, pair))
-        t.start()
-    except:
-        pass
-
-    # TODO: remove it when core will log data
-    # Generate levels based on last 500 candles
-    try:
-        t = threading.Thread(target=generate_levels, args=(ctx, pair))
         t.start()
     except:
         pass

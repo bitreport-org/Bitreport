@@ -7,7 +7,7 @@ from flask.logging import default_handler
 from logging.config import dictConfig
 
 from config import BaseConfig
-from app.database.models import db, influx_db
+from app.models import db, influx_db
 from .admin import configure_admin
 from .logger import create_msg, sentry_init
 
