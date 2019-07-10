@@ -1,16 +1,17 @@
 from app.models import Series, Point
-from .helpers import add_event
+from .helpers import add_peak
 
 
 class Atomics:
+    # size of maximum neighbourhood
+    space_size: int = 40
+
     def __init__(self, series: Series):
         self._pair = series.pair
         self._timeframe = series.timeframe
         self.points = list(series.values(key="close"))
 
-    def detect_top(self, peak: Point, neighbours):
-        if not neighbours:
-            return None
+    def detect_top(self, strength: int, peak: Point, neighbours):
         if not all(peak.y >= p.y for p in neighbours):
             return None
 
@@ -19,13 +20,11 @@ class Atomics:
             'timeframe': self._timeframe,
             'time': int(peak.x),
             'value': float(peak.y),
-            'name': 'TOP'
+            'name': 'TOP',
         }
-        return add_event(params)
+        return add_peak(params, strength)
 
-    def detect_bottom(self, peak: Point, neighbours):
-        if not neighbours:
-            return None
+    def detect_bottom(self, strength: int, peak: Point, neighbours):
         if not all(peak.y <= p.y for p in neighbours):
             return None
 
@@ -36,7 +35,7 @@ class Atomics:
             'value': float(peak.y),
             'name': 'BOTTOM'
         }
-        return add_event(params)
+        return add_peak(params, strength)
 
     @staticmethod
     def neighbourhood(i, xs, n, size: int = 10):
@@ -46,15 +45,20 @@ class Atomics:
         return xs[i], xs[i - size:i + size]
 
 
-    def check_peaks(self, close, last=10):
-        close = close[-2*last:]
-        n = len(close)
+    def detect_peak(self, position, close, min_size: int = 10):
+        close_size = len(close)
+        for strength, size in enumerate(range(min_size, self.space_size)):
+            point, ngbr = self.neighbourhood(position, close, close_size, size)
+            if ngbr is not None:
+                self.detect_top(strength + min_size, point, ngbr)
+                self.detect_bottom(strength + min_size, point, ngbr)
+
+    def find_all_peaks(self, close):
+        close = close[-self.space_size:]
 
         for i, c in enumerate(close):
-            ngbr = self.neighbourhood(i, close, n)
-            self.detect_top(*ngbr)
-            self.detect_bottom(*ngbr)
+            self.detect_peak(i, close)
 
     def remake(self):
         for i, p in enumerate(self.points):
-            self.check_peaks(self.points[:i])
+            self.find_all_peaks(self.points[:i])

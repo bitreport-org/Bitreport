@@ -1,0 +1,9 @@
+repos:
+- repo: local
+  hooks:
+   -   id: pytest
+       name: Runs all unit tests with pytest
+       language: system
+       entry: pytest --cov=core/app --cov-config core/.coveragerc --vcr-record=none
+       pass_filenames: false
+       always_run: true

@@ -6,7 +6,7 @@ from typing import Tuple
 
 from app.models import Series
 
-from app.ta.eventer.triangle import simple_wedge
+from app.ta.events.triangle import simple_wedge
 from app.ta.indicators import make_indicators
 from app.utils.influx_utils import get_candles, check_last_timestamp
 

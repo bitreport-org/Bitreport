@@ -1,5 +1,6 @@
 from app.models.utils import db
 
+
 class Level(db.Model):
     """
     Creates Level.
@@ -52,5 +53,5 @@ class Event(db.Model):
     timeframe = db.Column(db.String)
     time = db.Column(db.Integer)
     value = db.Column(db.Float)
-
     name = db.Column(db.String)
+    strength = db.Column(db.Integer, default=None)
