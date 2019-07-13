@@ -11,7 +11,8 @@ build:
     - docker:dind
   before_script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker-compose pull -q --ignore-pull-failures core dashboard web 2>&1 | grep -oh "\w*:[0-9a-zA-Z-]* not found" || true | awk -F ':' '{print $1}' | while read -r service; do echo "${service}:${CI_COMMIT_REF_NAME} doesn't exist yet"; docker pull ${CI_REGISTRY_IMAGE}/${service}:latest > /dev/null || true ; done
+    - docker-compose pull -q --ignore-pull-failures core dashboard web 2>&1 | (grep -oh "\w*:[0-9a-zA-Z-]* not found" || true) | awk -F ':' '{print $1}' | while read -r service; do echo "${service}:${CI_COMMIT_REF_NAME} doesn't exist yet" && (docker pull ${CI_REGISTRY_IMAGE}/${service}:master > /dev/null && docker tag ${CI_REGISTRY_IMAGE}/${service}:master ${CI_REGISTRY_IMAGE}/${service}:${CI_COMMIT_REF_NAME} && docker push ${CI_REGISTRY_IMAGE}/${service}:${CI_COMMIT_REF_NAME} || true); done
+    - docker images
   script:
-    - docker-compose build --parallel core dashboard web
+    - docker-compose build core dashboard web
     - docker-compose push

@@ -8,6 +8,8 @@ docker-compose*.yml
 *.env
 .dockerignore
 
+.docker/
+
 # Ignore log files:
 log/*.log
 
@@ -37,3 +39,4 @@ spec/
 public/uploads
 public/assets
 node_modules
+

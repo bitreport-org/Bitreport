@@ -1,0 +1,12 @@
+# Ignore version control files:
+.git/
+.gitignore
+
+# Ignore docker and environment files:
+*Dockerfile
+docker-compose*.yml
+*.env
+.dockerignore
+
+# Ignore OS artifacts:
+**/.DS_Store
