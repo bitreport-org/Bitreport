@@ -1,6 +1,5 @@
 import numpy as np
 from collections import namedtuple
-from functools import reduce
 from typing import Union
 
 LevelTuple = namedtuple('LevelTuple', ['type', 'value', 'time', 'strength'])
@@ -35,8 +34,8 @@ def is_level(i: int, x: float, xs: np.ndarray, t: int) -> Union[None, LevelTuple
         if i < radius:
             continue
         ys = xs[i - radius: i + radius]
-        support = reduce(lambda a, b: a and b, ys >= np.array([x] * ys.size))
-        resistance = reduce(lambda a, b: a and b, ys <= np.array([x] * ys.size))
+        support = np.all(ys >= np.array([x] * ys.size))
+        resistance = np.all(ys <= np.array([x] * ys.size))
         if support:
             return LevelTuple('support', x, int(t), strength)
 

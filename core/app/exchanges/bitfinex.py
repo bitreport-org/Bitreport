@@ -4,7 +4,8 @@ import requests
 import logging
 
 
-from app.exchanges.helpers import check_last_tmstmp, insert_candles
+from app.exchanges.helpers import insert_candles
+from app.database.helpers import check_last_timestamp
 from .base import BaseExchange
 
 
@@ -34,7 +35,7 @@ class Bitfinex(BaseExchange):
         if timeframe == '24h':
             timeframeR = '1D'
 
-        start = (check_last_tmstmp(measurement)) * 1000   # ms
+        start = (check_last_timestamp(measurement)) * 1000   # ms
         end = (int(time.time()) + 100) * 1000  # ms
 
         url = f'https://api-pub.bitfinex.com/v2/candles/trade:{timeframeR}:t{pair}/hist'

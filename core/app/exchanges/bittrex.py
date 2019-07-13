@@ -34,7 +34,7 @@ class Bittrex(BaseExchange):
         }
         return json_body
 
-    def fetch_candles(self, pair, timeframe: str) -> bool:
+    def fetch_candles(self, pair, timeframe: str, limit: int = 0) -> bool:
         result = False
         measurement = pair + timeframe
         pair_formated = self._pair_format(pair)
@@ -42,7 +42,7 @@ class Bittrex(BaseExchange):
         timeframes = {'1h': 'hour', '24h': 'day'}
         btf = timeframes.get(timeframe, '1h')
 
-        url = f'https://bittrex.com/Api/v2.0/pub/market/GetTicks'
+        url = f'https://international.bittrex.com/Api/v2.0/pub/market/GetTicks'
         params = {
             'marketName': pair_formated,
             'tickInterval': btf
@@ -62,7 +62,7 @@ class Bittrex(BaseExchange):
             logging.info(f"FAILED {measurement} Bitrex empty response")
             return False
 
-        points = [self.json(measurement, row) for row in rows]
+        points = [self.json(measurement, row) for row in rows[-limit:]]
 
         result = insert_candles(points, measurement, self.name, time_precision="s")
 

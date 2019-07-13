@@ -1,4 +1,3 @@
-import pandas as pd
 import logging
 import traceback
 
@@ -19,28 +18,6 @@ def check_exchanges(pair: str) -> list:
     return result
 
 
-def check_last_tmstmp(measurement: str, minus: int = 10) -> int:
-    """
-    Returns timestamp of last point in measurement.
-
-    Parameters
-    ----------
-    measurement: name of the measurement
-    minus: small shift in time
-
-    Returns
-    -------
-    int: timestamp of last record
-    """
-    r = influx_db.query(f'SELECT * FROM {measurement} ORDER BY time DESC LIMIT 1;', epoch='s')
-    df = pd.DataFrame(list(r.get_points(measurement=measurement)))
-    if df.shape == (0, 0):
-        # Return something old enough
-        return 1518176375
-
-    return int(df.time.values) - minus
-
-
 def insert_candles(candles: list,
                    measurement: str,
                    exchange_name: str,
@@ -55,6 +32,7 @@ def insert_candles(candles: list,
     measurement: name of the points' measurement
     exchange_name: name of exchange from which points come from
     time_precision: time precision of the measurement
+    verbose: if True then logging is on
 
     Returns
     -------

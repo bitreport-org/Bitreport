@@ -52,8 +52,12 @@ class Levels(object):
         ----------
         close - time series of price values
         """
-        lvls = [is_level(i, x, close, time[i]) for i, x in enumerate(close)]
-        lvls = list(filter(lambda x: x, lvls))
+        lvls = []
+        for i, x in enumerate(close):
+            lvl = is_level(i, x, close, time[i])
+            if lvl is not None:
+                lvls.append(lvl)
+
         if lvls:
             self._save_levels(lvls)
 
@@ -88,8 +92,8 @@ class Levels(object):
         lvls = [FuzzyLevel(lvl, last_price) for lvl in lvls]
         lvls = [lvl.update(lvls) for lvl in lvls]
 
-        resistance = list(filter(lambda x: x.dist >= 0, lvls))
-        support = list(filter(lambda x: x.dist <= 0, lvls))
+        resistance = [x for x in lvls if x.dist >= 0]
+        support = [x for x in lvls if x.dist <= 0]
 
         output = []
         if resistance:
@@ -106,12 +110,12 @@ class Levels(object):
                 res_value = output[0].lvl.value
                 check = lambda x: (x.score == support[-1].score) and (abs(x.lvl.value / res_value - 1) > 0.04)
 
-            support = list(filter(lambda x: check(x), support))
+            support = list(filter(check, support))
             support.sort(key=lambda x: x.dist, reverse=True)
             if support:
                 output.append(support[0])
 
-        return list(map(lambda x: x.json(), output))
+        return [x.json() for x in output]
 
     @staticmethod
     def _fib_levels(close: np.ndarray, top: float, bottom: float) -> list:
@@ -122,8 +126,8 @@ class Levels(object):
         fib_lvls = (0.00, .236, .382, .500, .618, 1.00)
 
         if top_index < bottom_index:
-            levels = map(lambda x: bottom + x * height, fib_lvls)
+            levels = [bottom + x * height for x in fib_lvls]
         else:
-            levels = map(lambda x: bottom - x * height, fib_lvls)
+            levels = [bottom - x * height for x in fib_lvls]
 
         return list(levels)
