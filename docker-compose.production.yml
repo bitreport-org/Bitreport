@@ -1,4 +1,4 @@
-version: '3'
+version: '3.7'
 
 volumes:
   certs:
@@ -13,7 +13,12 @@ volumes:
 
 services:
   web:
-    build: ./web
+    image: $CI_REGISTRY_IMAGE/web:$CI_COMMIT_REF_NAME
+    build:
+      context: ./web
+      cache_from:
+        - $CI_REGISTRY_IMAGE/web:$CI_COMMIT_REF_NAME
+        - $CI_REGISTRY_IMAGE/web:latest
     depends_on:
       - dashboard
       - flower
@@ -26,8 +31,12 @@ services:
       - dashboard-logs:/usr/src/app/log
 
   core:
-    build: ./core
-    image: core
+    image: $CI_REGISTRY_IMAGE/core:$CI_COMMIT_REF_NAME
+    build:
+      context: ./core
+      cache_from:
+        - $CI_REGISTRY_IMAGE/core:$CI_COMMIT_REF_NAME
+        - $CI_REGISTRY_IMAGE/core:latest
     environment: &env
       - PYTHONUNBUFFERED=1
       - FLASK_ENV=production
@@ -42,7 +51,12 @@ services:
       - core-migrations:/app/migrations/versions
 
   flower:
-    build: ./core
+    image: $CI_REGISTRY_IMAGE/core:$CI_COMMIT_REF_NAME
+    build:
+      context: ./core
+      cache_from:
+        - $CI_REGISTRY_IMAGE/core:$CI_COMMIT_REF_NAME
+        - $CI_REGISTRY_IMAGE/core:latest
     environment: *env
     command: bash -c "flower -A core.celery --basic_auth=admin:magicPassword --url_prefix=core/tasks"
     expose:
@@ -51,7 +65,12 @@ services:
       - celery
 
   celery:
-    build: ./core
+    image: $CI_REGISTRY_IMAGE/core:$CI_COMMIT_REF_NAME
+    build:
+      context: ./core
+      cache_from:
+        - $CI_REGISTRY_IMAGE/core:$CI_COMMIT_REF_NAME
+        - $CI_REGISTRY_IMAGE/core:latest
     environment: *env
     command: bash -c "celery worker -A core.celery -n johnny@%h"
     depends_on:
@@ -60,7 +79,12 @@ services:
       - postgres
 
   celery-beat:
-    build: ./core
+    image: $CI_REGISTRY_IMAGE/core:$CI_COMMIT_REF_NAME
+    build:
+      context: ./core
+      cache_from:
+        - $CI_REGISTRY_IMAGE/core:$CI_COMMIT_REF_NAME
+        - $CI_REGISTRY_IMAGE/core:latest
     environment: *env
     command: bash -c "celery beat -A core.celery --schedule=tmp/celerybeat-schedule --pidfile=tmp/celerybeat.pid"
     depends_on:
@@ -68,15 +92,20 @@ services:
 
   influx:
     image: influxdb:1.5.2-alpine
+    restart: always
     environment:
       - INFLUXDB_LOGGING_LEVEL=warn
     volumes:
       - influx-data:/var/lib/influxdb
 
   dashboard:
+    image: $CI_REGISTRY_IMAGE/dashboard:$CI_COMMIT_REF_NAME
     build:
       context: ./dashboard
       dockerfile: .docker/production.Dockerfile
+      cache_from:
+        - $CI_REGISTRY_IMAGE/dashboard:$CI_COMMIT_REF_NAME
+        - $CI_REGISTRY_IMAGE/dashboard:latest
     env_file: dashboard/.docker/production.env
     depends_on:
       - postgres
@@ -92,19 +121,25 @@ services:
 
   postgres:
     image: postgres:10.4-alpine
+    restart: always
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
   redis:
     command: redis-server
     image: redis:4.0.11-alpine
+    restart: always
     volumes:
       - redis-data:/data
 
   sidekiq:
+    image: $CI_REGISTRY_IMAGE/dashboard:$CI_COMMIT_REF_NAME
     build:
       context: ./dashboard
       dockerfile: .docker/production.Dockerfile
+      cache_from:
+        - $CI_REGISTRY_IMAGE/dashboard:$CI_COMMIT_REF_NAME
+        - $CI_REGISTRY_IMAGE/dashboard:latest
     env_file: dashboard/.docker/production.env
     command: bundle exec sidekiq -C config/sidekiq.yml
     depends_on:
