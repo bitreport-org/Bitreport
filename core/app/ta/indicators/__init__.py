@@ -3,18 +3,18 @@ from .talib import *
 
 
 INDICATORS = {
-    'KC': KC,
-    'EWO': EWO,
-    'ICM': ICM,
-    'BB': BB,
-    'EMA': EMA,
-    'SMA': SMA,
-    'RSI': RSI,
-    'OBV': OBV,
-    'MOM': MOM,
-    'MACD': MACD,
-    'STOCH': STOCH,
-    'STOCHRSI': STOCHRSI
+    "KC": KC,
+    "EWO": EWO,
+    "ICM": ICM,
+    "BB": BB,
+    "EMA": EMA,
+    "SMA": SMA,
+    "RSI": RSI,
+    "OBV": OBV,
+    "MOM": MOM,
+    "MACD": MACD,
+    "STOCH": STOCH,
+    "STOCHRSI": STOCHRSI,
 }
 
 

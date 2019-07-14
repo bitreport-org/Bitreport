@@ -5,30 +5,29 @@ from app.ta.constructors import Point
 from app.ta.charting.base import Universe
 
 
-@indicator('double_top', ['A', 'B', 'C'])
+@indicator("double_top", ["A", "B", "C"])
 def double_top(universe):
-    return make_double(universe, type_='top')
+    return make_double(universe, type_="top")
 
 
-@indicator('double_bottom', ['A', 'B', 'C'])
+@indicator("double_bottom", ["A", "B", "C"])
 def double_bottom(universe):
-    return make_double(universe, type_='bottom')
+    return make_double(universe, type_="bottom")
 
 
-@indicator('double_top', ['A', 'B', 'C'])
+@indicator("double_top", ["A", "B", "C"])
 def double_top(universe):
-    return make_double(universe, type_='top')
+    return make_double(universe, type_="top")
 
 
-@indicator('double_bottom', ['A', 'B', 'C'])
+@indicator("double_bottom", ["A", "B", "C"])
 def double_bottom(universe):
-    return make_double(universe, type_='bottom')
+    return make_double(universe, type_="bottom")
 
 
-def make_double(universe: Universe,
-                type_: str = 'top',
-                right_margin: int = 15,
-                threshold: int = 3) -> dict:
+def make_double(
+    universe: Universe, type_: str = "top", right_margin: int = 15, threshold: int = 3
+) -> dict:
     """
     Check if a patter of double top or double bottom can be found in given data
 
@@ -43,13 +42,15 @@ def make_double(universe: Universe,
     -------
     dt: dictionary with params A, B, C which represents the following points in the pattern
     """
-    DEAFULT = {'info': [], 'A': (), 'B': (), 'C': ()}
+    DEAFULT = {"info": [], "A": (), "B": (), "C": ()}
 
     x_dates = universe.time
     close = universe.close
-    assert x_dates.size == close.size, f'Double pattern, x, y sizes differ: {x_dates.size}, {close.size}'
+    assert (
+        x_dates.size == close.size
+    ), f"Double pattern, x, y sizes differ: {x_dates.size}, {close.size}"
 
-    if type_ == 'top':
+    if type_ == "top":
         f, g, sgn = np.argmax, np.argmin, 1
     else:
         f, g, sgn = np.argmin, np.argmax, 0
@@ -62,7 +63,7 @@ def make_double(universe: Universe,
         return DEAFULT
 
     # Scale series from Ax to a square [0,1]x[0,1]
-    scaled_y = close[A.x+1:]
+    scaled_y = close[A.x + 1 :]
     scaled_y = (scaled_y - np.min(scaled_y)) / (np.max(scaled_y) - np.min(scaled_y))
 
     scaled_x = np.arange(scaled_y.size)
@@ -80,7 +81,7 @@ def make_double(universe: Universe,
 
     # Select second top
     tmp = A.x + 1 + np.arange(scaled_y.size)
-    slopes = [(x, s) for x, s in zip(tmp[threshold + 1:], slopes) if abs(s) < 2]
+    slopes = [(x, s) for x, s in zip(tmp[threshold + 1 :], slopes) if abs(s) < 2]
 
     # Select only points that are dist points from A
     if not slopes:
@@ -95,7 +96,7 @@ def make_double(universe: Universe,
         return DEAFULT
 
     # Find the midpoint
-    bx = A.x + g(close[A.x: C.x])
+    bx = A.x + g(close[A.x : C.x])
     B = Point(int(bx), float(close[bx]))
 
     # Assert that the pattern is not flat
@@ -109,7 +110,7 @@ def make_double(universe: Universe,
 
     scaled_x = (xs - A.x) / (C.x - A.x)
 
-    if type_ == 'top':
+    if type_ == "top":
         scaled_y = (ys - B.y) / (A.y - B.y)
     else:
         scaled_y = (ys - A.y) / (B.y - A.y)
@@ -120,8 +121,8 @@ def make_double(universe: Universe,
     if alpha > 95:
         return DEAFULT
 
-    dt = {k: (int(x_dates[p.x]), p.y) for k, p in zip('ABC', [A, B, C])}
+    dt = {k: (int(x_dates[p.x]), p.y) for k, p in zip("ABC", [A, B, C])}
 
-    dt['info'] = []
+    dt["info"] = []
 
     return dt

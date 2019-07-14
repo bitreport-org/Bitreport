@@ -4,10 +4,7 @@ import celeryconfig
 
 def make_celery(app):
     # create context tasks in celery
-    celery = Celery(
-        app.import_name,
-        broker=app.config['BROKER']
-    )
+    celery = Celery(app.import_name, broker=app.config["BROKER"])
     celery.conf.update(app.config)
     celery.config_from_object(celeryconfig)
 
@@ -16,7 +13,7 @@ def make_celery(app):
 
         def __call__(self, *args, **kwargs):
             with app.app_context():
-                print('Works')
+                print("Works")
                 return self.run(*args, **kwargs)
 
     celery.Task = ContextTask

@@ -7,10 +7,12 @@ from app.exchanges.helpers import downsample_all_timeframes
 from app.database.helpers import get_all_pairs
 
 
-@celery.task(name='app.queue.tasks.fill_pair',
-             bind=True,
-             soft_time_limit=12,
-             retry_kwargs={'max_retries': 1})
+@celery.task(
+    name="app.queue.tasks.fill_pair",
+    bind=True,
+    soft_time_limit=12,
+    retry_kwargs={"max_retries": 1},
+)
 def fill_pair(self, pair: str) -> bool:
     status = False
     try:
@@ -21,7 +23,7 @@ def fill_pair(self, pair: str) -> bool:
             return self.retry(exc=exc, countdown=60)
 
 
-@celery.task(name='app.queue.tasks.fill_influx')
+@celery.task(name="app.queue.tasks.fill_influx")
 def fill_influx() -> None:
     pairs = get_all_pairs()
 
@@ -29,7 +31,7 @@ def fill_influx() -> None:
         fill_pair.delay(pair)
 
 
-@celery.task(name='app.queue.tasks.downsample')
+@celery.task(name="app.queue.tasks.downsample")
 def downsample(pair) -> None:
     ctx = current_app.app_context()
     downsample_all_timeframes(ctx, pair)

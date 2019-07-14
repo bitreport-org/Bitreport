@@ -18,22 +18,22 @@ def sentry_init(app: Flask) -> bool:
     -------
     bool
     """
-    if app.config.get('SENTRY'):
+    if app.config.get("SENTRY"):
         sentry_sdk.init(
-            dsn=app.config['SENTRY_URL'],
-            integrations=[FlaskIntegration(), CeleryIntegration()]
+            dsn=app.config["SENTRY_URL"],
+            integrations=[FlaskIntegration(), CeleryIntegration()],
         )
-        app.logger.info('Sentry is up and running.')
+        app.logger.info("Sentry is up and running.")
         return True
     return False
 
 
 def create_msg(response):
-    if request.path == '/favicon.ico':
-        return colors.color('/favicon.ico', 'yellow')
+    if request.path == "/favicon.ico":
+        return colors.color("/favicon.ico", "yellow")
 
-    if request.path.startswith('/static'):
-        return colors.color('/static', 'yellow')
+    if request.path.startswith("/static"):
+        return colors.color("/static", "yellow")
 
     now = time.time()
     duration = round(now - g.start, 2)
@@ -43,19 +43,19 @@ def create_msg(response):
     if args:
         query = "?"
         for k, v in args.items():
-            query += f'{k}={v}&'
+            query += f"{k}={v}&"
 
     query = query[:-1]
 
-    msg = f'{request.method} {request.path}{query} {response.status_code} {duration}s'
+    msg = f"{request.method} {request.path}{query} {response.status_code} {duration}s"
 
     if response.status_code < 300:
-        return colors.color(msg, 'green')
+        return colors.color(msg, "green")
 
     if response.status_code < 400:
-        return colors.color(msg, 'purple')
+        return colors.color(msg, "purple")
 
     if response.status_code < 500:
-        return colors.color(msg, 'yellow')
+        return colors.color(msg, "yellow")
 
-    return colors.color(msg, 'red')
+    return colors.color(msg, "red")

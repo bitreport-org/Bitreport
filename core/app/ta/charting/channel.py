@@ -13,6 +13,7 @@ class Channel(BaseChart):
         *
     *
     """
+
     __name__ = "channel"
 
     def _remake(self, params: dict) -> None:
@@ -28,8 +29,8 @@ class Channel(BaseChart):
         self._extend()
 
     def _extend(self) -> None:
-        slope, coef = self.setup.params['band']
-        shift = self.setup.params['shift']
+        slope, coef = self.setup.params["band"]
+        shift = self.setup.params["shift"]
         if shift > 0:
             extension_down = slope * self._future_time + coef
             extension_up = extension_down + shift
@@ -39,7 +40,6 @@ class Channel(BaseChart):
 
         # till crossing
         i = sum(1 for u, d in zip(extension_up, extension_down) if u >= d)
-
 
         self.setup.up = np.concatenate([self.setup.up, extension_up[:i]])
         self.setup.down = np.concatenate([self.setup.down, extension_down[:i]])
@@ -57,16 +57,16 @@ class Channel(BaseChart):
     def _shifts(self, type_: str) -> np.ndarray:
         width = np.max(self._close) - np.min(self._close)
         shifts = np.linspace(0, 0.6 * width, 50)
-        if type_ == 'up':
+        if type_ == "up":
             return -1 * shifts
         return shifts
 
     @staticmethod
     def _params(skew: Skew, shift: float) -> dict:
         params = {
-            'band': (skew.slope, skew.coef),
-            'shift': shift,
-            'start': float(skew.start.x)
+            "band": (skew.slope, skew.coef),
+            "shift": shift,
+            "start": float(skew.start.x),
         }
         return params
 
@@ -89,17 +89,22 @@ class Channel(BaseChart):
                 length = self._length(start_index)
 
                 params = self._params(skew, shift)
-                setups.append(Setup(up, down, params,
-                                    points_between=include_score,
-                                    empty_field_value=fit_score,
-                                    length=length,
-                                    peaks_fit_value=peaks_score
-                                    ))
+                setups.append(
+                    Setup(
+                        up,
+                        down,
+                        params,
+                        points_between=include_score,
+                        empty_field_value=fit_score,
+                        length=length,
+                        peaks_fit_value=peaks_score,
+                    )
+                )
         return setups
 
     def _find(self, ups: [Skew], downs: [Skew]) -> Union[Setup, None]:
-        setups = self._helper(ups, type_='up')
-        setups += self._helper(downs, type_='down')
+        setups = self._helper(ups, type_="up")
+        setups += self._helper(downs, type_="down")
 
         if not setups:
             return None

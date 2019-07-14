@@ -6,6 +6,7 @@ db = SQLAlchemy()
 
 influx_db = InfluxDB()
 
+
 class Chart(db.Model):
     """
     Creates Chart.
@@ -17,7 +18,8 @@ class Chart(db.Model):
     type: name of charting setup
     params: params of the setup
     """
-    __tablename__ = 'charting'
+
+    __tablename__ = "charting"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     pair = db.Column(db.String)
     timeframe = db.Column(db.String)
@@ -37,7 +39,8 @@ class Level(db.Model):
     type: name of level type
     value: value of the level
     """
-    __tablename__ = 'levels'
+
+    __tablename__ = "levels"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     time = db.Column(db.DateTime, default=db.func.current_timestamp())

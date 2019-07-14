@@ -1,6 +1,7 @@
 from app.database.models import influx_db
 from app.database.helpers import get_candles
 
+
 class TestInflux:
     def test(self, app):
         with app.ctx:
@@ -10,6 +11,6 @@ class TestInflux:
 
     def test2(self, app, filled_influx):
         with app.ctx:
-            xs = get_candles('TEST', '1h', 10)
+            xs = get_candles("TEST", "1h", 10)
 
         assert isinstance(xs, dict)

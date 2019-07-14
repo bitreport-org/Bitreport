@@ -7,8 +7,8 @@ import re
 
 def get_all_pairs() -> list:
     pairs = influx_db.connection.get_list_measurements()
-    pairs = [re.match('[A-Z]+', m['name'])[0] for m in pairs]
-    pairs = [p for p in set(pairs) if p[:4] != 'TEST']
+    pairs = [re.match("[A-Z]+", m["name"])[0] for m in pairs]
+    pairs = [p for p in set(pairs) if p[:4] != "TEST"]
     return pairs
 
 
@@ -53,20 +53,27 @@ def get_candles(pair: str, timeframe: str, limit: int) -> dict:
     LIMIT {limit}
     """
 
-    r = influx_db.query(q, epoch='s')
+    r = influx_db.query(q, epoch="s")
     df = pd.DataFrame(list(r.get_points(measurement=measurement)))
 
     if df.shape[0] == 0:
-        return dict(date=[], open=np.array([]), close=np.array([]),
-                    high=np.array([]), low=np.array([]), volume=np.array([]))
+        return dict(
+            date=[],
+            open=np.array([]),
+            close=np.array([]),
+            high=np.array([]),
+            low=np.array([]),
+            volume=np.array([]),
+        )
 
-    candles_dict = {'date': df.time.values.tolist()[::-1],
-                    'open': df.open.values[::-1],
-                    'close': df.close.values[::-1],
-                    'high': df.high.values[::-1],
-                    'low': df.low.values[::-1],
-                    'volume': df.volume.values[::-1]
-                    }
+    candles_dict = {
+        "date": df.time.values.tolist()[::-1],
+        "open": df.open.values[::-1],
+        "close": df.close.values[::-1],
+        "high": df.high.values[::-1],
+        "low": df.low.values[::-1],
+        "volume": df.volume.values[::-1],
+    }
 
     return candles_dict
 
@@ -84,7 +91,9 @@ def check_last_timestamp(measurement: str, minus: int = 10) -> int:
     -------
     int: timestamp of last record
     """
-    r = influx_db.query(f'SELECT * FROM {measurement} ORDER BY time DESC LIMIT 1;', epoch='s')
+    r = influx_db.query(
+        f"SELECT * FROM {measurement} ORDER BY time DESC LIMIT 1;", epoch="s"
+    )
     df = pd.DataFrame(list(r.get_points(measurement=measurement)))
     if df.shape == (0, 0):
         # Return something old enough

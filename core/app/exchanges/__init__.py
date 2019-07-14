@@ -34,16 +34,13 @@ def fill_pair(pair: str) -> tuple:
     tuple (message, code)
     """
 
-    if pair[:4] == 'TEST':
+    if pair[:4] == "TEST":
         return None, None
 
     exchanges = check_exchanges(pair)
 
     fillers = dict(
-        bitfinex=Bitfinex(),
-        bittrex=Bittrex(),
-        binance=Binance(),
-        poloniex=Poloniex()
+        bitfinex=Bitfinex(), bittrex=Bittrex(), binance=Binance(), poloniex=Poloniex()
     )
 
     if exchanges:

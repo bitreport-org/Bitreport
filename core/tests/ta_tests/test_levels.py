@@ -21,15 +21,15 @@ class TestLevels:
 
     def _levels(self, close, app):
         universe = Universe(
-            pair=''.join(random.choice(string.ascii_letters) for _ in range(12)),
-            timeframe='test_tf',
+            pair="".join(random.choice(string.ascii_letters) for _ in range(12)),
+            timeframe="test_tf",
             close=close,
             time=self._time(close),
-            future_time=np.array([])
+            future_time=np.array([]),
         )
         lvl = Levels(universe)
         with app.ctx:
-            result = lvl()['levels']
+            result = lvl()["levels"]
         return result, universe.pair, universe.timeframe
 
     def test_structure(self, app):
@@ -37,32 +37,40 @@ class TestLevels:
         result, pair, tf = self._levels(close, app)
 
         assert isinstance(result, dict)
-        assert 'info' in result.keys()
-        assert 'levels' in result.keys()
+        assert "info" in result.keys()
+        assert "levels" in result.keys()
 
-        assert isinstance(result['levels'], list)
+        assert isinstance(result["levels"], list)
 
     def test_level_info(self, app):
         close = np.concatenate([self.a, self.b])
         result, pair, tf = self._levels(close, app)
 
-        levels = result['levels']
+        levels = result["levels"]
         assert len(levels) == 1
 
         level = levels[0]
         assert isinstance(level, dict)
 
         keys = level.keys()
-        for k in ['type', 'tf', 'value', 'resistance', 'support', 'strength', 'first_occurrence']:
+        for k in [
+            "type",
+            "tf",
+            "value",
+            "resistance",
+            "support",
+            "strength",
+            "first_occurrence",
+        ]:
             assert k in keys
 
         # Check if level was found correctly
-        assert level['type'] == 'resistance'
-        assert level['value'] == 100
-        assert level['tf'] == tf
-        assert level['resistance'] == 1
-        assert level['support'] == 0
-        assert level['strength'] == 2
+        assert level["type"] == "resistance"
+        assert level["value"] == 100
+        assert level["tf"] == tf
+        assert level["resistance"] == 1
+        assert level["support"] == 0
+        assert level["strength"] == 2
 
         # Check if level was saved to database
         with app.ctx:
@@ -70,7 +78,7 @@ class TestLevels:
 
         assert len(result) == 1
         level = result[0]
-        assert level.type == 'resistance'
+        assert level.type == "resistance"
         assert level.value == 100
         assert level.strength == 2
 
@@ -78,13 +86,13 @@ class TestLevels:
         close = np.concatenate([self.a, self.b, self.c])
         result, pair, tf = self._levels(close, app)
 
-        assert len(result['levels']) == 2
-        result['levels'].sort(key=lambda x: x['type'])
+        assert len(result["levels"]) == 2
+        result["levels"].sort(key=lambda x: x["type"])
 
-        resistance, support = result['levels']
+        resistance, support = result["levels"]
 
-        assert resistance['type'] == 'resistance'
-        assert support['type'] == 'support'
+        assert resistance["type"] == "resistance"
+        assert support["type"] == "support"
 
-        assert resistance['value'] == 100
-        assert support['value'] == 0
+        assert resistance["value"] == 100
+        assert support["value"] == 0

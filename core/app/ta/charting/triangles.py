@@ -31,11 +31,17 @@ def _find(self, peaks: List[Point], skews: List[Skew]) -> Union[Setup, None]:
 
             params = _params(peak, skew)
 
-            setups.append(Setup(up, down, params,
-                                peaks_fit_value=peaks_fit,
-                                empty_field_value=fit_score,
-                                length=length,
-                                points_between=include_score))
+            setups.append(
+                Setup(
+                    up,
+                    down,
+                    params,
+                    peaks_fit_value=peaks_fit,
+                    empty_field_value=fit_score,
+                    length=length,
+                    points_between=include_score,
+                )
+            )
 
     if not setups:
         return None
@@ -45,11 +51,10 @@ def _find(self, peaks: List[Point], skews: List[Skew]) -> Union[Setup, None]:
 
 def _params(peak: Point, skew: Skew) -> dict:
     params = {
-        'hline': peak.y,
-        'slope': skew.slope,
-        'coef': skew.coef,
-        'start': float(min(peak.x, skew.start.x))
-
+        "hline": peak.y,
+        "slope": skew.slope,
+        "coef": skew.coef,
+        "start": float(min(peak.x, skew.start.x)),
     }
     return params
 
@@ -60,6 +65,7 @@ class AscTriangle(BaseChart):
         *
     *
     """
+
     __name__ = "ascending_triangle"
 
     def _remake(self, params: dict) -> None:
@@ -83,9 +89,9 @@ class AscTriangle(BaseChart):
         self.signal = (None, None)
 
     def _extend(self) -> None:
-        hline = self.setup.params['hline']
-        slope = self.setup.params['slope']
-        coef = self.setup.params['coef']
+        hline = self.setup.params["hline"]
+        slope = self.setup.params["slope"]
+        coef = self.setup.params["coef"]
         extension_up = np.array([hline] * self._future_time.size)
         extension_down = slope * self._future_time + coef
 
@@ -93,7 +99,7 @@ class AscTriangle(BaseChart):
         i = sum(1 for u, d in zip(extension_up, extension_down) if u >= d)
 
         self.setup.up = np.concatenate([self.setup.up, extension_up[:i]])
-        self.setup.down=np.concatenate([self.setup.down, extension_down[:i]])
+        self.setup.down = np.concatenate([self.setup.down, extension_down[:i]])
 
 
 class DescTriangle(BaseChart):
@@ -102,6 +108,7 @@ class DescTriangle(BaseChart):
         *
     *   *   *
     """
+
     __name__ = "descending_triangle"
 
     def _remake(self, params: dict) -> None:
@@ -125,9 +132,9 @@ class DescTriangle(BaseChart):
         self.signal = (None, None)
 
     def _extend(self) -> None:
-        hline = self.setup.params['hline']
-        slope = self.setup.params['slope']
-        coef = self.setup.params['coef']
+        hline = self.setup.params["hline"]
+        slope = self.setup.params["slope"]
+        coef = self.setup.params["coef"]
         extension_down = np.array([hline] * self._future_time.size)
         extension_up = slope * self._future_time + coef
 
@@ -146,6 +153,7 @@ class SymmetricalTriangle(BaseChart):
         *
     *
     """
+
     __name__ = "symmetrical_triangle"
 
     def _remake(self, params: dict) -> None:
@@ -155,7 +163,9 @@ class SymmetricalTriangle(BaseChart):
         self.setup = Setup(up, down, params, 1, 1, 1, 1)
         self._extend()
 
-    def _make_bands(self, skew_up: Skew, skew_down: Skew) -> Tuple[np.ndarray, np.ndarray]:
+    def _make_bands(
+        self, skew_up: Skew, skew_down: Skew
+    ) -> Tuple[np.ndarray, np.ndarray]:
         do = lambda s: self._time * s.slope + s.coef
         up = do(skew_up)
         down = do(skew_down)
@@ -164,8 +174,8 @@ class SymmetricalTriangle(BaseChart):
     @staticmethod
     def _params(up_skew: Skew, down_skew: Skew) -> dict:
         params = {
-            'up': (up_skew.slope, up_skew.coef),
-            'down': (down_skew.slope, down_skew.coef)
+            "up": (up_skew.slope, up_skew.coef),
+            "down": (down_skew.slope, down_skew.coef),
         }
         return params
 
@@ -195,17 +205,22 @@ class SymmetricalTriangle(BaseChart):
                 if not include_score:
                     continue
 
-
                 fit_score = self._empty_field_score(start_index, up, down)
                 length = self._length(start_index, up_skew, down_skew)
                 peaks_fit = self._peaks_fit_value(up, down)
 
                 params = self._params(up_skew, down_skew)
-                setups.append(Setup(up, down, params,
-                                    peaks_fit_value=peaks_fit,
-                                    empty_field_value=fit_score,
-                                    length=length,
-                                    points_between=include_score))
+                setups.append(
+                    Setup(
+                        up,
+                        down,
+                        params,
+                        peaks_fit_value=peaks_fit,
+                        empty_field_value=fit_score,
+                        length=length,
+                        points_between=include_score,
+                    )
+                )
 
         if not setups:
             return None

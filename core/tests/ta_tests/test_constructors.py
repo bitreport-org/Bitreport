@@ -53,8 +53,8 @@ class TestConstructors:
         assert len(lines) == 2
 
     def test_skew(self):
-        a = cts.Point(0., 0.)
-        b = cts.Point(10., 0.)
+        a = cts.Point(0.0, 0.0)
+        b = cts.Point(10.0, 0.0)
 
         skew = cts._skew(a, b)
         assert skew.coef == 0.0

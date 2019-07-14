@@ -4,8 +4,8 @@ from collections import namedtuple
 from typing import List, Union
 
 
-Point = namedtuple('Point', ['x', 'y'])
-Skew = namedtuple('Skew', ['slope', 'coef', 'start'])
+Point = namedtuple("Point", ["x", "y"])
+Skew = namedtuple("Skew", ["slope", "coef", "start"])
 
 
 def _is_peak(xs: np.ndarray, ts: np.ndarray, checker: callable) -> List[Point]:
@@ -30,7 +30,7 @@ def _is_peak(xs: np.ndarray, ts: np.ndarray, checker: callable) -> List[Point]:
             continue
         if i < radius:
             continue
-        ys = xs[i - radius: i + radius]
+        ys = xs[i - radius : i + radius]
         is_peak = reduce(lambda a, b: a and b, checker(ys, np.array([y] * ys.size)))
         if is_peak:
             lines.append(Point(t, float(y)))

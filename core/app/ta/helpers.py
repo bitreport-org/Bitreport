@@ -8,9 +8,9 @@ from app.ta.constructors import Point
 
 def empty(keys: list) -> dict:
     d = {k: [] for k in keys}
-    d['info'] = []
-    if 'name' in keys:
-        d['name'] = None
+    d["info"] = []
+    if "name" in keys:
+        d["name"] = None
 
     return d
 
@@ -24,9 +24,11 @@ def indicator(name: str, default: list) -> callable:
             # Broad exception because TA-Lib has low level
             # errors and because there's a lot of magic...
             except:
-                logging.error(f'Indicator {name}, error: /n {traceback.format_exc()}')
+                logging.error(f"Indicator {name}, error: /n {traceback.format_exc()}")
                 return {name: empty(default)}
+
         return wraped_function
+
     return decorator
 
 

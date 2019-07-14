@@ -9,17 +9,21 @@ from app.database import db, Level, Chart
 
 
 class CustomAdmin(AdminIndexView):
-    @expose('/')
+    @expose("/")
     def index(self):
-        return self.render('index.html')
+        return self.render("index.html")
 
 
 class AuthException(HTTPException):
     def __init__(self, message):
-        super().__init__(message, Response(
-            "You could not be authenticated. Please refresh the page.", 401,
-            {'WWW-Authenticate': 'Basic realm="Login Required"'}
-        ))
+        super().__init__(
+            message,
+            Response(
+                "You could not be authenticated. Please refresh the page.",
+                401,
+                {"WWW-Authenticate": 'Basic realm="Login Required"'},
+            ),
+        )
 
 
 class AuthAdmin(ModelView):
@@ -29,7 +33,7 @@ class AuthAdmin(ModelView):
 
     def is_accessible(self):
         if not self.basic_auth.authenticate():
-            raise AuthException('Login required')
+            raise AuthException("Login required")
 
         return True
 
@@ -47,17 +51,18 @@ def configure_admin(app: Flask, active: bool = False) -> Admin:
     basic_auth = BasicAuth(app)
 
     if active:
-        admin = Admin(app,
-                      name='Core',
-                      template_mode='bootstrap3',
-                      index_view=CustomAdmin())
+        admin = Admin(
+            app, name="Core", template_mode="bootstrap3", index_view=CustomAdmin()
+        )
         admin.add_view(AuthAdmin(basic_auth, Level, db.session))
         admin.add_view(AuthAdmin(basic_auth, Chart, db.session))
     else:
-        admin = Admin(app,
-                      name='Core',
-                      template_mode='bootstrap3',
-                      index_view=CustomAdmin(url='/core/admin'))
+        admin = Admin(
+            app,
+            name="Core",
+            template_mode="bootstrap3",
+            index_view=CustomAdmin(url="/core/admin"),
+        )
         admin.add_view(InactiveAdmin(basic_auth, Level, db.session))
         admin.add_view(InactiveAdmin(basic_auth, Chart, db.session))
 

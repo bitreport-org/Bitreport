@@ -45,28 +45,31 @@ class PairData:
         (response, code)
         """
         # Data request
-        self.data = get_candles(self.pair, self.timeframe, self.limit + self.magic_limit)
+        self.data = get_candles(
+            self.pair, self.timeframe, self.limit + self.magic_limit
+        )
 
         # Handle empty measurement
-        if not self.data.get('date'):
-            message = dict(msg=f'No data for {self.pair+self.timeframe}',
-                           last=None)
+        if not self.data.get("date"):
+            message = dict(msg=f"No data for {self.pair+self.timeframe}", last=None)
             logging.error(message)
             return message, 204
 
         # Price data and information
-        price = {k: self.data[k].tolist()[-self.limit:] for k in ['open', 'high', 'close', 'low']}
+        price = {
+            k: self.data[k].tolist()[-self.limit :]
+            for k in ["open", "high", "close", "low"]
+        }
         price.update(info=[])
 
         # Volume data and information
-        volume = dict(volume=self.data['volume'].tolist()[-self.limit:],
-                      info=[])
+        volume = dict(volume=self.data["volume"].tolist()[-self.limit :], info=[])
 
         # Prepare dates
         last = self._last_filling()
 
-        dates = generate_dates(self.data['date'], self.timeframe, self.margin)
-        self.dates = dates[-(self.limit + self.margin):]
+        dates = generate_dates(self.data["date"], self.timeframe, self.margin)
+        self.dates = dates[-(self.limit + self.margin) :]
 
         indicators_dict = self._make_indicators()
 
@@ -77,7 +80,7 @@ class PairData:
         return response, 200
 
     def _last_filling(self):
-        last = check_last_timestamp(f'{self.pair.upper()}1h', minus=0)
+        last = check_last_timestamp(f"{self.pair.upper()}1h", minus=0)
         return last
 
     def _make_indicators(self) -> dict:
@@ -87,15 +90,15 @@ class PairData:
         indicators_values.update(make_indicators(self.data, self.limit))
 
         # Setup universe for charting
-        close: np.ndarray = self.data.get('close')
+        close: np.ndarray = self.data.get("close")
         dates = np.array(self.dates)
 
         universe = Universe(
             pair=self.pair,
             timeframe=self.timeframe,
-            close=close[-self.limit:],
-            time=dates[:-self.margin],
-            future_time=dates[-self.margin:]
+            close=close[-self.limit :],
+            time=dates[: -self.margin],
+            future_time=dates[-self.margin :],
         )
 
         # Wedges
@@ -127,8 +130,8 @@ def generate_dates(date: list, timeframe: str, n: int) -> list:
     -------
     date: the input list with new points appended
     """
-    _map = {'m': 60, 'h': 3600, 'W': 648000}
+    _map = {"m": 60, "h": 3600, "W": 648000}
     dt = _map[timeframe[-1]] * int(timeframe[:-1])
-    date = date + [date[-1] + (i+1)*dt for i, x in enumerate(range(n))]
+    date = date + [date[-1] + (i + 1) * dt for i, x in enumerate(range(n))]
 
     return date

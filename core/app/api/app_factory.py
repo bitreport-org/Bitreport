@@ -31,7 +31,7 @@ def create_app(config: Type[BaseConfig]) -> Flask:
 
     # Configure app
     dictConfig(config.LOGGER)
-    app = Flask(__name__, template_folder='../../templates')
+    app = Flask(__name__, template_folder="../../templates")
     app.config.from_object(config)
     app.logger.removeHandler(default_handler)
 
@@ -49,7 +49,6 @@ def create_app(config: Type[BaseConfig]) -> Flask:
         db.init_app(app)
         db.create_all()
 
-
     # API
     @app.before_request
     def request_timer():
@@ -60,7 +59,7 @@ def create_app(config: Type[BaseConfig]) -> Flask:
         app.logger.info(create_msg(response))
         return response
 
-    @app.route('/<pair>', methods=['GET'])
+    @app.route("/<pair>", methods=["GET"])
     def pair_service(pair: str):
         """
         Main API endpoint. For a given pair it returns response
@@ -70,21 +69,21 @@ def create_app(config: Type[BaseConfig]) -> Flask:
         ----------
         pair : pair name ex. 'BTCUSD'
         """
-        timeframe = request.args.get('timeframe', default=None, type=str)
-        limit = request.args.get('limit', default=20, type=int)
+        timeframe = request.args.get("timeframe", default=None, type=str)
+        limit = request.args.get("limit", default=20, type=int)
 
         if not timeframe:
-            return jsonify(msg='Timeframe not provided'), 400
+            return jsonify(msg="Timeframe not provided"), 400
 
-        if timeframe not in ['1h', '2h', '3h', '6h', '12h', '24h']:
-            return jsonify(msg='Wrong timeframe.'), 400
+        if timeframe not in ["1h", "2h", "3h", "6h", "12h", "24h"]:
+            return jsonify(msg="Wrong timeframe."), 400
 
         data = data_factory.PairData(pair, timeframe, limit)
         output, code = data.prepare()
 
         return jsonify(output), code
 
-    @app.route('/fill', methods=['POST'])
+    @app.route("/fill", methods=["POST"])
     def fill_service():
         """
         Endpoint which enables data filling. After a request data
@@ -95,10 +94,10 @@ def create_app(config: Type[BaseConfig]) -> Flask:
 
         Otherwise an it returns error message and code of 400.
         """
-        pair = request.args.get('pair', default=None, type=str)
+        pair = request.args.get("pair", default=None, type=str)
 
         if not pair:
-            return jsonify(msg='Pair not provided'), 400
+            return jsonify(msg="Pair not provided"), 400
 
         msg, code = fill_pair(pair)
         return jsonify(msg=msg), code
@@ -112,7 +111,7 @@ def create_app(config: Type[BaseConfig]) -> Flask:
 
     @app.errorhandler(404)
     def not_found_error(error):
-        return jsonify(msg='Wrong place!'), 404
+        return jsonify(msg="Wrong place!"), 404
 
     @app.errorhandler(500)
     def internal_error(error):
@@ -120,8 +119,7 @@ def create_app(config: Type[BaseConfig]) -> Flask:
         exc_info = traceback.format_exc()
         app.logger.exception(error, exc_info=exc_info)
 
-        return jsonify(msg='Server is dead',
-                       error=str(error)), 500
+        return jsonify(msg="Server is dead", error=str(error)), 500
 
     @app.errorhandler(Exception)
     def unhandled_exception(error):
@@ -129,7 +127,6 @@ def create_app(config: Type[BaseConfig]) -> Flask:
         exc_info = traceback.format_exc()
         app.logger.exception(error, exc_info=exc_info)
 
-        return jsonify(msg='Unhandled exception',
-                       error=str(error)), 500
+        return jsonify(msg="Unhandled exception", error=str(error)), 500
 
     return app

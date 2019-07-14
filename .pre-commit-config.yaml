@@ -1,0 +1,25 @@
+repos:
+  - repo: https://github.com/thlorenz/doctoc.git
+    rev: "v1.4.0"
+    hooks:
+      - id: doctoc
+        files: ^README\.md|CONTRIBUTING\.md$
+  - repo: local
+    hooks:
+      -   id: black
+          name: Formats python files using black
+          language: system
+          entry: black core/
+          pass_filenames: false
+          always_run: true
+      -   id: shellcheck
+          name: Check Shell scripts syntax corectness
+          language: docker_image
+          entry: koalaman/shellcheck:stable -e SC1091 -e SC2181
+          types: [shell]
+      -   id: pytest
+          name: Runs all unit tests with pytest using vcrpy
+          language: system
+          entry: pytest --cov=core/app --cov-config core/.coveragerc --vcr-record=none
+          pass_filenames: false
+          always_run: true

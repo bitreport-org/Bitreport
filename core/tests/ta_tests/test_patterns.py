@@ -13,21 +13,21 @@ class TestTA:
         universe = Universe(
             close=c,
             time=np.arange(c.size),
-            timeframe='test',
-            pair='test',
-            future_time=np.array([])
+            timeframe="test",
+            pair="test",
+            future_time=np.array([]),
         )
 
-        d = make_double(universe, type_='top')
+        d = make_double(universe, type_="top")
 
         # assert structure
         assert isinstance(d, dict)
-        assert 'info' in d.keys() and isinstance(d['info'], list)
-        for k in ['A', 'B', 'C']:
+        assert "info" in d.keys() and isinstance(d["info"], list)
+        for k in ["A", "B", "C"]:
             assert k in d.keys()
             assert isinstance(d[k], tuple)
 
-        x, y = d['A']
+        x, y = d["A"]
         assert x == 39
         assert y == 39
 
@@ -38,19 +38,19 @@ class TestTA:
         universe = Universe(
             close=c,
             time=np.arange(c.size),
-            timeframe='test',
-            pair='test',
-            future_time=np.array([])
+            timeframe="test",
+            pair="test",
+            future_time=np.array([]),
         )
 
-        d = make_double(universe, type_='bottom')
+        d = make_double(universe, type_="bottom")
 
         assert isinstance(d, dict)
-        assert 'info' in d.keys() and isinstance(d['info'], list)
-        for k in ['A', 'B', 'C']:
+        assert "info" in d.keys() and isinstance(d["info"], list)
+        for k in ["A", "B", "C"]:
             assert k in d.keys()
             assert isinstance(d[k], tuple)
 
-        x, y = d['A']
+        x, y = d["A"]
         assert x == 39
         assert y == 0

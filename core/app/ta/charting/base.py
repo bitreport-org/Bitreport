@@ -9,18 +9,20 @@ from app.ta.constructors import Point, Skew
 from app.ta.helpers import angle
 
 SkewPoint = Union[Point, Skew]
-Universe = namedtuple('Universe', ['pair', 'timeframe', 'close', 'time', 'future_time'])
+Universe = namedtuple("Universe", ["pair", "timeframe", "close", "time", "future_time"])
+
 
 class Setup:
-    def __init__(self,
-                 up: np.ndarray,
-                 down: np.ndarray,
-                 params: dict,
-                 peaks_fit_value: float,
-                 empty_field_value: float,
-                 length: int,
-                 points_between: float
-                 ):
+    def __init__(
+        self,
+        up: np.ndarray,
+        down: np.ndarray,
+        params: dict,
+        peaks_fit_value: float,
+        empty_field_value: float,
+        length: int,
+        points_between: float,
+    ):
         self.down = down
         self.up = up
         self.params = params
@@ -45,11 +47,9 @@ class BaseChart:
     sentiment: str
     signal: tuple
 
-    def __init__(self,
-                 universe: Universe,
-                 peaks: tuple = None,
-                 remake: bool = False,
-                 **kwargs) -> None:
+    def __init__(
+        self, universe: Universe, peaks: tuple = None, remake: bool = False, **kwargs
+    ) -> None:
 
         assert universe.close.size == universe.time.size
 
@@ -81,10 +81,12 @@ class BaseChart:
         #             name=self.__name__,
         #             info=self._info_json())
 
-        return dict(upper_band=self.setup.up.tolist(),
-                    lower_band=self.setup.down.tolist(),
-                    name=self.__name__,
-                    info=self._info_json())
+        return dict(
+            upper_band=self.setup.up.tolist(),
+            lower_band=self.setup.down.tolist(),
+            name=self.__name__,
+            info=self._info_json(),
+        )
 
     def _info_json(self) -> dict:
         return []
@@ -96,18 +98,24 @@ class BaseChart:
         if not self.setup:
             return None
 
-        ch = db.session.query(Chart).filter(
-            Chart.pair == self._pair,
-            Chart.timeframe == self._timeframe,
-            Chart.type == self.__name__,
-            cast(Chart.params, String) == json.dumps(self.setup.params)).first()
+        ch = (
+            db.session.query(Chart)
+            .filter(
+                Chart.pair == self._pair,
+                Chart.timeframe == self._timeframe,
+                Chart.type == self.__name__,
+                cast(Chart.params, String) == json.dumps(self.setup.params),
+            )
+            .first()
+        )
 
         if not ch:
             ch = Chart(
                 pair=self._pair,
                 timeframe=self._timeframe,
                 type=self.__name__,
-                params=self.setup.params)
+                params=self.setup.params,
+            )
             db.session.add(ch)
 
         db.session.commit()
@@ -141,11 +149,9 @@ class BaseChart:
             return False
         return cross.x >= self._last_point
 
-    def _include_enough_points(self,
-                               start: int,
-                               up: np.ndarray,
-                               down: np.ndarray,
-                               threshold: float = 0.85) -> Union[float, None]:
+    def _include_enough_points(
+        self, start: int, up: np.ndarray, down: np.ndarray, threshold: float = 0.85
+    ) -> Union[float, None]:
 
         idx = np.where(self._time == start)[0][0]
         close, up, down = self._close[idx:], up[idx:], down[idx:]
@@ -157,10 +163,9 @@ class BaseChart:
             return score
         return None
 
-    def _empty_field_score(self,
-                           start: int,
-                           up: np.ndarray,
-                           down: np.ndarray) -> Union[float, None]:
+    def _empty_field_score(
+        self, start: int, up: np.ndarray, down: np.ndarray
+    ) -> Union[float, None]:
 
         idx = np.where(self._time == start)[0][0]
         close, up, down = self._close[idx:], up[idx:], down[idx:]
@@ -172,11 +177,9 @@ class BaseChart:
         total = sum_down_spaces + sum_up_spaces
         return total
 
-    def _peaks_fit_value(self,
-                     up: np.ndarray,
-                     down: np.ndarray) -> Union[float, None]:
+    def _peaks_fit_value(self, up: np.ndarray, down: np.ndarray) -> Union[float, None]:
 
-        up_series = {int(t): v for t,v in zip(self._time, up)}
+        up_series = {int(t): v for t, v in zip(self._time, up)}
         down_series = {int(t): v for t, v in zip(self._time, down)}
 
         tops_fit = [abs(p.y - up_series[int(p.x)]) for p in self._tops]
@@ -193,8 +196,7 @@ class BaseChart:
         return int(cross.x - start)
 
     @staticmethod
-    def _is_triangle(up: np.ndarray,
-                     down: np.ndarray) -> bool:
+    def _is_triangle(up: np.ndarray, down: np.ndarray) -> bool:
         width = up - down
         return width[-1] < 0.85 * width[0]
 
@@ -247,9 +249,9 @@ class BaseChart:
         return setups[-1]
 
     def _extend(self):
-        ua, ub = self.setup.params['up']
-        da, db = self.setup.params['down']
-        extension_up = ua * self. _future_time + ub
+        ua, ub = self.setup.params["up"]
+        da, db = self.setup.params["down"]
+        extension_up = ua * self._future_time + ub
         extension_down = da * self._future_time + db
 
         # till crossing
@@ -259,7 +261,7 @@ class BaseChart:
         self.setup.down = np.concatenate([self.setup.down, extension_down[:i]])
 
     def _erase_band(self):
-        start = self.setup.params['start']
+        start = self.setup.params["start"]
         up = self.setup.up
         down = self.setup.down
         for i, t in enumerate(self._time):

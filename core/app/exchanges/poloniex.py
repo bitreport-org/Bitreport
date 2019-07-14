@@ -8,30 +8,30 @@ from .base import BaseExchange
 
 
 class Poloniex(BaseExchange):
-    timeframes = ['30m', '2h', '24h']
-    name = 'Poloniex'
+    timeframes = ["30m", "2h", "24h"]
+    name = "Poloniex"
     pool = 3
 
     @staticmethod
     def _pair_format(pair: str) -> str:
         end_pair = pair[-3:]
         start_pair = pair[:-3]
-        if end_pair == 'USD':
-            end_pair = end_pair + 'T'
-        return end_pair + '_' + start_pair
+        if end_pair == "USD":
+            end_pair = end_pair + "T"
+        return end_pair + "_" + start_pair
 
     def json(self, measurement: str, row: dict) -> dict:
         json_body = {
             "measurement": measurement,
-            "tags": {'exchange': self.name.lower()},
-            "time": int(row['date']),
+            "tags": {"exchange": self.name.lower()},
+            "time": int(row["date"]),
             "fields": {
-                "open": float(row['open']),
-                "close": float(row['close']),
-                "high": float(row['high']),
-                "low": float(row['low']),
-                "volume": float(row['volume']),
-            }
+                "open": float(row["open"]),
+                "close": float(row["close"]),
+                "high": float(row["high"]),
+                "low": float(row["low"]),
+                "volume": float(row["volume"]),
+            },
         }
         return json_body
 
@@ -43,22 +43,22 @@ class Poloniex(BaseExchange):
 
         # Here we map our possible timeframes 1h, 2h, 3h, 6h, 12h to
         # format acceptable by Poloniex API
-        tf_map = {'30m': 1800, '2h': 7200, '24h': 86400}
+        tf_map = {"30m": 1800, "2h": 7200, "24h": 86400}
         if timeframe not in tf_map.keys():
-            if timeframe in ['1h', '3h']:
-                timeframe = '30m'
+            if timeframe in ["1h", "3h"]:
+                timeframe = "30m"
             else:
-                timeframe = '2h'
+                timeframe = "2h"
 
         measurement = pair + timeframe
 
-        url = f'https://poloniex.com/public'
+        url = f"https://poloniex.com/public"
 
         params = {
-            'command': 'returnChartData',
-            'currencyPair': pair_formatted,
-            'start': start - 30,
-            'period': tf_map[timeframe]
+            "command": "returnChartData",
+            "currencyPair": pair_formatted,
+            "start": start - 30,
+            "period": tf_map[timeframe],
         }
 
         request = requests.get(url, params=params)
@@ -71,6 +71,6 @@ class Poloniex(BaseExchange):
 
         points = [self.json(measurement, row) for row in response]
 
-        result = insert_candles(points, measurement, self.name, time_precision='s')
+        result = insert_candles(points, measurement, self.name, time_precision="s")
 
         return result

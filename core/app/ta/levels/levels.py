@@ -12,19 +12,18 @@ class Levels(object):
         self.timeframe = universe.timeframe
         self.close = universe.close
         self.time = universe.time
-        assert self.close.size == self.time.size, f'{self.close.size} != {self.time.size}'
+        assert (
+            self.close.size == self.time.size
+        ), f"{self.close.size} != {self.time.size}"
 
-    @indicator('levels', ['levels'])
+    @indicator("levels", ["levels"])
     def __call__(self) -> dict:
         # TODO: do not create levels with each request...
         # Look for new levels
         self._find_levels(self.close, self.time)
 
         # Select best levels
-        levels = {
-            'levels': self._score_levels(self.close),
-            'info': []
-        }
+        levels = {"levels": self._score_levels(self.close), "info": []}
         return levels
 
     def _save_levels(self, levels: list) -> None:
@@ -34,7 +33,7 @@ class Levels(object):
                 timeframe=self.timeframe,
                 strength=x.strength,
                 type=x.type,
-                value=float(x.value)
+                value=float(x.value),
             )
             lvl = Level.query.filter_by(**params).first()
             if not lvl:
@@ -81,11 +80,14 @@ class Levels(object):
         price_max = float(np.max(close))
         price_min = float(np.min(close))
 
-        lvls = Level.query. \
-            filter_by(pair=self.pair). \
-            filter(Level.value >= (1 - r) * price_min). \
-            filter(Level.value <= (1 + r) * price_max). \
-            order_by(Level.value).distinct(Level.value, Level.type).all()
+        lvls = (
+            Level.query.filter_by(pair=self.pair)
+            .filter(Level.value >= (1 - r) * price_min)
+            .filter(Level.value <= (1 + r) * price_max)
+            .order_by(Level.value)
+            .distinct(Level.value, Level.type)
+            .all()
+        )
 
         # Create FuzzyLevels
         last_price = close[-1]
@@ -98,7 +100,9 @@ class Levels(object):
         output = []
         if resistance:
             resistance.sort(key=lambda x: x.score)
-            resistance = list(filter(lambda x: x.score == resistance[-1].score, resistance))
+            resistance = list(
+                filter(lambda x: x.score == resistance[-1].score, resistance)
+            )
             resistance.sort(key=lambda x: x.dist)
             if resistance:
                 output.append(resistance[0])
@@ -108,7 +112,9 @@ class Levels(object):
             check = lambda x: x.score == support[-1].score
             if output:
                 res_value = output[0].lvl.value
-                check = lambda x: (x.score == support[-1].score) and (abs(x.lvl.value / res_value - 1) > 0.04)
+                check = lambda x: (x.score == support[-1].score) and (
+                    abs(x.lvl.value / res_value - 1) > 0.04
+                )
 
             support = list(filter(check, support))
             support.sort(key=lambda x: x.dist, reverse=True)
@@ -123,7 +129,7 @@ class Levels(object):
         bottom_index = np.where(close == bottom)[0][-1]
 
         height = top - bottom
-        fib_lvls = (0.00, .236, .382, .500, .618, 1.00)
+        fib_lvls = (0.00, 0.236, 0.382, 0.500, 0.618, 1.00)
 
         if top_index < bottom_index:
             levels = [bottom + x * height for x in fib_lvls]

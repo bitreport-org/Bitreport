@@ -33,31 +33,35 @@ class Charting:
         return condition
 
     def select_best(self, xs: List[BaseChart]) -> Union[BaseChart, None]:
-        bests = [x for x in xs if (x and x.setup)
-                 if self._not_empty_pattern(x.setup)]
+        bests = [x for x in xs if (x and x.setup) if self._not_empty_pattern(x.setup)]
 
         bests.sort(key=lambda x: x.setup.peaks_fit_value)
         if bests:
             return bests[0]
         return None
 
-    def is_actual(self, up: np.ndarray, down: np.ndarray, threshold: float = 0.6) -> bool:
+    def is_actual(
+        self, up: np.ndarray, down: np.ndarray, threshold: float = 0.6
+    ) -> bool:
         close = self._universe.close
         n = sum(1 for c, u, d in zip(close, up, down) if d <= c <= u) / close.size
         return n > threshold
 
     def check_last_pattern(self) -> Union[BaseChart, None]:
-        last = Chart.query.filter_by(
-            timeframe=self._universe.timeframe,
-            pair=self._universe.pair).\
-            order_by(Chart.time.desc()).first()
+        last = (
+            Chart.query.filter_by(
+                timeframe=self._universe.timeframe, pair=self._universe.pair
+            )
+            .order_by(Chart.time.desc())
+            .first()
+        )
         if not last:
             return None
 
         creataion_map = {
-            'ascending_triangle': AscTriangle,
-            'descending_triangle': DescTriangle,
-            'channel': Channel
+            "ascending_triangle": AscTriangle,
+            "descending_triangle": DescTriangle,
+            "channel": Channel
             # 'symmetrical_triangle': SymmetricalTriangle,
         }
 
@@ -71,7 +75,7 @@ class Charting:
 
         return chart
 
-    @indicator('wedge', ['upper_band', 'lower_band', 'name'])
+    @indicator("wedge", ["upper_band", "lower_band", "name"])
     def __call__(self):
         chart = self.check_last_pattern()
 
@@ -87,8 +91,12 @@ class Charting:
         peaks = (tops_, bottoms_)
 
         charts = [
-            AscTriangle(universe=self._universe, peaks=peaks, tops=tops_, skews=skews_down),
-            DescTriangle(universe=self._universe, peaks=peaks, bottoms=bottoms_, skews=skews_up),
+            AscTriangle(
+                universe=self._universe, peaks=peaks, tops=tops_, skews=skews_down
+            ),
+            DescTriangle(
+                universe=self._universe, peaks=peaks, bottoms=bottoms_, skews=skews_up
+            ),
             # SymmetricalTriangle(universe=self._universe, ups=skews_up, downs=skews_down)
         ]
 
@@ -98,7 +106,9 @@ class Charting:
 
         best = self.select_best(charts)
 
-        channel = Channel(universe=self._universe, peaks=peaks, ups=skews_up, downs=skews_down)
+        channel = Channel(
+            universe=self._universe, peaks=peaks, ups=skews_up, downs=skews_down
+        )
 
         # No triangle but channel
         if best is None and channel.setup is not None:

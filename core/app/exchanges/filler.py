@@ -18,16 +18,16 @@ def update_pair_data(pair: str) -> bool:
     1h or 30m timeframe data update
     """
 
-    if pair[:4] == 'TEST':
+    if pair[:4] == "TEST":
         return False
 
     exchanges = check_exchanges(pair)
 
     fillers = dict(
-        bitfinex=partial(Bitfinex().fetch_candles, timeframe='1h'),
-        bittrex=partial(Bittrex().fetch_candles, timeframe='1h', limit=10),
-        binance=partial(Binance().fetch_candles, timeframe='1h', limit=10),
-        poloniex=partial(Poloniex().fetch_candles, timeframe='30m')
+        bitfinex=partial(Bitfinex().fetch_candles, timeframe="1h"),
+        bittrex=partial(Bittrex().fetch_candles, timeframe="1h", limit=10),
+        binance=partial(Binance().fetch_candles, timeframe="1h", limit=10),
+        poloniex=partial(Poloniex().fetch_candles, timeframe="30m"),
     )
 
     if exchanges:
