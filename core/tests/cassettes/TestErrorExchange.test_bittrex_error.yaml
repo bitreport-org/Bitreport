@@ -2,72 +2,43 @@ interactions:
 - request:
     body: null
     headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      User-Agent:
-      - python-requests/2.21.0
+      Accept: ['*/*']
+      Accept-Encoding: ['gzip, deflate']
+      Connection: [keep-alive]
+      User-Agent: [python-requests/2.21.0]
     method: GET
     uri: https://bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=own-wefsdfwen&tickInterval=hour
   response:
-    body:
-      string: "<html><head><title>Object moved</title></head><body>\r\n<h2>Object
-        moved to <a href=\"https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=own-wefsdfwen&amp;tickInterval=hour\">here</a>.</h2>\r\n</body></html>\r\n"
+    body: {string: "<html><head><title>Object moved</title></head><body>\r\n<h2>Object
+        moved to <a href=\"https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=own-wefsdfwen&amp;tickInterval=hour\">here</a>.</h2>\r\n</body></html>\r\n"}
     headers:
-      CF-Cache-Status:
-      - MISS
-      CF-RAY:
-      - 4ba3482bcd4dcc9d-WAW
-      Cache-Control:
-      - private
-      Connection:
-      - keep-alive
-      Content-Type:
-      - text/html; charset=utf-8
-      Date:
-      - Tue, 19 Mar 2019 23:38:47 GMT
-      Expect-CT:
-      - max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
-      Location:
-      - https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=own-wefsdfwen&tickInterval=hour
-      Server:
-      - cloudflare
-      Set-Cookie:
-      - __cfduid=d8386a98616c1b116996e8cea1688af251553038727; expires=Wed, 18-Mar-20
-        23:38:47 GMT; path=/; domain=.bittrex.com; HttpOnly
-      Strict-Transport-Security:
-      - max-age=15768000
-      Transfer-Encoding:
-      - chunked
-      Vary:
-      - Accept-Encoding
-      X-Content-Type-Options:
-      - nosniff
-      X-Download-Options:
-      - noopen
-      X-REDIRECTING:
-      - '1'
-      X-XSS-Protection:
-      - 1; mode=block
-    status:
-      code: 302
-      message: Found
+      CF-Cache-Status: [MISS]
+      CF-RAY: [4ba3482bcd4dcc9d-WAW]
+      Cache-Control: [private]
+      Connection: [keep-alive]
+      Content-Type: [text/html; charset=utf-8]
+      Date: ['Tue, 19 Mar 2019 23:38:47 GMT']
+      Expect-CT: ['max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"']
+      Location: ['https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=own-wefsdfwen&tickInterval=hour']
+      Server: [cloudflare]
+      Set-Cookie: ['__cfduid=d8386a98616c1b116996e8cea1688af251553038727; expires=Wed,
+          18-Mar-20 23:38:47 GMT; path=/; domain=.bittrex.com; HttpOnly']
+      Strict-Transport-Security: [max-age=15768000]
+      Transfer-Encoding: [chunked]
+      Vary: [Accept-Encoding]
+      X-Content-Type-Options: [nosniff]
+      X-Download-Options: [noopen]
+      X-REDIRECTING: ['1']
+      X-XSS-Protection: [1; mode=block]
+    status: {code: 302, message: Found}
 - request:
     body: null
     headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Cookie:
-      - __cfduid=d8386a98616c1b116996e8cea1688af251553038727
-      User-Agent:
-      - python-requests/2.21.0
+      Accept: ['*/*']
+      Accept-Encoding: ['gzip, deflate']
+      Connection: [keep-alive]
+      Cookie: [__cfduid=d8386a98616c1b116996e8cea1688af251553038727]
+      User-Agent: [python-requests/2.21.0]
     method: GET
     uri: https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=own-wefsdfwen&tickInterval=hour
   response:
@@ -76,114 +47,65 @@ interactions:
         H4sIAAAAAAAEAKtWKi5NTk4tLlaySkvMKU7VUcoFchLTU5WslDz9whx9PF3ifR2DvF1DlHSUilKL
         S3NKlKzySnNydJRSKwpyEvMSSzLz8yBCtQABRq3DTQAAAA==
     headers:
-      Accept-Ranges:
-      - bytes
-      CF-Cache-Status:
-      - EXPIRED
-      CF-RAY:
-      - 4ba348331f6b6b19-WAW
-      Cache-Control:
-      - public, max-age=30
-      Connection:
-      - keep-alive
-      Content-Encoding:
-      - gzip
-      Content-Length:
-      - '91'
-      Content-Type:
-      - application/json; charset=utf-8
-      Date:
-      - Tue, 19 Mar 2019 23:38:48 GMT
-      Expect-CT:
-      - max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
-      Expires:
-      - Tue, 19 Mar 2019 23:39:18 GMT
-      Last-Modified:
-      - Tue, 19 Mar 2019 23:38:48 GMT
-      Server:
-      - cloudflare
-      Strict-Transport-Security:
-      - max-age=15768000
-      Vary:
-      - '*, Accept-Encoding'
-      X-Content-Type-Options:
-      - nosniff
-      X-Download-Options:
-      - noopen
-      X-XSS-Protection:
-      - 1; mode=block
-    status:
-      code: 200
-      message: OK
+      Accept-Ranges: [bytes]
+      CF-Cache-Status: [EXPIRED]
+      CF-RAY: [4ba348331f6b6b19-WAW]
+      Cache-Control: ['public, max-age=30']
+      Connection: [keep-alive]
+      Content-Encoding: [gzip]
+      Content-Length: ['91']
+      Content-Type: [application/json; charset=utf-8]
+      Date: ['Tue, 19 Mar 2019 23:38:48 GMT']
+      Expect-CT: ['max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"']
+      Expires: ['Tue, 19 Mar 2019 23:39:18 GMT']
+      Last-Modified: ['Tue, 19 Mar 2019 23:38:48 GMT']
+      Server: [cloudflare]
+      Strict-Transport-Security: [max-age=15768000]
+      Vary: ['*, Accept-Encoding']
+      X-Content-Type-Options: [nosniff]
+      X-Download-Options: [noopen]
+      X-XSS-Protection: [1; mode=block]
+    status: {code: 200, message: OK}
 - request:
     body: null
     headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      User-Agent:
-      - python-requests/2.21.0
+      Accept: ['*/*']
+      Accept-Encoding: ['gzip, deflate']
+      Connection: [keep-alive]
+      User-Agent: [python-requests/2.21.0]
     method: GET
     uri: https://bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=own-wefsdfwen&tickInterval=hour
   response:
-    body:
-      string: "<html><head><title>Object moved</title></head><body>\r\n<h2>Object
-        moved to <a href=\"https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=own-wefsdfwen&amp;tickInterval=hour\">here</a>.</h2>\r\n</body></html>\r\n"
+    body: {string: "<html><head><title>Object moved</title></head><body>\r\n<h2>Object
+        moved to <a href=\"https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=own-wefsdfwen&amp;tickInterval=hour\">here</a>.</h2>\r\n</body></html>\r\n"}
     headers:
-      CF-Cache-Status:
-      - MISS
-      CF-RAY:
-      - 4ba35ff1cfe8cca1-WAW
-      Cache-Control:
-      - private
-      Connection:
-      - keep-alive
-      Content-Type:
-      - text/html; charset=utf-8
-      Date:
-      - Tue, 19 Mar 2019 23:55:00 GMT
-      Expect-CT:
-      - max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
-      Location:
-      - https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=own-wefsdfwen&tickInterval=hour
-      Server:
-      - cloudflare
-      Set-Cookie:
-      - __cfduid=de2233b10dafa84934f44c76f5aa623991553039700; expires=Wed, 18-Mar-20
-        23:55:00 GMT; path=/; domain=.bittrex.com; HttpOnly
-      Strict-Transport-Security:
-      - max-age=15768000
-      Transfer-Encoding:
-      - chunked
-      Vary:
-      - Accept-Encoding
-      X-Content-Type-Options:
-      - nosniff
-      X-Download-Options:
-      - noopen
-      X-REDIRECTING:
-      - '1'
-      X-XSS-Protection:
-      - 1; mode=block
-    status:
-      code: 302
-      message: Found
+      CF-Cache-Status: [MISS]
+      CF-RAY: [4ba35ff1cfe8cca1-WAW]
+      Cache-Control: [private]
+      Connection: [keep-alive]
+      Content-Type: [text/html; charset=utf-8]
+      Date: ['Tue, 19 Mar 2019 23:55:00 GMT']
+      Expect-CT: ['max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"']
+      Location: ['https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=own-wefsdfwen&tickInterval=hour']
+      Server: [cloudflare]
+      Set-Cookie: ['__cfduid=de2233b10dafa84934f44c76f5aa623991553039700; expires=Wed,
+          18-Mar-20 23:55:00 GMT; path=/; domain=.bittrex.com; HttpOnly']
+      Strict-Transport-Security: [max-age=15768000]
+      Transfer-Encoding: [chunked]
+      Vary: [Accept-Encoding]
+      X-Content-Type-Options: [nosniff]
+      X-Download-Options: [noopen]
+      X-REDIRECTING: ['1']
+      X-XSS-Protection: [1; mode=block]
+    status: {code: 302, message: Found}
 - request:
     body: null
     headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Cookie:
-      - __cfduid=de2233b10dafa84934f44c76f5aa623991553039700
-      User-Agent:
-      - python-requests/2.21.0
+      Accept: ['*/*']
+      Accept-Encoding: ['gzip, deflate']
+      Connection: [keep-alive]
+      Cookie: [__cfduid=de2233b10dafa84934f44c76f5aa623991553039700]
+      User-Agent: [python-requests/2.21.0]
     method: GET
     uri: https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=own-wefsdfwen&tickInterval=hour
   response:
@@ -192,116 +114,66 @@ interactions:
         H4sIAAAAAAAEAKtWKi5NTk4tLlaySkvMKU7VUcoFchLTU5WslDz9whx9PF3ifR2DvF1DlHSUilKL
         S3NKlKzySnNydJRSKwpyEvMSSzLz8yBCtQABRq3DTQAAAA==
     headers:
-      Accept-Ranges:
-      - bytes
-      CF-Cache-Status:
-      - EXPIRED
-      CF-RAY:
-      - 4ba35ff478566b1f-WAW
-      Cache-Control:
-      - public, max-age=30
-      Connection:
-      - keep-alive
-      Content-Encoding:
-      - gzip
-      Content-Length:
-      - '91'
-      Content-Type:
-      - application/json; charset=utf-8
-      Date:
-      - Tue, 19 Mar 2019 23:55:01 GMT
-      Expect-CT:
-      - max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
-      Expires:
-      - Tue, 19 Mar 2019 23:55:31 GMT
-      Last-Modified:
-      - Tue, 19 Mar 2019 23:55:01 GMT
-      Server:
-      - cloudflare
-      Strict-Transport-Security:
-      - max-age=15768000
-      Vary:
-      - '*, Accept-Encoding'
-      X-Content-Type-Options:
-      - nosniff
-      X-Download-Options:
-      - noopen
-      X-XSS-Protection:
-      - 1; mode=block
-    status:
-      code: 200
-      message: OK
+      Accept-Ranges: [bytes]
+      CF-Cache-Status: [EXPIRED]
+      CF-RAY: [4ba35ff478566b1f-WAW]
+      Cache-Control: ['public, max-age=30']
+      Connection: [keep-alive]
+      Content-Encoding: [gzip]
+      Content-Length: ['91']
+      Content-Type: [application/json; charset=utf-8]
+      Date: ['Tue, 19 Mar 2019 23:55:01 GMT']
+      Expect-CT: ['max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"']
+      Expires: ['Tue, 19 Mar 2019 23:55:31 GMT']
+      Last-Modified: ['Tue, 19 Mar 2019 23:55:01 GMT']
+      Server: [cloudflare]
+      Strict-Transport-Security: [max-age=15768000]
+      Vary: ['*, Accept-Encoding']
+      X-Content-Type-Options: [nosniff]
+      X-Download-Options: [noopen]
+      X-XSS-Protection: [1; mode=block]
+    status: {code: 200, message: OK}
 - request:
     body: null
     headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      User-Agent:
-      - python-requests/2.21.0
+      Accept: ['*/*']
+      Accept-Encoding: ['gzip, deflate']
+      Connection: [keep-alive]
+      User-Agent: [python-requests/2.21.0]
     method: GET
     uri: https://bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=own-wefsdfwen&tickInterval=hour
   response:
-    body:
-      string: "<html><head><title>Object moved</title></head><body>\r\n<h2>Object
-        moved to <a href=\"https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=own-wefsdfwen&amp;tickInterval=hour\">here</a>.</h2>\r\n</body></html>\r\n"
+    body: {string: "<html><head><title>Object moved</title></head><body>\r\n<h2>Object
+        moved to <a href=\"https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=own-wefsdfwen&amp;tickInterval=hour\">here</a>.</h2>\r\n</body></html>\r\n"}
     headers:
-      CF-Cache-Status:
-      - MISS
-      CF-RAY:
-      - 4ce9e6d44cdecc91-WAW
-      Cache-Control:
-      - private
-      Connection:
-      - keep-alive
-      Content-Type:
-      - text/html; charset=utf-8
-      Date:
-      - Sun, 28 Apr 2019 14:59:43 GMT
-      Expect-CT:
-      - max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
-      Location:
-      - https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=own-wefsdfwen&tickInterval=hour
-      Server:
-      - cloudflare
-      Set-Cookie:
-      - __cfduid=d169eea22eed4a4ce1fb6eecced61407c1556463583; expires=Mon, 27-Apr-20
-        14:59:43 GMT; path=/; domain=.bittrex.com; HttpOnly
-      - __cfruid=b0bba2b5b9b7fec3031d244f4e7dde13071f7e7b-1556463583; path=/; domain=.bittrex.com;
-        HttpOnly
-      Strict-Transport-Security:
-      - max-age=15768000
-      Transfer-Encoding:
-      - chunked
-      Vary:
-      - Accept-Encoding
-      X-Content-Type-Options:
-      - nosniff
-      X-Download-Options:
-      - noopen
-      X-REDIRECTING:
-      - '1'
-      X-XSS-Protection:
-      - 1; mode=block
-    status:
-      code: 302
-      message: Found
+      CF-Cache-Status: [MISS]
+      CF-RAY: [4ce9e6d44cdecc91-WAW]
+      Cache-Control: [private]
+      Connection: [keep-alive]
+      Content-Type: [text/html; charset=utf-8]
+      Date: ['Sun, 28 Apr 2019 14:59:43 GMT']
+      Expect-CT: ['max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"']
+      Location: ['https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=own-wefsdfwen&tickInterval=hour']
+      Server: [cloudflare]
+      Set-Cookie: ['__cfduid=d169eea22eed4a4ce1fb6eecced61407c1556463583; expires=Mon,
+          27-Apr-20 14:59:43 GMT; path=/; domain=.bittrex.com; HttpOnly', __cfruid=b0bba2b5b9b7fec3031d244f4e7dde13071f7e7b-1556463583;
+          path=/; domain=.bittrex.com; HttpOnly]
+      Strict-Transport-Security: [max-age=15768000]
+      Transfer-Encoding: [chunked]
+      Vary: [Accept-Encoding]
+      X-Content-Type-Options: [nosniff]
+      X-Download-Options: [noopen]
+      X-REDIRECTING: ['1']
+      X-XSS-Protection: [1; mode=block]
+    status: {code: 302, message: Found}
 - request:
     body: null
     headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Cookie:
-      - __cfduid=d169eea22eed4a4ce1fb6eecced61407c1556463583; __cfruid=b0bba2b5b9b7fec3031d244f4e7dde13071f7e7b-1556463583
-      User-Agent:
-      - python-requests/2.21.0
+      Accept: ['*/*']
+      Accept-Encoding: ['gzip, deflate']
+      Connection: [keep-alive]
+      Cookie: [__cfduid=d169eea22eed4a4ce1fb6eecced61407c1556463583; __cfruid=b0bba2b5b9b7fec3031d244f4e7dde13071f7e7b-1556463583]
+      User-Agent: [python-requests/2.21.0]
     method: GET
     uri: https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=own-wefsdfwen&tickInterval=hour
   response:
@@ -310,43 +182,60 @@ interactions:
         H4sIAAAAAAAEAKtWKi5NTk4tLlaySkvMKU7VUcoFchLTU5WslDz9whx9PF3ifR2DvF1DlHSUilKL
         S3NKlKzySnNydJRSKwpyEvMSSzLz8yBCtQABRq3DTQAAAA==
     headers:
-      Accept-Ranges:
-      - bytes
-      CF-Cache-Status:
-      - MISS
-      CF-RAY:
-      - 4ce9e6d80e6ecc95-WAW
-      Cache-Control:
-      - public, max-age=30
-      Connection:
-      - keep-alive
-      Content-Encoding:
-      - gzip
-      Content-Length:
-      - '91'
-      Content-Type:
-      - application/json; charset=utf-8
-      Date:
-      - Sun, 28 Apr 2019 14:59:44 GMT
-      Expect-CT:
-      - max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
-      Expires:
-      - Sun, 28 Apr 2019 15:00:14 GMT
-      Last-Modified:
-      - Sun, 28 Apr 2019 14:59:44 GMT
-      Server:
-      - cloudflare
-      Strict-Transport-Security:
-      - max-age=15768000
-      Vary:
-      - '*, Accept-Encoding'
-      X-Content-Type-Options:
-      - nosniff
-      X-Download-Options:
-      - noopen
-      X-XSS-Protection:
-      - 1; mode=block
-    status:
-      code: 200
-      message: OK
+      Accept-Ranges: [bytes]
+      CF-Cache-Status: [MISS]
+      CF-RAY: [4ce9e6d80e6ecc95-WAW]
+      Cache-Control: ['public, max-age=30']
+      Connection: [keep-alive]
+      Content-Encoding: [gzip]
+      Content-Length: ['91']
+      Content-Type: [application/json; charset=utf-8]
+      Date: ['Sun, 28 Apr 2019 14:59:44 GMT']
+      Expect-CT: ['max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"']
+      Expires: ['Sun, 28 Apr 2019 15:00:14 GMT']
+      Last-Modified: ['Sun, 28 Apr 2019 14:59:44 GMT']
+      Server: [cloudflare]
+      Strict-Transport-Security: [max-age=15768000]
+      Vary: ['*, Accept-Encoding']
+      X-Content-Type-Options: [nosniff]
+      X-Download-Options: [noopen]
+      X-XSS-Protection: [1; mode=block]
+    status: {code: 200, message: OK}
+- request:
+    body: null
+    headers:
+      Accept: ['*/*']
+      Accept-Encoding: ['gzip, deflate']
+      Connection: [keep-alive]
+      User-Agent: [python-requests/2.21.0]
+    method: GET
+    uri: https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=own-wefsdfwen&tickInterval=hour
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAEAKtWKi5NTk4tLlaySkvMKU7VUcoFchLTU5WslDz9whx9PF3ifR2DvF1DlHSUilKL
+        S3NKlKzySnNydJRSKwpyEvMSSzLz8yBCtQABRq3DTQAAAA==
+    headers:
+      Accept-Ranges: [bytes]
+      CF-Cache-Status: [MISS]
+      CF-RAY: [4f87343a890bcca3-WAW]
+      Cache-Control: ['public, max-age=30']
+      Connection: [keep-alive]
+      Content-Encoding: [gzip]
+      Content-Length: ['91']
+      Content-Type: [application/json; charset=utf-8]
+      Date: ['Thu, 18 Jul 2019 20:28:47 GMT']
+      Expect-CT: ['max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"']
+      Expires: ['Thu, 18 Jul 2019 20:29:17 GMT']
+      Last-Modified: ['Thu, 18 Jul 2019 20:28:47 GMT']
+      Server: [cloudflare]
+      Set-Cookie: ['__cfduid=da851bdcd155a215a4b2bbac76428380e1563481727; expires=Fri,
+          17-Jul-20 20:28:47 GMT; path=/; domain=.bittrex.com; HttpOnly', __cfruid=ab046d1e1dacee235f77d9d9559c63d5afae4df9-1563481727;
+          path=/; domain=.bittrex.com; HttpOnly]
+      Strict-Transport-Security: [max-age=15768000]
+      Vary: ['*, Accept-Encoding']
+      X-Content-Type-Options: [nosniff]
+      X-Download-Options: [noopen]
+      X-XSS-Protection: [1; mode=block]
+    status: {code: 200, message: OK}
 version: 1

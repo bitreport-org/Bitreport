@@ -2,72 +2,43 @@ interactions:
 - request:
     body: null
     headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      User-Agent:
-      - python-requests/2.21.0
+      Accept: ['*/*']
+      Accept-Encoding: ['gzip, deflate']
+      Connection: [keep-alive]
+      User-Agent: [python-requests/2.21.0]
     method: GET
     uri: https://bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&tickInterval=hour
   response:
-    body:
-      string: "<html><head><title>Object moved</title></head><body>\r\n<h2>Object
-        moved to <a href=\"https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&amp;tickInterval=hour\">here</a>.</h2>\r\n</body></html>\r\n"
+    body: {string: "<html><head><title>Object moved</title></head><body>\r\n<h2>Object
+        moved to <a href=\"https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&amp;tickInterval=hour\">here</a>.</h2>\r\n</body></html>\r\n"}
     headers:
-      CF-Cache-Status:
-      - EXPIRED
-      CF-RAY:
-      - 4ba347e65c18cc81-WAW
-      Cache-Control:
-      - private
-      Connection:
-      - keep-alive
-      Content-Type:
-      - text/html; charset=utf-8
-      Date:
-      - Tue, 19 Mar 2019 23:38:36 GMT
-      Expect-CT:
-      - max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
-      Location:
-      - https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&tickInterval=hour
-      Server:
-      - cloudflare
-      Set-Cookie:
-      - __cfduid=de55c2328932532727efc150423b15ddc1553038715; expires=Wed, 18-Mar-20
-        23:38:35 GMT; path=/; domain=.bittrex.com; HttpOnly
-      Strict-Transport-Security:
-      - max-age=15768000
-      Transfer-Encoding:
-      - chunked
-      Vary:
-      - Accept-Encoding
-      X-Content-Type-Options:
-      - nosniff
-      X-Download-Options:
-      - noopen
-      X-REDIRECTING:
-      - '1'
-      X-XSS-Protection:
-      - 1; mode=block
-    status:
-      code: 302
-      message: Found
+      CF-Cache-Status: [EXPIRED]
+      CF-RAY: [4ba347e65c18cc81-WAW]
+      Cache-Control: [private]
+      Connection: [keep-alive]
+      Content-Type: [text/html; charset=utf-8]
+      Date: ['Tue, 19 Mar 2019 23:38:36 GMT']
+      Expect-CT: ['max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"']
+      Location: ['https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&tickInterval=hour']
+      Server: [cloudflare]
+      Set-Cookie: ['__cfduid=de55c2328932532727efc150423b15ddc1553038715; expires=Wed,
+          18-Mar-20 23:38:35 GMT; path=/; domain=.bittrex.com; HttpOnly']
+      Strict-Transport-Security: [max-age=15768000]
+      Transfer-Encoding: [chunked]
+      Vary: [Accept-Encoding]
+      X-Content-Type-Options: [nosniff]
+      X-Download-Options: [noopen]
+      X-REDIRECTING: ['1']
+      X-XSS-Protection: [1; mode=block]
+    status: {code: 302, message: Found}
 - request:
     body: null
     headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Cookie:
-      - __cfduid=de55c2328932532727efc150423b15ddc1553038715
-      User-Agent:
-      - python-requests/2.21.0
+      Accept: ['*/*']
+      Accept-Encoding: ['gzip, deflate']
+      Connection: [keep-alive]
+      Cookie: [__cfduid=de55c2328932532727efc150423b15ddc1553038715]
+      User-Agent: [python-requests/2.21.0]
     method: GET
     uri: https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&tickInterval=hour
   response:
@@ -825,114 +796,65 @@ interactions:
         ENN3lXp5mEgJN5yUMOrV+Vkw0zEkCbSkxE+gD7l6G6mggnyJM+KdpNcPCen4JJ66ev5eULkQF47P
         cfVW/uO//6d/+R//73//27/++7/+n//5v/79X/7Lv//ff/u3//j/sVjeiJLBAgA=
     headers:
-      Accept-Ranges:
-      - bytes
-      CF-Cache-Status:
-      - EXPIRED
-      CF-RAY:
-      - 4ba347ede8206b1f-WAW
-      Cache-Control:
-      - public, max-age=30
-      Connection:
-      - keep-alive
-      Content-Encoding:
-      - gzip
-      Content-Length:
-      - '42797'
-      Content-Type:
-      - application/json; charset=utf-8
-      Date:
-      - Tue, 19 Mar 2019 23:38:37 GMT
-      Expect-CT:
-      - max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
-      Expires:
-      - Tue, 19 Mar 2019 23:39:07 GMT
-      Last-Modified:
-      - Tue, 19 Mar 2019 23:38:37 GMT
-      Server:
-      - cloudflare
-      Strict-Transport-Security:
-      - max-age=15768000
-      Vary:
-      - '*, Accept-Encoding'
-      X-Content-Type-Options:
-      - nosniff
-      X-Download-Options:
-      - noopen
-      X-XSS-Protection:
-      - 1; mode=block
-    status:
-      code: 200
-      message: OK
+      Accept-Ranges: [bytes]
+      CF-Cache-Status: [EXPIRED]
+      CF-RAY: [4ba347ede8206b1f-WAW]
+      Cache-Control: ['public, max-age=30']
+      Connection: [keep-alive]
+      Content-Encoding: [gzip]
+      Content-Length: ['42797']
+      Content-Type: [application/json; charset=utf-8]
+      Date: ['Tue, 19 Mar 2019 23:38:37 GMT']
+      Expect-CT: ['max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"']
+      Expires: ['Tue, 19 Mar 2019 23:39:07 GMT']
+      Last-Modified: ['Tue, 19 Mar 2019 23:38:37 GMT']
+      Server: [cloudflare]
+      Strict-Transport-Security: [max-age=15768000]
+      Vary: ['*, Accept-Encoding']
+      X-Content-Type-Options: [nosniff]
+      X-Download-Options: [noopen]
+      X-XSS-Protection: [1; mode=block]
+    status: {code: 200, message: OK}
 - request:
     body: null
     headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      User-Agent:
-      - python-requests/2.21.0
+      Accept: ['*/*']
+      Accept-Encoding: ['gzip, deflate']
+      Connection: [keep-alive]
+      User-Agent: [python-requests/2.21.0]
     method: GET
     uri: https://bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&tickInterval=day
   response:
-    body:
-      string: "<html><head><title>Object moved</title></head><body>\r\n<h2>Object
-        moved to <a href=\"https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&amp;tickInterval=day\">here</a>.</h2>\r\n</body></html>\r\n"
+    body: {string: "<html><head><title>Object moved</title></head><body>\r\n<h2>Object
+        moved to <a href=\"https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&amp;tickInterval=day\">here</a>.</h2>\r\n</body></html>\r\n"}
     headers:
-      CF-Cache-Status:
-      - MISS
-      CF-RAY:
-      - 4ba347f5a82fcc99-WAW
-      Cache-Control:
-      - private
-      Connection:
-      - keep-alive
-      Content-Type:
-      - text/html; charset=utf-8
-      Date:
-      - Tue, 19 Mar 2019 23:38:38 GMT
-      Expect-CT:
-      - max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
-      Location:
-      - https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&tickInterval=day
-      Server:
-      - cloudflare
-      Set-Cookie:
-      - __cfduid=d5c8cc64b88b2f7953eb1392f290b801c1553038718; expires=Wed, 18-Mar-20
-        23:38:38 GMT; path=/; domain=.bittrex.com; HttpOnly
-      Strict-Transport-Security:
-      - max-age=15768000
-      Transfer-Encoding:
-      - chunked
-      Vary:
-      - Accept-Encoding
-      X-Content-Type-Options:
-      - nosniff
-      X-Download-Options:
-      - noopen
-      X-REDIRECTING:
-      - '1'
-      X-XSS-Protection:
-      - 1; mode=block
-    status:
-      code: 302
-      message: Found
+      CF-Cache-Status: [MISS]
+      CF-RAY: [4ba347f5a82fcc99-WAW]
+      Cache-Control: [private]
+      Connection: [keep-alive]
+      Content-Type: [text/html; charset=utf-8]
+      Date: ['Tue, 19 Mar 2019 23:38:38 GMT']
+      Expect-CT: ['max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"']
+      Location: ['https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&tickInterval=day']
+      Server: [cloudflare]
+      Set-Cookie: ['__cfduid=d5c8cc64b88b2f7953eb1392f290b801c1553038718; expires=Wed,
+          18-Mar-20 23:38:38 GMT; path=/; domain=.bittrex.com; HttpOnly']
+      Strict-Transport-Security: [max-age=15768000]
+      Transfer-Encoding: [chunked]
+      Vary: [Accept-Encoding]
+      X-Content-Type-Options: [nosniff]
+      X-Download-Options: [noopen]
+      X-REDIRECTING: ['1']
+      X-XSS-Protection: [1; mode=block]
+    status: {code: 302, message: Found}
 - request:
     body: null
     headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Cookie:
-      - __cfduid=d5c8cc64b88b2f7953eb1392f290b801c1553038718
-      User-Agent:
-      - python-requests/2.21.0
+      Accept: ['*/*']
+      Accept-Encoding: ['gzip, deflate']
+      Connection: [keep-alive]
+      Cookie: [__cfduid=d5c8cc64b88b2f7953eb1392f290b801c1553038718]
+      User-Agent: [python-requests/2.21.0]
     method: GET
     uri: https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&tickInterval=day
   response:
@@ -1151,56 +1073,32 @@ interactions:
         5etdoPv5Ah+cSBrNxYm0OAHAWIMD0p9Xu2bYCUVaLWkARX3ZRylybgB8CaYTFLd71IqTVK4XHPiU
         FI4P6xzN//k/fvnx2//7v3/581///Pf/9X/++uPXv/7jL3/55/8HFmyNgZSqAAA=
     headers:
-      Accept-Ranges:
-      - bytes
-      CF-Cache-Status:
-      - EXPIRED
-      CF-RAY:
-      - 4ba347f83a962ac1-WAW
-      Cache-Control:
-      - public, max-age=30
-      Connection:
-      - keep-alive
-      Content-Encoding:
-      - gzip
-      Content-Length:
-      - '12074'
-      Content-Type:
-      - application/json; charset=utf-8
-      Date:
-      - Tue, 19 Mar 2019 23:38:39 GMT
-      Expect-CT:
-      - max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
-      Expires:
-      - Tue, 19 Mar 2019 23:39:08 GMT
-      Last-Modified:
-      - Tue, 19 Mar 2019 23:38:38 GMT
-      Server:
-      - cloudflare
-      Strict-Transport-Security:
-      - max-age=15768000
-      Vary:
-      - '*, Accept-Encoding'
-      X-Content-Type-Options:
-      - nosniff
-      X-Download-Options:
-      - noopen
-      X-XSS-Protection:
-      - 1; mode=block
-    status:
-      code: 200
-      message: OK
+      Accept-Ranges: [bytes]
+      CF-Cache-Status: [EXPIRED]
+      CF-RAY: [4ba347f83a962ac1-WAW]
+      Cache-Control: ['public, max-age=30']
+      Connection: [keep-alive]
+      Content-Encoding: [gzip]
+      Content-Length: ['12074']
+      Content-Type: [application/json; charset=utf-8]
+      Date: ['Tue, 19 Mar 2019 23:38:39 GMT']
+      Expect-CT: ['max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"']
+      Expires: ['Tue, 19 Mar 2019 23:39:08 GMT']
+      Last-Modified: ['Tue, 19 Mar 2019 23:38:38 GMT']
+      Server: [cloudflare]
+      Strict-Transport-Security: [max-age=15768000]
+      Vary: ['*, Accept-Encoding']
+      X-Content-Type-Options: [nosniff]
+      X-Download-Options: [noopen]
+      X-XSS-Protection: [1; mode=block]
+    status: {code: 200, message: OK}
 - request:
     body: null
     headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      User-Agent:
-      - python-requests/2.21.0
+      Accept: ['*/*']
+      Accept-Encoding: ['gzip, deflate']
+      Connection: [keep-alive]
+      User-Agent: [python-requests/2.21.0]
     method: GET
     uri: https://bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&tickInterval=hour
   response:
@@ -1958,59 +1856,34 @@ interactions:
         ENN3lXp5mEgJN5yUMOrV+Vkw0zEkCbSkxE+gD7l6G6mggnyJM+KdpNcPCen4JJ66ev5eULkQF47P
         cfVW/uO//6d/+R//73//27/++7/+n//5v/79X/7Lv//ff/u3//j/sVjeiJLBAgA=
     headers:
-      Accept-Ranges:
-      - bytes
-      CF-Cache-Status:
-      - MISS
-      CF-RAY:
-      - 4ba35fb11bcacc7d-WAW
-      Cache-Control:
-      - public, max-age=20
-      Connection:
-      - keep-alive
-      Content-Encoding:
-      - gzip
-      Content-Length:
-      - '42797'
-      Content-Type:
-      - application/json; charset=utf-8
-      Date:
-      - Tue, 19 Mar 2019 23:54:51 GMT
-      Expect-CT:
-      - max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
-      Expires:
-      - Tue, 19 Mar 2019 23:55:11 GMT
-      Last-Modified:
-      - Tue, 19 Mar 2019 23:54:41 GMT
-      Server:
-      - cloudflare
-      Set-Cookie:
-      - __cfduid=dfdab7ed7ac1df4e10a58eb95a9bd6a8b1553039690; expires=Wed, 18-Mar-20
-        23:54:50 GMT; path=/; domain=.bittrex.com; HttpOnly
-      Strict-Transport-Security:
-      - max-age=15768000
-      Vary:
-      - '*, Accept-Encoding'
-      X-Content-Type-Options:
-      - nosniff
-      X-Download-Options:
-      - noopen
-      X-XSS-Protection:
-      - 1; mode=block
-    status:
-      code: 200
-      message: OK
+      Accept-Ranges: [bytes]
+      CF-Cache-Status: [MISS]
+      CF-RAY: [4ba35fb11bcacc7d-WAW]
+      Cache-Control: ['public, max-age=20']
+      Connection: [keep-alive]
+      Content-Encoding: [gzip]
+      Content-Length: ['42797']
+      Content-Type: [application/json; charset=utf-8]
+      Date: ['Tue, 19 Mar 2019 23:54:51 GMT']
+      Expect-CT: ['max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"']
+      Expires: ['Tue, 19 Mar 2019 23:55:11 GMT']
+      Last-Modified: ['Tue, 19 Mar 2019 23:54:41 GMT']
+      Server: [cloudflare]
+      Set-Cookie: ['__cfduid=dfdab7ed7ac1df4e10a58eb95a9bd6a8b1553039690; expires=Wed,
+          18-Mar-20 23:54:50 GMT; path=/; domain=.bittrex.com; HttpOnly']
+      Strict-Transport-Security: [max-age=15768000]
+      Vary: ['*, Accept-Encoding']
+      X-Content-Type-Options: [nosniff]
+      X-Download-Options: [noopen]
+      X-XSS-Protection: [1; mode=block]
+    status: {code: 200, message: OK}
 - request:
     body: null
     headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      User-Agent:
-      - python-requests/2.21.0
+      Accept: ['*/*']
+      Accept-Encoding: ['gzip, deflate']
+      Connection: [keep-alive]
+      User-Agent: [python-requests/2.21.0]
     method: GET
     uri: https://bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&tickInterval=day
   response:
@@ -2229,117 +2102,67 @@ interactions:
         5etdoPv5Ah+cSBrNxYm0OAHAWIMD0p9Xu2bYCUVaLWkARX3ZRylybgB8CaYTFLd71IqTVK4XHPiU
         FI4P6xzN//k/fvnx2//7v3/581///Pf/9X/++uPXv/7jL3/55/8HFmyNgZSqAAA=
     headers:
-      Accept-Ranges:
-      - bytes
-      CF-Cache-Status:
-      - MISS
-      CF-RAY:
-      - 4ba35fbfe88dcc85-WAW
-      Cache-Control:
-      - public, max-age=17
-      Connection:
-      - keep-alive
-      Content-Encoding:
-      - gzip
-      Content-Length:
-      - '12074'
-      Content-Type:
-      - application/json; charset=utf-8
-      Date:
-      - Tue, 19 Mar 2019 23:54:53 GMT
-      Expect-CT:
-      - max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
-      Expires:
-      - Tue, 19 Mar 2019 23:55:10 GMT
-      Last-Modified:
-      - Tue, 19 Mar 2019 23:54:40 GMT
-      Server:
-      - cloudflare
-      Set-Cookie:
-      - __cfduid=d6feb2de769e950f3656b176c5a7b77db1553039692; expires=Wed, 18-Mar-20
-        23:54:52 GMT; path=/; domain=.bittrex.com; HttpOnly
-      Strict-Transport-Security:
-      - max-age=15768000
-      Vary:
-      - '*, Accept-Encoding'
-      X-Content-Type-Options:
-      - nosniff
-      X-Download-Options:
-      - noopen
-      X-XSS-Protection:
-      - 1; mode=block
-    status:
-      code: 200
-      message: OK
+      Accept-Ranges: [bytes]
+      CF-Cache-Status: [MISS]
+      CF-RAY: [4ba35fbfe88dcc85-WAW]
+      Cache-Control: ['public, max-age=17']
+      Connection: [keep-alive]
+      Content-Encoding: [gzip]
+      Content-Length: ['12074']
+      Content-Type: [application/json; charset=utf-8]
+      Date: ['Tue, 19 Mar 2019 23:54:53 GMT']
+      Expect-CT: ['max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"']
+      Expires: ['Tue, 19 Mar 2019 23:55:10 GMT']
+      Last-Modified: ['Tue, 19 Mar 2019 23:54:40 GMT']
+      Server: [cloudflare]
+      Set-Cookie: ['__cfduid=d6feb2de769e950f3656b176c5a7b77db1553039692; expires=Wed,
+          18-Mar-20 23:54:52 GMT; path=/; domain=.bittrex.com; HttpOnly']
+      Strict-Transport-Security: [max-age=15768000]
+      Vary: ['*, Accept-Encoding']
+      X-Content-Type-Options: [nosniff]
+      X-Download-Options: [noopen]
+      X-XSS-Protection: [1; mode=block]
+    status: {code: 200, message: OK}
 - request:
     body: null
     headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      User-Agent:
-      - python-requests/2.21.0
+      Accept: ['*/*']
+      Accept-Encoding: ['gzip, deflate']
+      Connection: [keep-alive]
+      User-Agent: [python-requests/2.21.0]
     method: GET
     uri: https://bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&tickInterval=hour
   response:
-    body:
-      string: "<html><head><title>Object moved</title></head><body>\r\n<h2>Object
-        moved to <a href=\"https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&amp;tickInterval=hour\">here</a>.</h2>\r\n</body></html>\r\n"
+    body: {string: "<html><head><title>Object moved</title></head><body>\r\n<h2>Object
+        moved to <a href=\"https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&amp;tickInterval=hour\">here</a>.</h2>\r\n</body></html>\r\n"}
     headers:
-      CF-Cache-Status:
-      - EXPIRED
-      CF-RAY:
-      - 4ba920021a35cc89-WAW
-      Cache-Control:
-      - private
-      Connection:
-      - keep-alive
-      Content-Type:
-      - text/html; charset=utf-8
-      Date:
-      - Wed, 20 Mar 2019 16:39:56 GMT
-      Expect-CT:
-      - max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
-      Location:
-      - https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&tickInterval=hour
-      Server:
-      - cloudflare
-      Set-Cookie:
-      - __cfduid=df7813bd1159ed97cbc5576d704e435a21553099996; expires=Thu, 19-Mar-20
-        16:39:56 GMT; path=/; domain=.bittrex.com; HttpOnly
-      Strict-Transport-Security:
-      - max-age=15768000
-      Transfer-Encoding:
-      - chunked
-      Vary:
-      - Accept-Encoding
-      X-Content-Type-Options:
-      - nosniff
-      X-Download-Options:
-      - noopen
-      X-REDIRECTING:
-      - '1'
-      X-XSS-Protection:
-      - 1; mode=block
-    status:
-      code: 302
-      message: Found
+      CF-Cache-Status: [EXPIRED]
+      CF-RAY: [4ba920021a35cc89-WAW]
+      Cache-Control: [private]
+      Connection: [keep-alive]
+      Content-Type: [text/html; charset=utf-8]
+      Date: ['Wed, 20 Mar 2019 16:39:56 GMT']
+      Expect-CT: ['max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"']
+      Location: ['https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&tickInterval=hour']
+      Server: [cloudflare]
+      Set-Cookie: ['__cfduid=df7813bd1159ed97cbc5576d704e435a21553099996; expires=Thu,
+          19-Mar-20 16:39:56 GMT; path=/; domain=.bittrex.com; HttpOnly']
+      Strict-Transport-Security: [max-age=15768000]
+      Transfer-Encoding: [chunked]
+      Vary: [Accept-Encoding]
+      X-Content-Type-Options: [nosniff]
+      X-Download-Options: [noopen]
+      X-REDIRECTING: ['1']
+      X-XSS-Protection: [1; mode=block]
+    status: {code: 302, message: Found}
 - request:
     body: null
     headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Cookie:
-      - __cfduid=df7813bd1159ed97cbc5576d704e435a21553099996
-      User-Agent:
-      - python-requests/2.21.0
+      Accept: ['*/*']
+      Accept-Encoding: ['gzip, deflate']
+      Connection: [keep-alive]
+      Cookie: [__cfduid=df7813bd1159ed97cbc5576d704e435a21553099996]
+      User-Agent: [python-requests/2.21.0]
     method: GET
     uri: https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&tickInterval=hour
   response:
@@ -3098,114 +2921,65 @@ interactions:
         hdeQOvzibl5a4zubZjH+20p657YQJea6rIyK/MqidKYsM/lO2VLGGXD0fyl+Kptk8RdsB8+QKAUy
         ypb/+O//6V/+x//73//2r//+r//nf/6vf/+X//Lv//ff/u0//j8sg3P0G8ICAA==
     headers:
-      Accept-Ranges:
-      - bytes
-      CF-Cache-Status:
-      - EXPIRED
-      CF-RAY:
-      - 4ba92004dc4bcc91-WAW
-      Cache-Control:
-      - public, max-age=30
-      Connection:
-      - keep-alive
-      Content-Encoding:
-      - gzip
-      Content-Length:
-      - '42853'
-      Content-Type:
-      - application/json; charset=utf-8
-      Date:
-      - Wed, 20 Mar 2019 16:39:57 GMT
-      Expect-CT:
-      - max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
-      Expires:
-      - Wed, 20 Mar 2019 16:40:27 GMT
-      Last-Modified:
-      - Wed, 20 Mar 2019 16:39:57 GMT
-      Server:
-      - cloudflare
-      Strict-Transport-Security:
-      - max-age=15768000
-      Vary:
-      - '*, Accept-Encoding'
-      X-Content-Type-Options:
-      - nosniff
-      X-Download-Options:
-      - noopen
-      X-XSS-Protection:
-      - 1; mode=block
-    status:
-      code: 200
-      message: OK
+      Accept-Ranges: [bytes]
+      CF-Cache-Status: [EXPIRED]
+      CF-RAY: [4ba92004dc4bcc91-WAW]
+      Cache-Control: ['public, max-age=30']
+      Connection: [keep-alive]
+      Content-Encoding: [gzip]
+      Content-Length: ['42853']
+      Content-Type: [application/json; charset=utf-8]
+      Date: ['Wed, 20 Mar 2019 16:39:57 GMT']
+      Expect-CT: ['max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"']
+      Expires: ['Wed, 20 Mar 2019 16:40:27 GMT']
+      Last-Modified: ['Wed, 20 Mar 2019 16:39:57 GMT']
+      Server: [cloudflare]
+      Strict-Transport-Security: [max-age=15768000]
+      Vary: ['*, Accept-Encoding']
+      X-Content-Type-Options: [nosniff]
+      X-Download-Options: [noopen]
+      X-XSS-Protection: [1; mode=block]
+    status: {code: 200, message: OK}
 - request:
     body: null
     headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      User-Agent:
-      - python-requests/2.21.0
+      Accept: ['*/*']
+      Accept-Encoding: ['gzip, deflate']
+      Connection: [keep-alive]
+      User-Agent: [python-requests/2.21.0]
     method: GET
     uri: https://bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&tickInterval=day
   response:
-    body:
-      string: "<html><head><title>Object moved</title></head><body>\r\n<h2>Object
-        moved to <a href=\"https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&amp;tickInterval=day\">here</a>.</h2>\r\n</body></html>\r\n"
+    body: {string: "<html><head><title>Object moved</title></head><body>\r\n<h2>Object
+        moved to <a href=\"https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&amp;tickInterval=day\">here</a>.</h2>\r\n</body></html>\r\n"}
     headers:
-      CF-Cache-Status:
-      - MISS
-      CF-RAY:
-      - 4ba9200e78406b37-WAW
-      Cache-Control:
-      - private
-      Connection:
-      - keep-alive
-      Content-Type:
-      - text/html; charset=utf-8
-      Date:
-      - Wed, 20 Mar 2019 16:39:58 GMT
-      Expect-CT:
-      - max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
-      Location:
-      - https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&tickInterval=day
-      Server:
-      - cloudflare
-      Set-Cookie:
-      - __cfduid=d69608adaefa73f9fcbed02c165cce5231553099998; expires=Thu, 19-Mar-20
-        16:39:58 GMT; path=/; domain=.bittrex.com; HttpOnly
-      Strict-Transport-Security:
-      - max-age=15768000
-      Transfer-Encoding:
-      - chunked
-      Vary:
-      - Accept-Encoding
-      X-Content-Type-Options:
-      - nosniff
-      X-Download-Options:
-      - noopen
-      X-REDIRECTING:
-      - '1'
-      X-XSS-Protection:
-      - 1; mode=block
-    status:
-      code: 302
-      message: Found
+      CF-Cache-Status: [MISS]
+      CF-RAY: [4ba9200e78406b37-WAW]
+      Cache-Control: [private]
+      Connection: [keep-alive]
+      Content-Type: [text/html; charset=utf-8]
+      Date: ['Wed, 20 Mar 2019 16:39:58 GMT']
+      Expect-CT: ['max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"']
+      Location: ['https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&tickInterval=day']
+      Server: [cloudflare]
+      Set-Cookie: ['__cfduid=d69608adaefa73f9fcbed02c165cce5231553099998; expires=Thu,
+          19-Mar-20 16:39:58 GMT; path=/; domain=.bittrex.com; HttpOnly']
+      Strict-Transport-Security: [max-age=15768000]
+      Transfer-Encoding: [chunked]
+      Vary: [Accept-Encoding]
+      X-Content-Type-Options: [nosniff]
+      X-Download-Options: [noopen]
+      X-REDIRECTING: ['1']
+      X-XSS-Protection: [1; mode=block]
+    status: {code: 302, message: Found}
 - request:
     body: null
     headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Cookie:
-      - __cfduid=d69608adaefa73f9fcbed02c165cce5231553099998
-      User-Agent:
-      - python-requests/2.21.0
+      Accept: ['*/*']
+      Accept-Encoding: ['gzip, deflate']
+      Connection: [keep-alive]
+      Cookie: [__cfduid=d69608adaefa73f9fcbed02c165cce5231553099998]
+      User-Agent: [python-requests/2.21.0]
     method: GET
     uri: https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&tickInterval=day
   response:
@@ -3425,116 +3199,66 @@ interactions:
         QZbOx1Jj4FCZrb4pblXJZf1k4xighhcBP2PyXX/EC7nku5+ZLaCAqBzC2/o//8cvP377f//3L3/+
         65///r/+z19//PrXf/zlL//8/5x4rckZqwAA
     headers:
-      Accept-Ranges:
-      - bytes
-      CF-Cache-Status:
-      - EXPIRED
-      CF-RAY:
-      - 4ba920112e176b01-WAW
-      Cache-Control:
-      - public, max-age=30
-      Connection:
-      - keep-alive
-      Content-Encoding:
-      - gzip
-      Content-Length:
-      - '12111'
-      Content-Type:
-      - application/json; charset=utf-8
-      Date:
-      - Wed, 20 Mar 2019 16:39:59 GMT
-      Expect-CT:
-      - max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
-      Expires:
-      - Wed, 20 Mar 2019 16:40:28 GMT
-      Last-Modified:
-      - Wed, 20 Mar 2019 16:39:58 GMT
-      Server:
-      - cloudflare
-      Strict-Transport-Security:
-      - max-age=15768000
-      Vary:
-      - '*, Accept-Encoding'
-      X-Content-Type-Options:
-      - nosniff
-      X-Download-Options:
-      - noopen
-      X-XSS-Protection:
-      - 1; mode=block
-    status:
-      code: 200
-      message: OK
+      Accept-Ranges: [bytes]
+      CF-Cache-Status: [EXPIRED]
+      CF-RAY: [4ba920112e176b01-WAW]
+      Cache-Control: ['public, max-age=30']
+      Connection: [keep-alive]
+      Content-Encoding: [gzip]
+      Content-Length: ['12111']
+      Content-Type: [application/json; charset=utf-8]
+      Date: ['Wed, 20 Mar 2019 16:39:59 GMT']
+      Expect-CT: ['max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"']
+      Expires: ['Wed, 20 Mar 2019 16:40:28 GMT']
+      Last-Modified: ['Wed, 20 Mar 2019 16:39:58 GMT']
+      Server: [cloudflare]
+      Strict-Transport-Security: [max-age=15768000]
+      Vary: ['*, Accept-Encoding']
+      X-Content-Type-Options: [nosniff]
+      X-Download-Options: [noopen]
+      X-XSS-Protection: [1; mode=block]
+    status: {code: 200, message: OK}
 - request:
     body: null
     headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      User-Agent:
-      - python-requests/2.21.0
+      Accept: ['*/*']
+      Accept-Encoding: ['gzip, deflate']
+      Connection: [keep-alive]
+      User-Agent: [python-requests/2.21.0]
     method: GET
     uri: https://bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&tickInterval=hour
   response:
-    body:
-      string: "<html><head><title>Object moved</title></head><body>\r\n<h2>Object
-        moved to <a href=\"https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&amp;tickInterval=hour\">here</a>.</h2>\r\n</body></html>\r\n"
+    body: {string: "<html><head><title>Object moved</title></head><body>\r\n<h2>Object
+        moved to <a href=\"https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&amp;tickInterval=hour\">here</a>.</h2>\r\n</body></html>\r\n"}
     headers:
-      CF-Cache-Status:
-      - MISS
-      CF-RAY:
-      - 4ce9e655983bcca5-WAW
-      Cache-Control:
-      - private
-      Connection:
-      - keep-alive
-      Content-Type:
-      - text/html; charset=utf-8
-      Date:
-      - Sun, 28 Apr 2019 14:59:23 GMT
-      Expect-CT:
-      - max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
-      Location:
-      - https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&tickInterval=hour
-      Server:
-      - cloudflare
-      Set-Cookie:
-      - __cfduid=d3d872bab6b506a5749ec954bfdccd9351556463563; expires=Mon, 27-Apr-20
-        14:59:23 GMT; path=/; domain=.bittrex.com; HttpOnly
-      - __cfruid=73f101c5bb78578e90ae2c58db8027ca03dce1e5-1556463563; path=/; domain=.bittrex.com;
-        HttpOnly
-      Strict-Transport-Security:
-      - max-age=15768000
-      Transfer-Encoding:
-      - chunked
-      Vary:
-      - Accept-Encoding
-      X-Content-Type-Options:
-      - nosniff
-      X-Download-Options:
-      - noopen
-      X-REDIRECTING:
-      - '1'
-      X-XSS-Protection:
-      - 1; mode=block
-    status:
-      code: 302
-      message: Found
+      CF-Cache-Status: [MISS]
+      CF-RAY: [4ce9e655983bcca5-WAW]
+      Cache-Control: [private]
+      Connection: [keep-alive]
+      Content-Type: [text/html; charset=utf-8]
+      Date: ['Sun, 28 Apr 2019 14:59:23 GMT']
+      Expect-CT: ['max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"']
+      Location: ['https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&tickInterval=hour']
+      Server: [cloudflare]
+      Set-Cookie: ['__cfduid=d3d872bab6b506a5749ec954bfdccd9351556463563; expires=Mon,
+          27-Apr-20 14:59:23 GMT; path=/; domain=.bittrex.com; HttpOnly', __cfruid=73f101c5bb78578e90ae2c58db8027ca03dce1e5-1556463563;
+          path=/; domain=.bittrex.com; HttpOnly]
+      Strict-Transport-Security: [max-age=15768000]
+      Transfer-Encoding: [chunked]
+      Vary: [Accept-Encoding]
+      X-Content-Type-Options: [nosniff]
+      X-Download-Options: [noopen]
+      X-REDIRECTING: ['1']
+      X-XSS-Protection: [1; mode=block]
+    status: {code: 302, message: Found}
 - request:
     body: null
     headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Cookie:
-      - __cfduid=d3d872bab6b506a5749ec954bfdccd9351556463563; __cfruid=73f101c5bb78578e90ae2c58db8027ca03dce1e5-1556463563
-      User-Agent:
-      - python-requests/2.21.0
+      Accept: ['*/*']
+      Accept-Encoding: ['gzip, deflate']
+      Connection: [keep-alive]
+      Cookie: [__cfduid=d3d872bab6b506a5749ec954bfdccd9351556463563; __cfruid=73f101c5bb78578e90ae2c58db8027ca03dce1e5-1556463563]
+      User-Agent: [python-requests/2.21.0]
     method: GET
     uri: https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&tickInterval=hour
   response:
@@ -4303,116 +4027,66 @@ interactions:
         nPuIOPdR4jE8JB9UL/sgUCCnvsYIBxlmSgWS936XqwS0/+O//5d/+h//73//27/++7/+n//5v/79
         n/7rv//ff/u3//j/aMxrpr/BAgA=
     headers:
-      Accept-Ranges:
-      - bytes
-      CF-Cache-Status:
-      - EXPIRED
-      CF-RAY:
-      - 4ce9e6610ec5ccb1-WAW
-      Cache-Control:
-      - public, max-age=30
-      Connection:
-      - keep-alive
-      Content-Encoding:
-      - gzip
-      Content-Length:
-      - '43397'
-      Content-Type:
-      - application/json; charset=utf-8
-      Date:
-      - Sun, 28 Apr 2019 14:59:25 GMT
-      Expect-CT:
-      - max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
-      Expires:
-      - Sun, 28 Apr 2019 14:59:55 GMT
-      Last-Modified:
-      - Sun, 28 Apr 2019 14:59:25 GMT
-      Server:
-      - cloudflare
-      Strict-Transport-Security:
-      - max-age=15768000
-      Vary:
-      - '*, Accept-Encoding'
-      X-Content-Type-Options:
-      - nosniff
-      X-Download-Options:
-      - noopen
-      X-XSS-Protection:
-      - 1; mode=block
-    status:
-      code: 200
-      message: OK
+      Accept-Ranges: [bytes]
+      CF-Cache-Status: [EXPIRED]
+      CF-RAY: [4ce9e6610ec5ccb1-WAW]
+      Cache-Control: ['public, max-age=30']
+      Connection: [keep-alive]
+      Content-Encoding: [gzip]
+      Content-Length: ['43397']
+      Content-Type: [application/json; charset=utf-8]
+      Date: ['Sun, 28 Apr 2019 14:59:25 GMT']
+      Expect-CT: ['max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"']
+      Expires: ['Sun, 28 Apr 2019 14:59:55 GMT']
+      Last-Modified: ['Sun, 28 Apr 2019 14:59:25 GMT']
+      Server: [cloudflare]
+      Strict-Transport-Security: [max-age=15768000]
+      Vary: ['*, Accept-Encoding']
+      X-Content-Type-Options: [nosniff]
+      X-Download-Options: [noopen]
+      X-XSS-Protection: [1; mode=block]
+    status: {code: 200, message: OK}
 - request:
     body: null
     headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      User-Agent:
-      - python-requests/2.21.0
+      Accept: ['*/*']
+      Accept-Encoding: ['gzip, deflate']
+      Connection: [keep-alive]
+      User-Agent: [python-requests/2.21.0]
     method: GET
     uri: https://bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&tickInterval=day
   response:
-    body:
-      string: "<html><head><title>Object moved</title></head><body>\r\n<h2>Object
-        moved to <a href=\"https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&amp;tickInterval=day\">here</a>.</h2>\r\n</body></html>\r\n"
+    body: {string: "<html><head><title>Object moved</title></head><body>\r\n<h2>Object
+        moved to <a href=\"https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&amp;tickInterval=day\">here</a>.</h2>\r\n</body></html>\r\n"}
     headers:
-      CF-Cache-Status:
-      - MISS
-      CF-RAY:
-      - 4ce9e6694d4ccca5-WAW
-      Cache-Control:
-      - private
-      Connection:
-      - keep-alive
-      Content-Type:
-      - text/html; charset=utf-8
-      Date:
-      - Sun, 28 Apr 2019 14:59:26 GMT
-      Expect-CT:
-      - max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
-      Location:
-      - https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&tickInterval=day
-      Server:
-      - cloudflare
-      Set-Cookie:
-      - __cfduid=d1d28d4556d8c327f9d8fe82f4741b39d1556463566; expires=Mon, 27-Apr-20
-        14:59:26 GMT; path=/; domain=.bittrex.com; HttpOnly
-      - __cfruid=05e86445923b82679a0cd1c5c5fe972153745f46-1556463566; path=/; domain=.bittrex.com;
-        HttpOnly
-      Strict-Transport-Security:
-      - max-age=15768000
-      Transfer-Encoding:
-      - chunked
-      Vary:
-      - Accept-Encoding
-      X-Content-Type-Options:
-      - nosniff
-      X-Download-Options:
-      - noopen
-      X-REDIRECTING:
-      - '1'
-      X-XSS-Protection:
-      - 1; mode=block
-    status:
-      code: 302
-      message: Found
+      CF-Cache-Status: [MISS]
+      CF-RAY: [4ce9e6694d4ccca5-WAW]
+      Cache-Control: [private]
+      Connection: [keep-alive]
+      Content-Type: [text/html; charset=utf-8]
+      Date: ['Sun, 28 Apr 2019 14:59:26 GMT']
+      Expect-CT: ['max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"']
+      Location: ['https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&tickInterval=day']
+      Server: [cloudflare]
+      Set-Cookie: ['__cfduid=d1d28d4556d8c327f9d8fe82f4741b39d1556463566; expires=Mon,
+          27-Apr-20 14:59:26 GMT; path=/; domain=.bittrex.com; HttpOnly', __cfruid=05e86445923b82679a0cd1c5c5fe972153745f46-1556463566;
+          path=/; domain=.bittrex.com; HttpOnly]
+      Strict-Transport-Security: [max-age=15768000]
+      Transfer-Encoding: [chunked]
+      Vary: [Accept-Encoding]
+      X-Content-Type-Options: [nosniff]
+      X-Download-Options: [noopen]
+      X-REDIRECTING: ['1']
+      X-XSS-Protection: [1; mode=block]
+    status: {code: 302, message: Found}
 - request:
     body: null
     headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Cookie:
-      - __cfduid=d1d28d4556d8c327f9d8fe82f4741b39d1556463566; __cfruid=05e86445923b82679a0cd1c5c5fe972153745f46-1556463566
-      User-Agent:
-      - python-requests/2.21.0
+      Accept: ['*/*']
+      Accept-Encoding: ['gzip, deflate']
+      Connection: [keep-alive]
+      Cookie: [__cfduid=d1d28d4556d8c327f9d8fe82f4741b39d1556463566; __cfruid=05e86445923b82679a0cd1c5c5fe972153745f46-1556463566]
+      User-Agent: [python-requests/2.21.0]
     method: GET
     uri: https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&tickInterval=day
   response:
@@ -4654,43 +4328,339 @@ interactions:
         bakiNxRjFLcYV30wU9F/AHCTaJa0vaHnAhth8huk2yQ3IS65/7gcApleL45O9GbxN5yR5cU8m/FF
         X07gM2H8f/7l19/+///vX/75X//53//v//dff/31X//jX/7lf/xPgRbOnC++AAA=
     headers:
-      Accept-Ranges:
-      - bytes
-      CF-Cache-Status:
-      - EXPIRED
-      CF-RAY:
-      - 4ce9e678bd486b19-WAW
-      Cache-Control:
-      - public, max-age=30
-      Connection:
-      - keep-alive
-      Content-Encoding:
-      - gzip
-      Content-Length:
-      - '13385'
-      Content-Type:
-      - application/json; charset=utf-8
-      Date:
-      - Sun, 28 Apr 2019 14:59:28 GMT
-      Expect-CT:
-      - max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
-      Expires:
-      - Sun, 28 Apr 2019 14:59:58 GMT
-      Last-Modified:
-      - Sun, 28 Apr 2019 14:59:28 GMT
-      Server:
-      - cloudflare
-      Strict-Transport-Security:
-      - max-age=15768000
-      Vary:
-      - '*, Accept-Encoding'
-      X-Content-Type-Options:
-      - nosniff
-      X-Download-Options:
-      - noopen
-      X-XSS-Protection:
-      - 1; mode=block
-    status:
-      code: 200
-      message: OK
+      Accept-Ranges: [bytes]
+      CF-Cache-Status: [EXPIRED]
+      CF-RAY: [4ce9e678bd486b19-WAW]
+      Cache-Control: ['public, max-age=30']
+      Connection: [keep-alive]
+      Content-Encoding: [gzip]
+      Content-Length: ['13385']
+      Content-Type: [application/json; charset=utf-8]
+      Date: ['Sun, 28 Apr 2019 14:59:28 GMT']
+      Expect-CT: ['max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"']
+      Expires: ['Sun, 28 Apr 2019 14:59:58 GMT']
+      Last-Modified: ['Sun, 28 Apr 2019 14:59:28 GMT']
+      Server: [cloudflare]
+      Strict-Transport-Security: [max-age=15768000]
+      Vary: ['*, Accept-Encoding']
+      X-Content-Type-Options: [nosniff]
+      X-Download-Options: [noopen]
+      X-XSS-Protection: [1; mode=block]
+    status: {code: 200, message: OK}
+- request:
+    body: null
+    headers:
+      Accept: ['*/*']
+      Accept-Encoding: ['gzip, deflate']
+      Connection: [keep-alive]
+      User-Agent: [python-requests/2.21.0]
+    method: GET
+    uri: https://international.bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=BTC-POLY&tickInterval=day
+  response:
+    body:
+      string: !!binary |
+        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
+    headers:
+      Accept-Ranges: [bytes]
+      CF-Cache-Status: [EXPIRED]
+      CF-RAY: [4f8733f6ca5f2aef-WAW]
+      Cache-Control: ['public, max-age=30']
+      Connection: [keep-alive]
+      Content-Encoding: [gzip]
+      Content-Length: ['15993']
+      Content-Type: [application/json; charset=utf-8]
+      Date: ['Thu, 18 Jul 2019 20:28:36 GMT']
+      Expect-CT: ['max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"']
+      Expires: ['Thu, 18 Jul 2019 20:29:06 GMT']
+      Last-Modified: ['Thu, 18 Jul 2019 20:28:36 GMT']
+      Server: [cloudflare]
+      Set-Cookie: ['__cfduid=d63444a6e7fa3be8f0dbd28421650330b1563481716; expires=Fri,
+          17-Jul-20 20:28:36 GMT; path=/; domain=.bittrex.com; HttpOnly', __cfruid=1864b4cde00fc093dcd5226ba36739fba6dde88c-1563481716;
+          path=/; domain=.bittrex.com; HttpOnly]
+      Strict-Transport-Security: [max-age=15768000]
+      Vary: ['*, Accept-Encoding']
+      X-Content-Type-Options: [nosniff]
+      X-Download-Options: [noopen]
+      X-XSS-Protection: [1; mode=block]
+    status: {code: 200, message: OK}
 version: 1

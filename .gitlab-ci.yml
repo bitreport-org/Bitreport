@@ -1,8 +1,77 @@
 stages:
+  - test
   - build
+  - deploy
 
-build:
+Test core:
+  stage: test
+  only:
+    refs:
+      - merge_requests
+    changes:
+      - core/**/*
+  services:
+    - postgres:10.4-alpine
+    - influxdb:1.5.2-alpine
+  image: registry.gitlab.com/bitreport/bitreport/python3.7-core
+  variables:
+    INFLUX_HOST: influxdb
+    POSTGRES_HOST: postgres
+  script:
+    - python3 -m venv venv
+    - . venv/bin/activate
+    - pip install --upgrade pip
+    - pip install -r core/requirements.txt
+    - pytest --cov=core/app --cov-config core/.coveragerc --vcr-record=none
+  cache:
+    key: core-packages
+    paths:
+      - venv/
+
+Test dashboard:
+  stage: test
+  only:
+    refs:
+      - merge_requests
+    changes:
+      - dashboard/**/*
+  services:
+    - postgres:10.4-alpine
+  image: registry.gitlab.com/bitreport/bitreport/ruby2.6-dashboard
+  variables:
+    RAILS_ENV: test
+    POSTGRES_DB: dashboard_test
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: ""
+  script:
+    - cd dashboard
+    - bundle install --path vendor/bundle
+    - bundle exec rails db:create db:migrate:with_data
+    - bundle exec rspec --format documentation --no-profile
+  cache:
+    key: dashboard-gems
+    paths:
+      - dashboard/vendor/bundle/
+
+Do nothing xD:
+  stage: test
+  image: alpine:3.7
+  variables:
+    GIT_STRATEGY: none
+  except:
+    refs:
+      - merge_requests
+    changes:
+      - dashboard/**/*
+      - core/**/*
+  script:
+    - echo "(っ◕‿◕)っ"
+
+Update docker registry:
   stage: build
+  only:
+    refs:
+      - master
   image: tmaier/docker-compose:latest
   variables:
     COMPOSE_FILE: docker-compose.production.yml
@@ -16,3 +85,27 @@ build:
   script:
     - docker-compose build core dashboard web
     - docker-compose push
+
+Deploy to production:
+  stage: deploy
+  only:
+    refs:
+      - master
+  tags:
+    - deploy
+  environment:
+    name: production
+    url: https://bitreport.org
+  variables:
+    COMPOSE_FILE: docker-compose.production.yml
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker-compose pull -q
+  script:
+    - docker-compose up -d --force-recreate
+    - docker-compose run --rm dashboard bundle exec rails db:migrate:with_data
+    - docker-compose run --rm core flask db migrate
+    - docker-compose run --rm core flask db upgrade
+    - docker-compose run --rm dashboard bundle exec rails assets:precompile
+  after_script:
+    - docker image prune -f

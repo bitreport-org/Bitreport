@@ -1,7 +1,6 @@
 version: '3.7'
 
 volumes:
-  certs:
   core-migrations:
   dashboard-public:
   dashboard-settings:
@@ -25,7 +24,7 @@ services:
       - 80:80
       - 443:443
     volumes:
-      - certs:/etc/nginx/ssl
+      - /etc/cloudflare:/etc/nginx/cloudflare
       - dashboard-public:/usr/src/app/public
       - dashboard-logs:/usr/src/app/log
 

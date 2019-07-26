@@ -5,6 +5,8 @@ import numpy as np
 from app.exchanges.helpers import check_exchanges, downsample
 from app.database.helpers import get_all_pairs, get_candles
 
+IGNORED_HOSTS = ["influxdb", "localhost", "postgres", "0.0.0.0", "127.0.0.1"]
+
 
 class TestFiller:
     def test_all_pairs(self, app, filled_influx):
@@ -57,7 +59,7 @@ class TestFillExchange:
         assert candles["high"].size == limit
         assert candles["low"].size == limit
 
-    @pytest.mark.vcr(match_on=["host", "path"], ignore_localhost=True)
+    @pytest.mark.vcr(match_on=["host", "path"], ignore_hosts=IGNORED_HOSTS)
     def test_bitfinex_fill(self, app, influx):
         pair = "BTCUSD"
         result = Bitfinex().fill(app.ctx, pair), f"Failed to fill from Bitfinex"
@@ -66,7 +68,7 @@ class TestFillExchange:
         with app.ctx:
             self.check_candles_structure(pair)
 
-    @pytest.mark.vcr(match_on=["uri"], ignore_localhost=True)
+    @pytest.mark.vcr(match_on=["uri"], ignore_hosts=IGNORED_HOSTS)
     def test_binance_fill(self, app, influx):
         pair = "GASBTC"
         result = Binance().fill(app.ctx, pair), f"Failed to fill from Binance"
@@ -75,7 +77,7 @@ class TestFillExchange:
         with app.ctx:
             self.check_candles_structure(pair)
 
-    @pytest.mark.vcr(match_on=["uri"], ignore_localhost=True)
+    @pytest.mark.vcr(match_on=["uri"], ignore_hosts=IGNORED_HOSTS)
     def test_bittrex_fill(self, app, influx):
         pair = "POLYBTC"
         result = Bittrex().fill(app.ctx, pair), f"Failed to fill from Bittrex"
@@ -84,7 +86,7 @@ class TestFillExchange:
         with app.ctx:
             self.check_candles_structure(pair)
 
-    @pytest.mark.vcr(match_on=["uri"], ignore_localhost=True)
+    @pytest.mark.vcr(match_on=["uri"], ignore_hosts=IGNORED_HOSTS)
     def test_poloniex_fill(self, app, influx):
         pair = "SCBTC"
         result = Poloniex().fill(app.ctx, pair), f"Failed to fill from Poloniex"
@@ -101,22 +103,22 @@ class TestErrorExchange:
         status = exchange().fetch_candles("wefsdfwenown", "1h")
         assert not status
 
-    @pytest.mark.vcr(match_on=["host", "path"], ignore_localhost=True)
+    @pytest.mark.vcr(match_on=["host", "path"], ignore_hosts=IGNORED_HOSTS)
     def test_bitfinex_error(self, app, influx):
         with app.ctx:
             self.raise_error(Bitfinex)
 
-    @pytest.mark.vcr(match_on=["host", "path"], ignore_localhost=True)
+    @pytest.mark.vcr(match_on=["host", "path"], ignore_hosts=IGNORED_HOSTS)
     def test_binance_error(self, app):
         with app.ctx:
             self.raise_error(Binance)
 
-    @pytest.mark.vcr(match_on=["host", "path"], ignore_localhost=True)
+    @pytest.mark.vcr(match_on=["host", "path"], ignore_hosts=IGNORED_HOSTS)
     def test_bittrex_error(self, app):
         with app.ctx:
             self.raise_error(Bittrex)
 
-    @pytest.mark.vcr(match_on=["host", "path"], ignore_localhost=True)
+    @pytest.mark.vcr(match_on=["host", "path"], ignore_hosts=IGNORED_HOSTS)
     def test_poloniex_error(self, app, influx):
         with app.ctx:
             self.raise_error(Poloniex)

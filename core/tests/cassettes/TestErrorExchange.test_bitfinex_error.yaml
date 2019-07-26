@@ -122,4 +122,34 @@ interactions:
       X-Permitted-Cross-Domain-Policies: [none]
       X-XSS-Protection: [1; mode=block]
     status: {code: 200, message: OK}
+- request:
+    body: null
+    headers:
+      Accept: ['*/*']
+      Accept-Encoding: ['gzip, deflate']
+      Connection: [keep-alive]
+      User-Agent: [python-requests/2.21.0]
+    method: GET
+    uri: https://api-pub.bitfinex.com/v2/candles/trade:1h:twefsdfwenown/hist?start=1518176375000&end=1563481826000&limit=5000
+  response:
+    body: {string: '[]'}
+    headers:
+      Accept-Ranges: [bytes]
+      CF-RAY: [4f873436daabcc73-WAW]
+      Connection: [keep-alive]
+      Content-Length: ['2']
+      Content-Type: [application/json; charset=utf-8]
+      Date: ['Thu, 18 Jul 2019 20:28:46 GMT']
+      Expect-CT: ['max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"']
+      Referrer-Policy: [same-origin]
+      Server: [cloudflare]
+      Set-Cookie: ['__cfduid=d6f9627eb7e5c51eee96abf894836d1211563481726; expires=Fri,
+          17-Jul-20 20:28:46 GMT; path=/; domain=.bitfinex.com; HttpOnly']
+      Strict-Transport-Security: [max-age=31536000; includeSubdomains;]
+      X-Content-Type-Options: [nosniff]
+      X-Download-Options: [noopen]
+      X-Frame-Options: [sameorigin]
+      X-Permitted-Cross-Domain-Policies: [none]
+      X-XSS-Protection: [1; mode=block]
+    status: {code: 200, message: OK}
 version: 1

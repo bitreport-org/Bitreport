@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 class ProcessRecentTweets < ApplicationJob
+  discard_on StandardError do |job, error|
+    Raven.capture_exception(error)
+  end
+
   QUERY = '+Bitreport_org OR +@Bitreport_org OR +to:Bitreport_org AND -from:Bitreport_org AND -filter:retweets'
 
   def perform
