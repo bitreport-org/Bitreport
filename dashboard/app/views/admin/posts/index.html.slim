@@ -15,8 +15,11 @@ table.ui.celled.table
         / :<
         td= post.report&.pair&.symbol
         td
-          = link_to post.report&.image_url(:original) do
-            = image_tag(post.report&.image_url(:thumbnail))
+          - if post.report
+            = link_to post.report.image_url(:original) do
+              = image_tag(post.report.image_url(:thumbnail))
+          - else
+            🤷
         td= post.original_message
         td= post.message
         td= post.published_at
