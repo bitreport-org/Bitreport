@@ -19,7 +19,7 @@ table.ui.celled.table
             = link_to post.report.image_url(:original) do
               = image_tag(post.report.image_url(:thumbnail))
           - else
-            🤷
+            p 🤷
         td= post.original_message
         td= post.message
         td= post.published_at
