@@ -102,10 +102,10 @@ Deploy to production:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker-compose pull -q
   script:
-    - docker-compose up -d --force-recreate
     - docker-compose run --rm dashboard bundle exec rails db:migrate:with_data
     - docker-compose run --rm core flask db migrate
     - docker-compose run --rm core flask db upgrade
     - docker-compose run --rm dashboard bundle exec rails assets:precompile
+    - docker stack deploy -c docker-compose.production.yml --with-registry-auth bitreport
   after_script:
     - docker image prune -f

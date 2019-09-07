@@ -39,8 +39,6 @@ services:
       - FLASK_ENV=production
       - FLASK_APP=core.py
     command: bash -c "gunicorn -b 0.0.0.0:5001 -w 1 core:app"
-    expose:
-      - 5001
     depends_on:
       - influx
       - postgres
@@ -56,8 +54,6 @@ services:
         - $CI_REGISTRY_IMAGE/core:$CI_COMMIT_REF_NAME
     environment: *env
     command: bash -c "flower -A core.celery --basic_auth=admin:magicPassword --url_prefix=core/tasks"
-    expose:
-      - 5555
     depends_on:
       - celery
 
@@ -87,11 +83,14 @@ services:
 
   influx:
     image: influxdb:1.5.2-alpine
-    restart: always
     environment:
       - INFLUXDB_LOGGING_LEVEL=warn
     volumes:
       - influx-data:/var/lib/influxdb
+    deploy:
+      resources:
+        limits:
+          memory: 1G
 
   dashboard:
     image: $CI_REGISTRY_IMAGE/dashboard:$CI_COMMIT_REF_NAME
@@ -106,8 +105,6 @@ services:
       - redis
       - core
       - sidekiq
-    expose:
-      - 3000
     volumes:
       - dashboard-public:/usr/src/app/public
       - dashboard-settings:/usr/src/app/config/settings
@@ -115,14 +112,12 @@ services:
 
   postgres:
     image: postgres:10.4-alpine
-    restart: always
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
   redis:
     command: redis-server
     image: redis:4.0.11-alpine
-    restart: always
     volumes:
       - redis-data:/data
 
