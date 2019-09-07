@@ -54,7 +54,7 @@ def configure_admin(app: Flask, active: bool = False) -> Admin:
         index_view = CustomAdmin()
         admin_type = AuthAdmin
     else:
-        index_view = (CustomAdmin(url="/core/admin"),)
+        index_view = CustomAdmin(url="/core/admin")
         admin_type = InactiveAdmin
 
     admin = Admin(app, name="Core", template_mode="bootstrap3", index_view=index_view)
