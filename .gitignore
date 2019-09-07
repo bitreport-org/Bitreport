@@ -25,3 +25,4 @@ report.html
 *.h5
 *.iml
 .idea/
+.coverage
