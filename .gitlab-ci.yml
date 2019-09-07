@@ -96,16 +96,13 @@ Deploy to production:
   environment:
     name: production
     url: https://bitreport.org
-  variables:
-    COMPOSE_FILE: docker-compose.production.yml
   before_script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker-compose pull -q
   script:
-    - docker-compose run --rm dashboard bundle exec rails db:migrate:with_data
-    - docker-compose run --rm core flask db migrate
-    - docker-compose run --rm core flask db upgrade
-    - docker-compose run --rm dashboard bundle exec rails assets:precompile
     - docker stack deploy -c docker-compose.production.yml --with-registry-auth bitreport
+    - docker exec $(docker ps -q -f name=dashboard) bundle exec rails db:migrate:with_data
+    - docker exec $(docker ps -q -f name=core) flask db migrate
+    - docker exec $(docker ps -q -f name=core) flask db upgrade
+    - docker exec $(docker ps -q -f name=dashboard) bundle exec rails assets:precompile
   after_script:
     - docker image prune -f
