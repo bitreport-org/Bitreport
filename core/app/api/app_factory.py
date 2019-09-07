@@ -10,6 +10,7 @@ from flask.logging import default_handler
 from app.api.admin import configure_admin
 from app.api.logger import create_msg, sentry_init
 from app.models import db, Chart, Event
+from app.models.influx import init_influx_db
 from config import BaseConfig
 
 
@@ -34,6 +35,7 @@ def create_app(config: Type[BaseConfig]) -> Flask:
     sentry_init(app)
 
     # Postgres and influx connections
+    init_influx_db(config.INFLUXDB_DATABASE)
     with app.app_context():
         db.init_app(app)
         db.create_all()

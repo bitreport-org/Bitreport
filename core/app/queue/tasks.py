@@ -15,10 +15,11 @@ def fill_pair(self, pair: str) -> bool:
     status = False
     try:
         status = update_pair_data(pair)
-        return status
     except SoftTimeLimitExceeded as exc:
-        if status is False:
-            return self.retry(exc=exc, countdown=60)
+        pass
+    if status is False:
+        return self.retry(exc=exc, countdown=60)
+    return status
 
 
 @celery.task(name="app.queue.tasks.fill_influx")  # pylint:disable=not-callable

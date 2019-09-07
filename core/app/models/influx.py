@@ -48,6 +48,11 @@ def provide_influx(func):
 
 
 @provide_influx
+def init_influx_db(database: str, influx: InfluxDB = None) -> None:
+    influx.database.create(database)
+
+
+@provide_influx
 def get_all_pairs(influx: InfluxDB = None) -> list:
     pairs = influx.measurement.all()
     pairs = [re.match("[A-Z]+", m["name"])[0] for m in pairs]

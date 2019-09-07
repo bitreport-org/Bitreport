@@ -18,7 +18,7 @@ class BaseExchange:
         self.pair = pair
 
     def log_error(self, response: Response):
-        logging.error(
+        logging.info(
             """Failed request, info:
         - exchange: %s
         - pair: %s

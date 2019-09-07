@@ -4,42 +4,6 @@ from influxdb import InfluxDBClient
 
 
 class InfluxDB(InfluxDBClient):
-    def __init__(  # pylint:disable=too-many-arguments
-        self,
-        host="localhost",
-        port=8086,
-        username="root",
-        password="root",
-        database=None,
-        ssl=False,
-        verify_ssl=False,
-        timeout=None,
-        retries=3,
-        use_udp=False,
-        udp_port=4444,
-        proxies=None,
-        pool_size=10,
-        path="",
-    ) -> None:
-        super().__init__(
-            host,
-            port,
-            username,
-            password,
-            database,
-            ssl,
-            verify_ssl,
-            timeout,
-            retries,
-            use_udp,
-            udp_port,
-            proxies,
-            pool_size,
-            path,
-        )
-        if database:
-            self.database.create(database)
-
     @property
     def database(self):
         class Database:

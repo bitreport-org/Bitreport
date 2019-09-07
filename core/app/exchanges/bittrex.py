@@ -55,6 +55,7 @@ class Bittrex(BaseExchange):
 
         if not rows:
             self.log_error(response)
+            return False
 
         points = [self.json(measurement, row) for row in rows[-limit:]]
 
