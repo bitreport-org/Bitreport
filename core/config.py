@@ -2,8 +2,9 @@ import os
 
 
 def resolve_config():
-    environment = {"development": Development, "production": Production}
-    cfg = environment[os.environ["FLASK_ENV"]]
+    environment = {"development": Development, "production": Production, "test": Test}
+    env = os.environ.get("FLASK_ENV", "test")
+    cfg = environment[env]
     return cfg
 
 

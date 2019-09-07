@@ -20,5 +20,10 @@ Additonaly if you would like use pre-commit then:
 - install [pre-commit](https://pre-commit.com) with `pip install pre-commit` or `brew install pre-commit`
 - install required git hook `pre-commit install`
 
+If you want you can run `pylint` over core but then you are obligated to fix errors 💁🏻‍♂️
+```sh
+pylint --output-format=colorized core/app/
+```
+
 ## Deployment
 We have CI/CD and stuff :tada:

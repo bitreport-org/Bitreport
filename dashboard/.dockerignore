@@ -8,7 +8,7 @@ docker-compose*.yml
 *.env
 .dockerignore
 
-.docker/
+
 
 # Ignore log files:
 log/*.log

@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-import talib  # pylint: skip-file
 import numpy as np
+import talib  # pylint: skip-file
+
 import config
-
 from app.ta.helpers import indicator, nan_to_null
-
 
 Config = config.BaseConfig()
 
@@ -13,7 +12,7 @@ Config = config.BaseConfig()
 @indicator("EWO", ["ewo"])
 def EWO(data, limit, fast=5, slow=35):
     start = Config.MAGIC_LIMIT
-    close = data["close"]
+    close = data.close
     real = talib.EMA(close, fast) - talib.EMA(close, slow)
     return {"ewo": nan_to_null(real.tolist()[-limit:]), "info": []}
 
@@ -25,10 +24,9 @@ def KC(data, limit):
     # Middle Line: 20-day exponential moving average
     # Upper Channel Line: 20-day EMA + (2 x ATR(10))
     # Lower Channel Line: 20-day EMA - (2 x ATR(10))
-    start = Config.MAGIC_LIMIT
-    close = data["close"]
-    high = data["high"]
-    low = data["low"]
+    close = data.close
+    high = data.high
+    low = data.low
 
     mid = talib.SMA(close, 20)
     upperch = mid + (2 * talib.ATR(high, low, close, 10))
@@ -46,7 +44,7 @@ def KC(data, limit):
 @indicator("ICM", ["leading_span_a", "leading_span_b", "base_line"])
 def ICM(data, limit):
     margin = Config.MARGIN
-    high, low, close = data["high"], data["low"], data["close"]
+    high, low, close = data.high, data.low, data.close
     close_size = close.size
 
     # Tenkan-sen (Conversion Line): (9-period high + 9-period low)/2))

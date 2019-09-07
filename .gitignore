@@ -23,3 +23,5 @@ report.html
 *.csv
 *.ipynb
 *.h5
+*.iml
+.idea/

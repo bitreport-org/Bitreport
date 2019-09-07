@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 import requests
-import logging
 
-from app.exchanges.helpers import insert_candles
 from .base import BaseExchange
 
 
@@ -10,6 +8,7 @@ class Binance(BaseExchange):
     timeframes = ["1h", "2h", "6h", "12h", "24h"]
     name = "Binance"
     pool = 5
+    time_precision = "ms"
 
     @staticmethod
     def _pair_format(pair: str) -> str:
@@ -34,33 +33,25 @@ class Binance(BaseExchange):
         }
         return json_body
 
-    def fetch_candles(self, pair: str, timeframe: str, limit: int = 500) -> bool:
-        measurement = pair + timeframe
-        pair_formated = self._pair_format(pair)
+    def fetch_candles(self, timeframe: str, limit: int = 500) -> bool:
+        measurement = self.pair + timeframe
+        pair_formated = self._pair_format(self.pair)
 
         # Map timeframes for Binance
-        timeframeR = timeframe
-        if timeframe == "24h":
-            timeframeR = "1d"
-        elif timeframe == "168h":
-            timeframeR = "1w"
+        mapped_tf = "1d" if timeframe == "24h" else timeframe
+        mapped_tf = "12" if mapped_tf == "168h" else mapped_tf
 
         # max last 500 candles
         url = f"https://api.binance.com/api/v1/klines"
-        params = {"symbol": pair_formated, "interval": timeframeR, "limit": limit}
+        params = {"symbol": pair_formated, "interval": mapped_tf, "limit": limit}
 
-        request = requests.get(url, params=params)
-        response = request.json()
+        response = requests.get(url, params=params)
+        body = response.json()
 
-        if not isinstance(response, list) or request.status_code != 200:
-            logging.info(
-                f"FAILED {measurement} Binance response: {response.get('msg', 'no error')}"
-            )
+        if not isinstance(body, list) or response.status_code != 200:
+            self.log_error(response)
             return False
 
         # Make candles
-        points = [self.json(measurement, row) for row in response]
-
-        result = insert_candles(points, measurement, self.name, time_precision="ms")
-
-        return result
+        points = [self.json(measurement, row) for row in body]
+        return self.insert_candles(points, measurement)

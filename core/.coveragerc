@@ -1,4 +1,5 @@
 [run]
 omit =
-    core/app/ta/peaks.py
-
+    core/app/vendors/*
+    core/app/utils/sample_prices.py
+    core/app/queue/worker.py

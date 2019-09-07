@@ -1,13 +1,11 @@
 import celery
-from flask import current_app
 from celery.exceptions import SoftTimeLimitExceeded
 
 from app.exchanges.filler import update_pair_data
-from app.exchanges.helpers import downsample_all_timeframes
-from app.database.helpers import get_all_pairs
+from app.models.influx import downsample_all_timeframes, get_all_pairs
 
 
-@celery.task(
+@celery.task(  # pylint:disable=not-callable
     name="app.queue.tasks.fill_pair",
     bind=True,
     soft_time_limit=12,
@@ -23,7 +21,7 @@ def fill_pair(self, pair: str) -> bool:
             return self.retry(exc=exc, countdown=60)
 
 
-@celery.task(name="app.queue.tasks.fill_influx")
+@celery.task(name="app.queue.tasks.fill_influx")  # pylint:disable=not-callable
 def fill_influx() -> None:
     pairs = get_all_pairs()
 
@@ -31,7 +29,6 @@ def fill_influx() -> None:
         fill_pair.delay(pair)
 
 
-@celery.task(name="app.queue.tasks.downsample")
+@celery.task(name="app.queue.tasks.downsample")  # pylint:disable=not-callable
 def downsample(pair) -> None:
-    ctx = current_app.app_context()
-    downsample_all_timeframes(ctx, pair)
+    downsample_all_timeframes(pair)

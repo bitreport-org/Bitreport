@@ -1,11 +1,9 @@
-import numpy as np
 from functools import reduce
-from collections import namedtuple
-from typing import List, Union
+from typing import List, Optional
 
+import numpy as np
 
-Point = namedtuple("Point", ["x", "y"])
-Skew = namedtuple("Skew", ["slope", "coef", "start"])
+from app.models import Point, Skew
 
 
 def _is_peak(xs: np.ndarray, ts: np.ndarray, checker: callable) -> List[Point]:
@@ -37,7 +35,7 @@ def _is_peak(xs: np.ndarray, ts: np.ndarray, checker: callable) -> List[Point]:
     return lines
 
 
-def _skew(a: Point, b: Point) -> Union[Skew, None]:
+def _skew(a: Point, b: Point) -> Optional[Skew]:
     """
     Returns skew defined by two points a and b.
     """

@@ -1,9 +1,10 @@
-from flask import request, g, Flask
-import colors
 import time
+
+import colors
+from flask import Flask, g, request
 import sentry_sdk
-from sentry_sdk.integrations.flask import FlaskIntegration
 from sentry_sdk.integrations.celery import CeleryIntegration
+from sentry_sdk.integrations.flask import FlaskIntegration
 
 
 def sentry_init(app: Flask) -> bool:

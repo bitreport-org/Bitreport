@@ -17,9 +17,21 @@ repos:
           language: docker_image
           entry: koalaman/shellcheck:stable -e SC1091 -e SC2181
           types: [shell]
-      -   id: pytest
-          name: Runs all unit tests with pytest using vcrpy
+      -   id: pylint
+          name: Runs pylint for core/app
           language: system
-          entry: pytest --cov=core/app --cov-config core/.coveragerc --vcr-record=none
+          entry: pylint --rcfile=core/pylintrc --output-format=colorized core/app
+          pass_filenames: false
+          always_run: true
+      -   id: pylint_test
+          name: Runs pylint for core/tests
+          language: system
+          entry: pylint --rcfile=core/pylintrc --output-format=colorized --disable="unused-argument,protected-access,invalid-name" core/app
+          pass_filenames: false
+          always_run: true
+      -   id: pytest
+          name: Runs all unit tests with pytest
+          language: system
+          entry: pytest --cov=core/app --cov-config core/.coveragerc
           pass_filenames: false
           always_run: true

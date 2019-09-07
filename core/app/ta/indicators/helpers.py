@@ -1,42 +1,26 @@
-import logging
-import traceback
-
-
-from .custom import *
-from .talib import *
-
-
-def empty(keys: list) -> dict:
-    d = {k: [] for k in keys}
-    d["info"] = []
-    return d
-
+from app.models import Series
+from app.ta.indicators.custom import EWO, ICM, KC
+from app.ta.indicators.talib import BB, EMA, MACD, MOM, OBV, RSI, SMA, STOCH, STOCHRSI
 
 INDICATORS = {
-    "KC": (KC, ["upper_band", "middle_band", "lower_band"]),
-    "EWO": (EWO, ["ewo"]),
-    "ICM": (ICM, ["leading_span_a", "leading_span_b", "base_line"]),
-    "BB": (BB, ["upper_band", "middle_band", "lower_band"]),
-    "EMA": (EMA, ["fast", "medium", "slow"]),
-    "SMA": (SMA, ["fast", "medium", "slow"]),
-    "RSI": (RSI, ["rsi"]),
-    "OBV": (OBV, ["obv"]),
-    "MOM": (MOM, ["mom"]),
-    "MACD": (MACD, ["macd", "signal", "histogram"]),
-    "STOCH": (STOCH, ["k", "d"]),
-    "STOCHRSI": (STOCHRSI, ["k", "d"]),
+    "KC": KC,
+    "EWO": EWO,
+    "ICM": ICM,
+    "BB": BB,
+    "EMA": EMA,
+    "SMA": SMA,
+    "RSI": RSI,
+    "OBV": OBV,
+    "MOM": MOM,
+    "MACD": MACD,
+    "STOCH": STOCH,
+    "STOCHRSI": STOCHRSI,
 }
 
 
-def make_indicators(data: dict, limit: int):
+def make_indicators(data: Series, limit: int):
     output = dict()
-    for name, (f, default) in INDICATORS.items():
-        try:
-            output[name] = f(data, limit)
-        # Broad exception because TA-Lib has low level
-        # errors and because there's a lot of magic...
-        except:
-            logging.error(f"Indicator {name}, error: /n {traceback.format_exc()}")
-            output[name] = empty(default)
+    for indicator in INDICATORS.values():
+        output.update(indicator(data=data, limit=limit))
 
     return output

@@ -1,3 +1,5 @@
+from unittest import mock
+
 from config import BaseConfig
 
 
@@ -51,6 +53,17 @@ class TestPairEndpoint:
     pair = "BTCUSD"
     timeframe = "1h"
     limit = 100
+
+    @mock.patch("app.ta.data_factory.PairData")
+    def test_last_timestamp(self, mock_factory, app):
+        mock_factory.return_value.prepare.return_value = (200, dict())
+
+        response = app.client.get(
+            f"/TEST?limit={self.limit}&timeframe={'12h'}&last_timestamp=1000"
+        )
+
+        mock_factory.assert_called_with("TEST", "12h", self.limit, 1000)
+        assert response.status_code == 200
 
     def test_response_json(self, app, filled_influx):
         response = app.client.get(

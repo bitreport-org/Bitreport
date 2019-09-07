@@ -1,4 +1,4 @@
-from config import BaseConfig, Production, Test, Development
+from config import BaseConfig, Development, Production, Test
 
 
 class TestConfig:

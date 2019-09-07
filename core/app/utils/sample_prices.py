@@ -1,8 +1,9 @@
-import numpy as np
 from collections import namedtuple
+
+import numpy as np
 from numpy.random import normal
 
-from app.exchanges.helpers import insert_candles
+from app.models.influx import insert_candles
 from app.ta.constructors import Point
 from config import BaseConfig
 
@@ -145,7 +146,7 @@ def save_sample(sample: Sample, name: str) -> bool:
     margin = np.array([sample.close[0]] * BaseConfig.MAGIC_LIMIT)
     points = np.concatenate([margin, sample.close])
     points = [_sample_dict(name, i, x) for i, x in enumerate(points)]
-    return insert_candles(points, name, "test", time_precision="s", verbose=False)
+    return insert_candles(points, "s")
 
 
 def init_samples() -> None:
@@ -164,5 +165,5 @@ def init_samples() -> None:
         ("chan", channel()),
     ]
 
-    for name, s in samples:
-        save_sample(s, name)
+    for name, sample in samples:
+        save_sample(sample, name)

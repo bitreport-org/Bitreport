@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 import time
+
 import requests
-import logging
 
+from app.models.influx import check_last_timestamp
 
-from app.exchanges.helpers import insert_candles
-from app.database.helpers import check_last_timestamp
 from .base import BaseExchange
 
 
 class Bitfinex(BaseExchange):
     timeframes = ["1h", "3h", "6h", "12h", "24h"]
     name = "Bitfinex"
+    time_precision = "ms"
 
     def json(self, measurement: str, row: list) -> dict:
         json_body = {
@@ -28,38 +28,30 @@ class Bitfinex(BaseExchange):
         }
         return json_body
 
-    def fetch_candles(self, pair: str, timeframe: str) -> bool:
-        measurement = pair + timeframe
-
-        timeframeR = timeframe
-        if timeframe == "24h":
-            timeframeR = "1D"
-
+    def fetch_candles(self, timeframe: str) -> bool:
+        measurement = self.pair + timeframe
         start = (check_last_timestamp(measurement)) * 1000  # ms
         end = (int(time.time()) + 100) * 1000  # ms
 
-        url = f"https://api-pub.bitfinex.com/v2/candles/trade:{timeframeR}:t{pair}/hist"
+        btimeframe = "1D" if timeframe == "24h" else timeframe
+        url = f"https://api-pub.bitfinex.com/v2/candles/trade:{btimeframe}:t{self.pair}/hist"
         params = {"start": start, "end": end, "limit": 5000}
 
-        request = requests.get(url, params=params)
-        response = request.json()
+        response = requests.get(url, params=params)
+        body = response.json()
 
         # Check if response was successful
-        if request.status_code != 200:
-            logging.info(f"No success {response}")
-            return False
-
-        if not isinstance(response, list):
-            logging.info("Bitfinex response is not a list.")
-            return False
-
-        if (response and response[0] == "error") or (not response):
-            logging.info(f"Bitfinex response failed: {response}")
+        success = (
+            response.status_code == 200
+            and body
+            and isinstance(body, list)
+            and body[0] != "error"
+        )
+        if not success:
+            self.log_error(response)
             return False
 
         # Make candles
-        points = [self.json(measurement, row) for row in response]
+        points = [self.json(measurement, row) for row in body]
 
-        result = insert_candles(points, measurement, self.name, time_precision="ms")
-
-        return result
+        return self.insert_candles(points, measurement)

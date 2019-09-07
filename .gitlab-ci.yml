@@ -22,7 +22,7 @@ Test core:
     - . venv/bin/activate
     - pip install --upgrade pip
     - pip install -r core/requirements.txt
-    - pytest --cov=core/app --cov-config core/.coveragerc --vcr-record=none
+    - pytest --cov=core/app --cov-config core/.coveragerc
   cache:
     key: core-packages
     paths:

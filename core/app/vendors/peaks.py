@@ -58,7 +58,7 @@ def detect_peaks(
     if valley:
         x = -x
         if mph is not None:
-            mph = -mph
+            mph = -mph  # pylint:disable=invalid-unary-operand-type
     # find indices of all peaks
     dx = x[1:] - x[:-1]
     # handle NaN's

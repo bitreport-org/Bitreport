@@ -1,4 +1,5 @@
 from celery import Celery
+
 import celeryconfig
 
 
@@ -13,7 +14,6 @@ def make_celery(app):
 
         def __call__(self, *args, **kwargs):
             with app.app_context():
-                print("Works")
                 return self.run(*args, **kwargs)
 
     celery.Task = ContextTask

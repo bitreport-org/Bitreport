@@ -10,7 +10,7 @@ volumes:
 services:
   core:
     build: ./core
-    image: &img core
+    image: core
     environment: &env
       - PYTHONUNBUFFERED=1
       - FLASK_ENV=development
@@ -61,7 +61,7 @@ services:
       - redis
 
   influx:
-    image: influxdb:1.5.2-alpine
+    image: influxdb:1.7.8
     environment:
       - INFLUXDB_LOGGING_LEVEL=warn
     ports:

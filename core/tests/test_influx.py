@@ -1,16 +1,15 @@
-from app.database.models import influx_db
-from app.database.helpers import get_candles
+from app.models import Series
+from app.models.influx import get_candles
 
 
 class TestInflux:
-    def test(self, app):
-        with app.ctx:
-            ms = influx_db.connection.get_list_measurements()
+    def test2(self, filled_influx):
+        xs = get_candles("TEST", "1h", 10)
 
-        assert isinstance(ms, list)
+        assert isinstance(xs, Series)
 
-    def test2(self, app, filled_influx):
-        with app.ctx:
-            xs = get_candles("TEST", "1h", 10)
+    def test_limit_timestamp(self, filled_influx):
+        xs = get_candles("TEST", "1h", 20, last_timestamp=1553018400)
 
-        assert isinstance(xs, dict)
+        print(xs.time, xs.close)
+        assert xs.time[-1] == 1553014800

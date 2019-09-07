@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 import requests
-import logging
 
-from app.exchanges.helpers import insert_candles
 from .base import BaseExchange
 
 
@@ -10,6 +8,7 @@ class Bittrex(BaseExchange):
     timeframes = ["1h", "24h"]
     name = "Bittrex"
     pool = 2
+    time_precision = "s"
 
     @staticmethod
     def _pair_format(pair: str) -> str:
@@ -34,10 +33,9 @@ class Bittrex(BaseExchange):
         }
         return json_body
 
-    def fetch_candles(self, pair, timeframe: str, limit: int = 0) -> bool:
-        result = False
-        measurement = pair + timeframe
-        pair_formated = self._pair_format(pair)
+    def fetch_candles(self, timeframe: str, limit: int = 0) -> bool:
+        measurement = self.pair + timeframe
+        pair_formated = self._pair_format(self.pair)
 
         timeframes = {"1h": "hour", "24h": "day"}
         btf = timeframes.get(timeframe, "1h")
@@ -45,24 +43,19 @@ class Bittrex(BaseExchange):
         url = f"https://international.bittrex.com/Api/v2.0/pub/market/GetTicks"
         params = {"marketName": pair_formated, "tickInterval": btf}
 
-        request = requests.get(url, params=params)
-        response = request.json()
+        response = requests.get(url, params=params)
+        body = response.json()
 
         # Check if response was successful
-        if "success" not in response.keys() or request.status_code != 200:
-            logging.info(
-                f"FAILED {measurement} Bitrex response: {response.get('message','no message')}"
-            )
+        if "success" not in body.keys() or response.status_code != 200:
+            self.log_error(response)
             return False
 
-        rows = response.get("result", False)
+        rows = body.get("result", False)
 
         if not rows:
-            logging.info(f"FAILED {measurement} Bitrex empty response")
-            return False
+            self.log_error(response)
 
         points = [self.json(measurement, row) for row in rows[-limit:]]
 
-        result = insert_candles(points, measurement, self.name, time_precision="s")
-
-        return result
+        return self.insert_candles(points, measurement)

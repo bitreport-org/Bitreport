@@ -1,11 +1,11 @@
+from flask import Flask, redirect
 from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
+from flask_basicauth import BasicAuth
 from werkzeug.exceptions import HTTPException
 from werkzeug.wrappers import Response
-from flask import Flask, redirect
-from flask_basicauth import BasicAuth
 
-from app.database import db, Level, Chart
+from app.models import Chart, Event, db
 
 
 class CustomAdmin(AdminIndexView):
@@ -51,19 +51,14 @@ def configure_admin(app: Flask, active: bool = False) -> Admin:
     basic_auth = BasicAuth(app)
 
     if active:
-        admin = Admin(
-            app, name="Core", template_mode="bootstrap3", index_view=CustomAdmin()
-        )
-        admin.add_view(AuthAdmin(basic_auth, Level, db.session))
-        admin.add_view(AuthAdmin(basic_auth, Chart, db.session))
+        index_view = CustomAdmin()
+        admin_type = AuthAdmin
     else:
-        admin = Admin(
-            app,
-            name="Core",
-            template_mode="bootstrap3",
-            index_view=CustomAdmin(url="/core/admin"),
-        )
-        admin.add_view(InactiveAdmin(basic_auth, Level, db.session))
-        admin.add_view(InactiveAdmin(basic_auth, Chart, db.session))
+        index_view = (CustomAdmin(url="/core/admin"),)
+        admin_type = InactiveAdmin
+
+    admin = Admin(app, name="Core", template_mode="bootstrap3", index_view=index_view)
+    admin.add_view(admin_type(basic_auth, Chart, db.session))
+    admin.add_view(admin_type(basic_auth, Event, db.session))
 
     return admin
