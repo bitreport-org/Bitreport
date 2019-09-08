@@ -15,10 +15,10 @@ def fill_pair(self, pair: str) -> bool:
     status = False
     try:
         status = update_pair_data(pair)
-    except SoftTimeLimitExceeded as exc:
+    except SoftTimeLimitExceeded:
         pass
     if status is False:
-        return self.retry(exc=exc, countdown=60)
+        return self.retry(countdown=60 * 2)
     return status
 
 
