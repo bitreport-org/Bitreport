@@ -227,10 +227,10 @@ services:
       - GENERIC_NAME=gitlab
       - GENERIC_CLIENT_ID=6bc008bc5459041e4d82c3dfd5c49c9f35373902cd0e8c398a58e6cefc89c9ba
       - GENERIC_CLIENT_SECRET=677430462ce790b6f481d8165a1299f17aff32da532782b4b8a52d15d07559c7
-      - GENERIC_AUTH_URL=http://gitlab.com/oauth/authorize
-      - GENERIC_TOKEN_URL=http://gitlab.com/oauth/token
+      - GENERIC_AUTH_URL=https://gitlab.com/oauth/authorize
+      - GENERIC_TOKEN_URL=https://gitlab.com/oauth/token
       - GENERIC_SCOPES=openid,read_user
-      - GENERIC_API_URL=http://gitlab.org/api/v3/user
+      - GENERIC_API_URL=https://gitlab.com/api/v3/user
       - PUBLIC_URL=https://bitreport.org/monitoring
       - BASE_PATH=/monitoring
       - PREFIX_ROUTES=true
