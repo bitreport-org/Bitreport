@@ -6,6 +6,7 @@ volumes:
   dashboard-settings:
   dashboard-logs:
   influx-data:
+  chronograf-data:
   postgres-data:
   redis-data:
   celery-beat-data:
@@ -219,8 +220,6 @@ services:
 
   chronograf:
     image: chronograf:1.7-alpine
-    ports:
-      - 8080:8888
     depends_on:
       - influx
     environment:
@@ -232,9 +231,14 @@ services:
       - GENERIC_TOKEN_URL=http://gitlab.com/oauth/token
       - GENERIC_SCOPES=openid,read_user
       - GENERIC_API_URL=http://gitlab.org/api/v3/user
-      - PUBLIC_URL=http://bitreport.org:8888/
+      - PUBLIC_URL=https://bitreport.org/monitoring
+      - BASE_PATH=/monitoring
+      - PREFIX_ROUTES=true
+      - PUBLIC_URL=https://bitreport.org
     networks:
       - monitoring
+    volumes:
+      - chronograf-data:/var/lib/chronograf
     deploy:
       resources:
         limits:

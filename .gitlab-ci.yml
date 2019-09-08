@@ -100,6 +100,7 @@ Deploy to production:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
     - docker stack deploy -c docker-compose.production.yml --with-registry-auth bitreport
+    - sleep 10
     - docker exec $(docker ps -q -f name=dashboard) bundle exec rails db:migrate:with_data
     - docker exec $(docker ps -q -f name=core) flask db migrate
     - docker exec $(docker ps -q -f name=core) flask db upgrade
