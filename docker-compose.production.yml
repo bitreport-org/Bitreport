@@ -10,6 +10,10 @@ volumes:
   redis-data:
   celery-beat-data:
 
+networks:
+  app:
+  monitoring:
+
 services:
   web:
     image: $CI_REGISTRY_IMAGE/web:$CI_COMMIT_REF_NAME
@@ -23,10 +27,17 @@ services:
     ports:
       - 80:80
       - 443:443
+    networks:
+      - app
+      - monitoring
     volumes:
       - /etc/cloudflare:/etc/nginx/cloudflare
       - dashboard-public:/usr/src/app/public
       - dashboard-logs:/usr/src/app/log
+    deploy:
+      resources:
+        limits:
+          memory: 100M
 
   core:
     image: $CI_REGISTRY_IMAGE/core:$CI_COMMIT_REF_NAME
@@ -39,11 +50,17 @@ services:
       - FLASK_ENV=production
       - FLASK_APP=core.py
     command: bash -c "gunicorn -b 0.0.0.0:5001 -w 1 core:app"
+    networks:
+      - app
     depends_on:
       - influx
       - postgres
     volumes:
       - core-migrations:/app/migrations/versions
+    deploy:
+      resources:
+        limits:
+          memory: 400M
 
   flower:
     image: $CI_REGISTRY_IMAGE/core:$CI_COMMIT_REF_NAME
@@ -54,8 +71,14 @@ services:
         - $CI_REGISTRY_IMAGE/core:$CI_COMMIT_REF_NAME
     environment: *env
     command: bash -c "flower -A core.celery --basic_auth=admin:magicPassword --url_prefix=core/tasks"
+    networks:
+      - app
     depends_on:
       - celery
+    deploy:
+      resources:
+        limits:
+          memory: 400M
 
   celery:
     image: $CI_REGISTRY_IMAGE/core:$CI_COMMIT_REF_NAME
@@ -65,10 +88,16 @@ services:
         - $CI_REGISTRY_IMAGE/core:$CI_COMMIT_REF_NAME
     environment: *env
     command: bash -c "celery worker -A core.celery -n johnny@%h"
+    networks:
+      - app
     depends_on:
       - redis
       - influx
       - postgres
+    deploy:
+      resources:
+        limits:
+          memory: 400M
 
   celery-beat:
     image: $CI_REGISTRY_IMAGE/core:$CI_COMMIT_REF_NAME
@@ -78,19 +107,28 @@ services:
         - $CI_REGISTRY_IMAGE/core:$CI_COMMIT_REF_NAME
     environment: *env
     command: bash -c "celery beat -A core.celery --schedule=tmp/celerybeat-schedule --pidfile=tmp/celerybeat.pid"
+    networks:
+      - app
     depends_on:
       - redis
+    deploy:
+      resources:
+        limits:
+          memory: 400M
 
   influx:
-    image: influxdb:1.7.8
+    image: influxdb:1.7.8-alpine
     environment:
       - INFLUXDB_LOGGING_LEVEL=warn
     volumes:
       - influx-data:/var/lib/influxdb
+    networks:
+      - app
+      - monitoring
     deploy:
       resources:
         limits:
-          memory: 1G
+          memory: 1.3G
 
   dashboard:
     image: $CI_REGISTRY_IMAGE/dashboard:$CI_COMMIT_REF_NAME
@@ -105,21 +143,39 @@ services:
       - redis
       - core
       - sidekiq
+    networks:
+      - app
     volumes:
       - dashboard-public:/usr/src/app/public
       - dashboard-settings:/usr/src/app/config/settings
       - dashboard-logs:/usr/src/app/log
+    deploy:
+      resources:
+        limits:
+          memory: 400M
 
   postgres:
     image: postgres:10.4-alpine
+    networks:
+      - app
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          memory: 200M
 
   redis:
     command: redis-server
     image: redis:4.0.11-alpine
+    networks:
+      - app
     volumes:
       - redis-data:/data
+    deploy:
+      resources:
+        limits:
+          memory: 100M
 
   sidekiq:
     image: $CI_REGISTRY_IMAGE/dashboard:$CI_COMMIT_REF_NAME
@@ -130,6 +186,8 @@ services:
         - $CI_REGISTRY_IMAGE/dashboard:$CI_COMMIT_REF_NAME
     env_file: dashboard/.docker/production.env
     command: bundle exec sidekiq -C config/sidekiq.yml
+    networks:
+      - app
     depends_on:
       - postgres
       - redis
@@ -137,3 +195,47 @@ services:
       - dashboard-public:/usr/src/app/public
       - dashboard-settings:/usr/src/app/config/settings
       - dashboard-logs:/usr/src/app/log
+    deploy:
+      resources:
+        limits:
+          memory: 400M
+
+  telegraf:
+    image: telegraf:1.11-alpine
+    networks:
+      - monitoring
+    depends_on:
+      - influx
+    environment:
+      - HOST_PROC=/host/proc
+    volumes:
+      - /proc:/host/proc:ro
+      - ./images/config/telegraf.conf:/etc/telegraf/telegraf.conf
+      - /var/run/docker.sock:/var/run/docker.sock
+    deploy:
+      resources:
+        limits:
+          memory: 100M
+
+  chronograf:
+    image: chronograf:1.7-alpine
+    ports:
+      - 8080:8888
+    depends_on:
+      - influx
+    environment:
+      - TOKEN_SECRET=IADSOu90r2hijwfe
+      - GENERIC_NAME=gitlab
+      - GENERIC_CLIENT_ID=6bc008bc5459041e4d82c3dfd5c49c9f35373902cd0e8c398a58e6cefc89c9ba
+      - GENERIC_CLIENT_SECRET=677430462ce790b6f481d8165a1299f17aff32da532782b4b8a52d15d07559c7
+      - GENERIC_AUTH_URL=http://gitlab.com/oauth/authorize
+      - GENERIC_TOKEN_URL=http://gitlab.com/oauth/token
+      - GENERIC_SCOPES=openid,read_user
+      - GENERIC_API_URL=http://gitlab.org/api/v3/user
+      - PUBLIC_URL=http://bitreport.org:8888/
+    networks:
+      - monitoring
+    deploy:
+      resources:
+        limits:
+          memory: 100M

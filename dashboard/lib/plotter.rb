@@ -60,7 +60,9 @@ class Plotter
     io = IO.popen('gnuplot -persist', 'w+')
     io << out.join("\n")
     io.close_write
-    io.read
+    result = io.read
+    io.close
+    result
   end
 
   private
