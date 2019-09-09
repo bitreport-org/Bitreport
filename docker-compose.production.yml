@@ -121,6 +121,9 @@ services:
     image: influxdb:1.7.8-alpine
     environment:
       - INFLUXDB_LOGGING_LEVEL=warn
+      - INFLUXDB_DATA_WAL_FSYNC_DELAY=200ms
+      - INFLUXDB_DATA_INDEX_VERSION=tsi1
+      - INFLUXDB_DATA_CACHE_MAX_MEMORY_SIZE=600m
     volumes:
       - influx-data:/var/lib/influxdb
     networks:
