@@ -129,6 +129,7 @@ services:
     networks:
       - app
       - monitoring
+    hostname: influx
     deploy:
       resources:
         limits:
