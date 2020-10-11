@@ -12,7 +12,11 @@
 
 
 # Bitreport
-Daily bitfinex report
+Automated technical analysis reports for cryptocurrencies 🚀
+
+This project was used to generate content for: https://twitter.com/Bitreport_org.
+
+However, we decided to abandond it and open-source our code. Hopefully someone may find this helpfull.
 
 ## Setup
 Everything is dockerized here, so all you need is docker. Just run `docker-compose up` and you're good to go.
