@@ -15,7 +15,7 @@ backcall==0.1.0
 billiard==3.6.0.0
 black==19.3b0
 blinker==1.4
-celery==4.3.0
+celery==5.2.2
 certifi==2018.11.29
 cfgv==2.0.0
 chardet==3.0.4
